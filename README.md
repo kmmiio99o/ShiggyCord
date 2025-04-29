@@ -3,7 +3,7 @@ A mod for Discord on Android
 
 ## Installing
 
-- **Root** with Xposed - [BunnyXposed](https://github.com/C0C0B01/PupuXposed/releases/latest)
+- **Root** with Xposed - [PupuXposed](https://github.com/C0C0B01/PupuXposed/releases/latest)
 - **Non-root** - [PupuManager](https://github.com/C0C0B01/PupuManager/releases/latest)
 
 ## Building
