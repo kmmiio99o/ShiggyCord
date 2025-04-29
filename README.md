@@ -1,38 +1,29 @@
-> [!IMPORTANT]
-> ### This project has been halted indefinitely.
-> As a result, no user support or updates (including maintenance) will be provided.
-
-# Bunny [![Discord](https://img.shields.io/discord/1196075698301968455?style=social&logo=discord&label=Pyoncord)](https://discord.gg/XjYgWXHb9Q)
-A mod for Discord's mobile apps.
+# Pupu
+A mod for Discord on Android
 
 ## Installing
 
-### Android
-
-- **Root** with Xposed - [BunnyXposed](https://github.com/pyoncord/BunnyXposed/releases/latest)
-- **Non-root** - [BunnyManager](https://github.com/pyoncord/BunnyManager/releases/latest)
-
-### iOS
-- [**BunnyTweak**](https://github.com/pyoncord/BunnyTweak) - Get prebuilt rootful and rootless `.deb` files or the prepatched `.ipa `
+- **Root** with Xposed - [BunnyXposed](https://github.com/C0C0B01/PupuXposed/releases/latest)
+- **Non-root** - [PupuManager](https://github.com/C0C0B01/PupuManager/releases/latest)
 
 ## Building
-1. Install a Bunny loader with loader config support (any mentioned in the [Installing](#installing) section).
+1. Install a Pupu loader with loader config support (any mentioned in the [Installing](#installing) section).
 1. Go to Settings > General and enable Developer Settings.
 1. Clone the repo:
     ```
-    git clone https://github.com/pyoncord/Bunny
+    git clone https://github.com/C0C0B01/Pupu
     ```
 1. Install dependencies:
     ```
     pnpm i
     ```
-1. Build Bunny's code:
+1. Build Pupu's code:
     ```
     pnpm build
     ```
 1. In the newly created `dist` directory, run a HTTP server. I recommend [http-server](https://www.npmjs.com/package/http-server).
 1. Go to Settings > Developer enabled earlier. Enable `Load from custom url` and input the IP address and port of the server (e.g. `http://192.168.1.236:4040/bunny.js`) in the new input box labelled `Bunny URL`.
-1. Restart Discord. Upon reload, you should notice that your device will download Bunny's bundled code from your server, rather than GitHub.
+1. Restart Discord. Upon reload, you should notice that your device will download Pupu's bundled code from your server, rather than GitHub.
 1. Make your changes, rebuild, reload, go wild!
 
 Alternatively, you can directly *serve* the bundled code by running `pnpm serve`. `bunny.js` will be served on your local address under the port 4040. You will then insert `http://<local ip address>:4040/bunny.js` as a custom url and reload. Whenever you restart your mobile client, the script will rebuild the bundle as your client fetches it.
