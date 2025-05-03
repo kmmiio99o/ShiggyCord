@@ -9,7 +9,7 @@ import { TouchableOpacity, View } from "react-native";
 const { hideActionSheet } = lazyDestructure(() => findByProps("openLazy", "hideActionSheet"));
 const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
 
-// TODO: These styles work weirdly. iOS has cramped text, Android with low DPI probably does too. Fix?
+// TODO: These styles work weirdly. Low DPI Has cramped text. Fix?
 const useStyles = createStyles({
     card: {
         backgroundColor: semanticColors?.CARD_SECONDARY_BG,

@@ -17,7 +17,7 @@ export default () => <ApplicationCommand>{
         const info = getDebugInfo();
         const content = [
             "**Pupu Debug Info**",
-            `> Bunny: ${info.bunny.version} (${info.bunny.loader.name} ${info.bunny.loader.version})`,
+            `> Pupu: ${info.pupu.version} (${info.pupu.loader.name} ${info.pupu.loader.version})`,
             `> Discord: ${info.discord.version} (${info.discord.build})`,
             `> React: ${info.react.version} (RN ${info.react.nativeVersion})`,
             `> Hermes: ${info.hermes.version} (bcv${info.hermes.bytecodeVersion})`,

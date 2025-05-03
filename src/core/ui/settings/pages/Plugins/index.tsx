@@ -85,7 +85,7 @@ export default function Plugins() {
                                 icon={findAssetId("CircleInformationIcon-primary")}
                                 style={{ marginLeft: 8 }}
                                 onPress={() => {
-                                    navigation.push("BUNNY_CUSTOM_PAGE", {
+                                    navigation.push("PUPU_CUSTOM_PAGE", {
                                         title: "Unproxied Plugins",
                                         render: () => {
                                             return <FlashList
@@ -111,7 +111,7 @@ export default function Plugins() {
                 text="Browse Plugins"
                 icon={findAssetId("CompassIcon")}
                 onPress={() => {
-                    navigation.push("BUNNY_CUSTOM_PAGE", {
+                    navigation.push("PUPU_CUSTOM_PAGE", {
                         title: "Plugin Browser",
                         render: React.lazy(() => import("../PluginBrowser")),
                     });

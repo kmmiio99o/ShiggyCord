@@ -1,4 +1,4 @@
-import PyoncordIcon from "@assets/icons/pyoncord.png";
+import PupuIcon from "@assets/icons/pupu.png";
 import { Strings } from "@core/i18n";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
@@ -7,7 +7,7 @@ import { settings } from "@lib/api/settings";
 import { registerSection } from "@ui/settings";
 import { version } from "bunny-build-info";
 
-export { PyoncordIcon };
+export { PupuIcon };
 
 export default function initSettings() {
     registerSection({
@@ -15,8 +15,8 @@ export default function initSettings() {
         items: [
             {
                 key: "BUNNY",
-                title: () => Strings.BUNNY,
-                icon: { uri: PyoncordIcon },
+                title: () => Strings.PUPU,
+                icon: { uri: PupuIcon },
                 render: () => import("@core/ui/settings/pages/General"),
                 useTrailing: () => `(${version})`
             },

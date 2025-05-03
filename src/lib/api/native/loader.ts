@@ -27,6 +27,10 @@ export function isPyonLoader() {
     return pyonLoaderIdentity != null;
 }
 
+export function isPupuLoader() {
+    return pyonLoaderIdentity != null;
+}
+
 function polyfillVendettaLoaderIdentity() {
     if (!isPyonLoader() || isVendettaLoader()) return null;
 
@@ -94,6 +98,7 @@ getVendettaLoaderIdentity();
 
 export function getLoaderName() {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderName;
+    else if (isPupuLoader()) return pyonLoaderIdentity.loaderName;
     else if (isVendettaLoader()) return vendettaLoaderIdentity.name;
 
     return "Unknown";

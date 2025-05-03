@@ -50,9 +50,9 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             },
             BUNNY_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "Bunny",
+                title: () => "Pupu",
                 screen: {
-                    route: "BUNNY_CUSTOM_PAGE",
+                    route: "PUPU_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
                 }
             },

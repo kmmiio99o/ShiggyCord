@@ -1,4 +1,4 @@
-import { PyoncordIcon } from "@core/ui/settings";
+import { PupuIcon } from "@core/ui/settings";
 import { disablePlugin, enablePlugin, getPluginSettingsComponent, isPluginEnabled, pluginSettings } from "@lib/addons/plugins";
 import { BunnyPluginManifest } from "@lib/addons/plugins/types";
 import { useObservable } from "@lib/api/storage";
@@ -14,7 +14,7 @@ export default function unifyBunnyPlugin(manifest: BunnyPluginManifest): Unified
 
         getBadges() {
             return [
-                { source: { uri: PyoncordIcon } },
+                { source: { uri: PupuIcon } },
                 // { source: findAssetId("CheckmarkLargeBoldIcon")! }
             ];
         },

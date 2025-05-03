@@ -21,10 +21,10 @@ export interface RNConstants extends PlatformConstants {
     ServerHost?: string;
 
     // iOS
-    forceTouchAvailable: boolean;
-    interfaceIdiom: string;
-    osVersion: string;
-    systemName: string;
+//    forceTouchAvailable: boolean;
+//    interfaceIdiom: string;
+//    osVersion: string;
+//    systemName: string;
 }
 
 /**
@@ -152,14 +152,14 @@ export function getDebugInfo() {
                         codename: NativeDeviceModule.device
                     }
                 },
-                ios: {
-                    device: {
-                        manufacturer: NativeDeviceModule.deviceManufacturer,
-                        brand: NativeDeviceModule.deviceBrand,
-                        model: NativeDeviceModule.deviceModel,
-                        codename: NativeDeviceModule.device
-                    }
-                }
+//                ios: {
+//                    device: {
+//                        manufacturer: NativeDeviceModule.deviceManufacturer,
+//                        brand: NativeDeviceModule.deviceBrand,
+//                        model: NativeDeviceModule.deviceModel,
+//                        codename: NativeDeviceModule.device
+//                    }
+//                }
             }
         )!
     };

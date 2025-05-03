@@ -71,7 +71,7 @@ const config = {
                             transform: {
                                 constModules: {
                                     globals: {
-                                        "pupu-build-info": {
+                                        "bunny-build-info": {
                                             version: `"${context.hash}-${releaseBranch ?? "local"}"`
                                         }
                                     }

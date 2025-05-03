@@ -58,7 +58,7 @@ export function createProxy(target: any = {}): { proxy: any; emitter: Emitter; }
                     path: [...path, prop],
                     value: target[prop],
                 });
-                // we do not care about success, if this actually does fail we have other problems
+                // we do not care about success, if this actually does fail we have bigger issues
                 return true;
             },
 

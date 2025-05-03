@@ -75,7 +75,7 @@ function blacklistModule(id: number) {
 function isBadExports(exports: any) {
     return !exports
         || exports === window
-        || exports["<!@ pylix was here :fuyusquish: !@>"] === null
+        || exports["<!@ pylix was here :fuyusquish: \n Hi pylix! -cocobo1!@>"] === null
         || (exports.__proto__ === Object.prototype && Reflect.ownKeys(exports).length === 0)
         || (exports.default?.[Symbol.toStringTag] === "IntlMessagesProxy");
 }
