@@ -16,7 +16,7 @@ export default () => <ApplicationCommand>{
     execute([ephemeral], ctx) {
         const info = getDebugInfo();
         const content = [
-            "**Bunny Debug Info**",
+            "**Pupu Debug Info**",
             `> Bunny: ${info.bunny.version} (${info.bunny.loader.name} ${info.bunny.loader.version})`,
             `> Discord: ${info.discord.version} (${info.discord.build})`,
             `> React: ${info.react.version} (RN ${info.react.nativeVersion})`,
