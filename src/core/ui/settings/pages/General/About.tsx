@@ -14,7 +14,7 @@ export default function About() {
     const versions = [
         {
             label: Strings.PUPU,
-            version: debugInfo.pupu.version,
+            version: debugInfo.bunny.version,
             icon: { uri: PupuIcon },
         },
         {
@@ -42,7 +42,7 @@ export default function About() {
     const platformInfo = [
         {
             label: Strings.LOADER,
-            version: `${debugInfo.pupu.loader.name} (${debugInfo.pupu.loader.version})`,
+            version: `${debugInfo.bunny.loader.name} (${debugInfo.bunny.loader.version})`,
             icon: "DownloadIcon",
         },
         {

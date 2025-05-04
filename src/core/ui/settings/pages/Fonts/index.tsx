@@ -28,7 +28,7 @@ export default function Fonts() {
             installAction={{
                 label: "Install a font",
                 onPress: () => {
-                    navigation.push("PUPU_CUSTOM_PAGE", {
+                    navigation.push("BUNNY_CUSTOM_PAGE", {
                         title: "Import Font",
                         render: () => <FontEditor />
                     });

@@ -5976,7 +5976,7 @@
     var versions = [
       {
         label: Strings.PUPU,
-        version: debugInfo.pupu.version,
+        version: debugInfo.bunny.version,
         icon: {
           uri: pupu_default
         }
@@ -6005,7 +6005,7 @@
     var platformInfo = [
       {
         label: Strings.LOADER,
-        version: `${debugInfo.pupu.loader.name} (${debugInfo.pupu.loader.version})`,
+        version: `${debugInfo.bunny.loader.name} (${debugInfo.bunny.loader.version})`,
         icon: "DownloadIcon"
       },
       {
@@ -14713,7 +14713,7 @@
                   children: [
                     /* @__PURE__ */ jsx(IconButton, {
                       onPress: () => {
-                        navigation2.push("PUPU_CUSTOM_PAGE", {
+                        navigation2.push("BUNNY_CUSTOM_PAGE", {
                           title: "Edit Font",
                           render: () => /* @__PURE__ */ jsx(FontEditor, {
                             name: font.name
@@ -14807,7 +14807,7 @@
       installAction: {
         label: "Install a font",
         onPress: () => {
-          navigation2.push("PUPU_CUSTOM_PAGE", {
+          navigation2.push("BUNNY_CUSTOM_PAGE", {
             title: "Import Font",
             render: () => /* @__PURE__ */ jsx(FontEditor, {})
           });
