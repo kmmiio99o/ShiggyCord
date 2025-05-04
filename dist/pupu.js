@@ -4650,7 +4650,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "v0.0.1-local";
+      versionHash = v0;
     }
   });
 
@@ -15182,7 +15182,7 @@
             uri: pupu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"v0.0.1-local"})`
+          useTrailing: () => `(${v0})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15679,7 +15679,7 @@
         alert([
           "Failed to load Pupu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Pupu: ${"v0.0.1-local"}`,
+          `Pupu: ${v0}`,
           stack || e?.toString?.()
         ].join("\n"));
       }
