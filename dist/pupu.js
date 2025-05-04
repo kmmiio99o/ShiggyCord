@@ -3573,10 +3573,14 @@
   function getLoaderVersion() {
     if (isPyonLoader())
       return pyonLoaderIdentity.loaderVersion;
+    if (isPupuLoader())
+      return pyonLoaderIdentity.loaderVersion;
     return null;
   }
   function isLoaderConfigSupported() {
     if (isPyonLoader()) {
+      return true;
+    } else if (isPyonLoader()) {
       return true;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.loaderConfig;
@@ -3587,7 +3591,7 @@
     if (isPyonLoader()) {
       return pyonLoaderIdentity.hasThemeSupport;
     } else if (isPupuLoader()) {
-      return pupuLoaderIdentity.hasThemeSupport;
+      return pyonLoaderIdentity.hasThemeSupport;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.themes != null;
     }
@@ -3597,7 +3601,7 @@
     if (isPyonLoader()) {
       return pyonLoaderIdentity.storedTheme;
     } else if (isPupuLoader()) {
-      return pupuLoaderIdentity.storedTheme;
+      return pyonLoaderIdentity.storedTheme;
     } else if (isVendettaLoader()) {
       var themeProp = vendettaLoaderIdentity.features.themes?.prop;
       if (!themeProp)
@@ -3619,6 +3623,9 @@
   }
   function isReactDevToolsPreloaded() {
     if (isPyonLoader()) {
+      return Boolean(window.__reactDevTools);
+    }
+    if (isPupuLoader()) {
       return Boolean(window.__reactDevTools);
     }
     if (isVendettaLoader()) {
@@ -3660,7 +3667,7 @@
     if (isPyonLoader())
       return pyonLoaderIdentity.isSysColorsSupported;
     if (isPupuLoader())
-      return pupuLoaderIdentity.isSysColorsSupported;
+      return pyonLoaderIdentity.isSysColorsSupported;
     else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.syscolors != null;
     }
@@ -3673,7 +3680,7 @@
       return pyonLoaderIdentity.sysColors;
     }
     if (isPupuLoader()) {
-      return pupuLoaderIdentity.sysColors;
+      return pyonLoaderIdentity.sysColors;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.syscolors.prop;
     }
@@ -3682,6 +3689,8 @@
   function getLoaderConfigPath() {
     if (isPyonLoader()) {
       return "pyoncord/loader.json";
+    } else if (isPyonLoader()) {
+      return "pyoncord/loader.json";
     } else if (isVendettaLoader()) {
       return "vendetta_loader.json";
     }
@@ -3689,6 +3698,8 @@
   }
   function isFontSupported() {
     if (isPyonLoader())
+      return pyonLoaderIdentity.fontPatch === 2;
+    if (isPupuLoader())
       return pyonLoaderIdentity.fontPatch === 2;
     return false;
   }
