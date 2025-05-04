@@ -11,7 +11,7 @@ export { PupuIcon };
 
 export default function initSettings() {
     registerSection({
-        name: "Bunny",
+        name: "Pupu",
         items: [
             {
                 key: "PUPU",
