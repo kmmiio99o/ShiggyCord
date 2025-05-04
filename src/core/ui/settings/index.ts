@@ -14,7 +14,7 @@ export default function initSettings() {
         name: "Pupu",
         items: [
             {
-                key: "BUNNY",
+                key: "PUPU",
                 title: () => Strings.PUPU,
                 icon: { uri: PupuIcon },
                 render: () => import("@core/ui/settings/pages/General"),
@@ -54,6 +54,12 @@ export default function initSettings() {
     // Flaw: in the old UI, this will be displayed anyway with no items
     registerSection({
         name: "Vendetta",
+        items: []
+    });
+
+    // Compat with Bunny Plugins that use configs in settings
+    registerSection({
+        name: "Bunny",
         items: []
     });
 }

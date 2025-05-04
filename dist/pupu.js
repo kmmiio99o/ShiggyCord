@@ -15188,7 +15188,7 @@
       name: "Pupu",
       items: [
         {
-          key: "BUNNY",
+          key: "PUPU",
           title: () => Strings.PUPU,
           icon: {
             uri: pupu_default
@@ -15227,6 +15227,10 @@
     });
     registerSection({
       name: "Vendetta",
+      items: []
+    });
+    registerSection({
+      name: "Bunny",
       items: []
     });
   }
