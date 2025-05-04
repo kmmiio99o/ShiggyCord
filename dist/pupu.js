@@ -3513,9 +3513,6 @@
   function isPyonLoader() {
     return pyonLoaderIdentity != null;
   }
-  function isPupuLoader() {
-    return pyonLoaderIdentity != null;
-  }
   function polyfillVendettaLoaderIdentity() {
     if (!isPyonLoader() || isVendettaLoader())
       return null;
@@ -3564,8 +3561,6 @@
   function getLoaderName() {
     if (isPyonLoader())
       return pyonLoaderIdentity.loaderName;
-    else if (isPupuLoader())
-      return pyonLoaderIdentity.loaderName;
     else if (isVendettaLoader())
       return vendettaLoaderIdentity.name;
     return "Unknown";
@@ -3573,14 +3568,10 @@
   function getLoaderVersion() {
     if (isPyonLoader())
       return pyonLoaderIdentity.loaderVersion;
-    if (isPupuLoader())
-      return pyonLoaderIdentity.loaderVersion;
     return null;
   }
   function isLoaderConfigSupported() {
     if (isPyonLoader()) {
-      return true;
-    } else if (isPyonLoader()) {
       return true;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.loaderConfig;
@@ -3590,8 +3581,6 @@
   function isThemeSupported() {
     if (isPyonLoader()) {
       return pyonLoaderIdentity.hasThemeSupport;
-    } else if (isPupuLoader()) {
-      return pyonLoaderIdentity.hasThemeSupport;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.themes != null;
     }
@@ -3599,8 +3588,6 @@
   }
   function getStoredTheme() {
     if (isPyonLoader()) {
-      return pyonLoaderIdentity.storedTheme;
-    } else if (isPupuLoader()) {
       return pyonLoaderIdentity.storedTheme;
     } else if (isVendettaLoader()) {
       var themeProp = vendettaLoaderIdentity.features.themes?.prop;
@@ -3613,9 +3600,6 @@
   function getThemeFilePath() {
     if (isPyonLoader()) {
       return "pyoncord/current-theme.json";
-    }
-    if (isPupuLoader()) {
-      return "pyoncord/current-theme.json";
     } else if (isVendettaLoader()) {
       return "vendetta_theme.json";
     }
@@ -3623,9 +3607,6 @@
   }
   function isReactDevToolsPreloaded() {
     if (isPyonLoader()) {
-      return Boolean(window.__reactDevTools);
-    }
-    if (isPupuLoader()) {
       return Boolean(window.__reactDevTools);
     }
     if (isVendettaLoader()) {
@@ -3640,10 +3621,6 @@
       window.__pyoncord_rdt = window.__reactDevTools.exports;
       return "__pyoncord_rdt";
     }
-    if (isPupuLoader()) {
-      window.__pyoncord_rdt = window.__reactDevTools.exports;
-      return "__pyoncord_rdt";
-    }
     if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.devtools.prop;
     }
@@ -3655,9 +3632,6 @@
     if (isPyonLoader()) {
       return window.__reactDevTools.version || null;
     }
-    if (isPupuLoader()) {
-      return window.__reactDevTools.version || null;
-    }
     if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.devtools.version;
     }
@@ -3665,8 +3639,6 @@
   }
   function isSysColorsSupported() {
     if (isPyonLoader())
-      return pyonLoaderIdentity.isSysColorsSupported;
-    if (isPupuLoader())
       return pyonLoaderIdentity.isSysColorsSupported;
     else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.syscolors != null;
@@ -3678,9 +3650,6 @@
       return null;
     if (isPyonLoader()) {
       return pyonLoaderIdentity.sysColors;
-    }
-    if (isPupuLoader()) {
-      return pyonLoaderIdentity.sysColors;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.syscolors.prop;
     }
@@ -3689,8 +3658,6 @@
   function getLoaderConfigPath() {
     if (isPyonLoader()) {
       return "pyoncord/loader.json";
-    } else if (isPyonLoader()) {
-      return "pyoncord/loader.json";
     } else if (isVendettaLoader()) {
       return "vendetta_loader.json";
     }
@@ -3698,8 +3665,6 @@
   }
   function isFontSupported() {
     if (isPyonLoader())
-      return pyonLoaderIdentity.fontPatch === 2;
-    if (isPupuLoader())
       return pyonLoaderIdentity.fontPatch === 2;
     return false;
   }
@@ -3710,7 +3675,7 @@
       init_asyncIteratorSymbol();
       init_promiseAllSettled();
       pyonLoaderIdentity = globalThis.__PYON_LOADER__;
-      pupuLoaderIdentity = globalThis.__PYON_LOADER__;
+      pupuLoaderIdentity = globalThis.__PUPU_LOADER__;
       vendettaLoaderIdentity = globalThis.__vendetta_loader;
       getVendettaLoaderIdentity();
     }
@@ -4681,7 +4646,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "v0.0.2-test5";
+      versionHash = "v0.0.3";
     }
   });
 
@@ -15225,7 +15190,7 @@
             uri: pupu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"v0.0.2-test5"})`
+          useTrailing: () => `(${"v0.0.3"})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15726,7 +15691,7 @@
         alert([
           "Failed to load Pupu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Pupu: ${"v0.0.2-test5"}`,
+          `Pupu: ${"v0.0.3"}`,
           stack || e?.toString?.()
         ].join("\n"));
       }

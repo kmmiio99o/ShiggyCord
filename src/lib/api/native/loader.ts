@@ -2,8 +2,10 @@ import { VdThemeInfo } from "@lib/addons/themes";
 
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
+
 // @ts-ignore
-const pupuLoaderIdentity = globalThis.__PYON_LOADER__;
+const pupuLoaderIdentity = globalThis.__PUPU_LOADER__;
+
 // @ts-ignore
 const vendettaLoaderIdentity = globalThis.__vendetta_loader;
 
@@ -82,8 +84,6 @@ function polyfillVendettaLoaderIdentity() {
 export function getLoaderIdentity() {
     if (isPyonLoader()) {
         return pyonLoaderIdentity;
-    } else if (isPupuLoader()) {
-        return pyonLoaderIdentity();
     } else if (isVendettaLoader()) {
         return getVendettaLoaderIdentity();
     }
@@ -102,7 +102,6 @@ getVendettaLoaderIdentity();
 
 export function getLoaderName() {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderName;
-    else if (isPupuLoader()) return pyonLoaderIdentity.loaderName;
     else if (isVendettaLoader()) return vendettaLoaderIdentity.name;
 
     return "Unknown";
@@ -110,14 +109,11 @@ export function getLoaderName() {
 
 export function getLoaderVersion(): string | null {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderVersion;
-    if (isPupuLoader()) return pyonLoaderIdentity.loaderVersion;
     return null;
 }
 
 export function isLoaderConfigSupported() {
     if (isPyonLoader()) {
-        return true;
-    } else if (isPyonLoader()) {
         return true;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.loaderConfig;
@@ -129,8 +125,6 @@ export function isLoaderConfigSupported() {
 export function isThemeSupported() {
     if (isPyonLoader()) {
         return pyonLoaderIdentity.hasThemeSupport;
-    } else if (isPupuLoader()) {
-        return pyonLoaderIdentity.hasThemeSupport;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.themes != null;
     }
@@ -140,8 +134,6 @@ export function isThemeSupported() {
 
 export function getStoredTheme(): VdThemeInfo | null {
     if (isPyonLoader()) {
-        return pyonLoaderIdentity.storedTheme;
-    } else if (isPupuLoader()) {
         return pyonLoaderIdentity.storedTheme;
     } else if (isVendettaLoader()) {
         const themeProp = vendettaLoaderIdentity!!.features.themes?.prop;
@@ -156,8 +148,6 @@ export function getStoredTheme(): VdThemeInfo | null {
 export function getThemeFilePath() {
     if (isPyonLoader()) {
         return "pyoncord/current-theme.json";
-    } if (isPupuLoader()) {
-        return "pyoncord/current-theme.json";
     } else if (isVendettaLoader()) {
         return "vendetta_theme.json";
     }
@@ -167,9 +157,6 @@ export function getThemeFilePath() {
 
 export function isReactDevToolsPreloaded() {
     if (isPyonLoader()) {
-        return Boolean(window.__reactDevTools);
-    }
-    if (isPupuLoader()) {
         return Boolean(window.__reactDevTools);
     }
     if (isVendettaLoader()) {
@@ -187,11 +174,6 @@ export function getReactDevToolsProp(): string | null {
         return "__pyoncord_rdt";
     }
 
-    if (isPupuLoader()) {
-        window.__pyoncord_rdt = window.__reactDevTools.exports;
-        return "__pyoncord_rdt";
-    }
-
     if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.devtools!!.prop;
     }
@@ -205,9 +187,6 @@ export function getReactDevToolsVersion() {
     if (isPyonLoader()) {
         return window.__reactDevTools.version || null;
     }
-    if (isPupuLoader()) {
-        return window.__reactDevTools.version || null;
-    }
     if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.devtools!!.version;
     }
@@ -217,7 +196,6 @@ export function getReactDevToolsVersion() {
 
 export function isSysColorsSupported() {
     if (isPyonLoader()) return pyonLoaderIdentity.isSysColorsSupported;
-    if (isPupuLoader()) return pyonLoaderIdentity.isSysColorsSupported;
     else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.syscolors != null;
     }
@@ -229,8 +207,6 @@ export function getSysColors() {
     if (!isSysColorsSupported()) return null;
     if (isPyonLoader()) {
         return pyonLoaderIdentity.sysColors;
-    } if (isPupuLoader()) {
-        return pyonLoaderIdentity.sysColors;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.syscolors!!.prop;
     }
@@ -241,8 +217,6 @@ export function getSysColors() {
 export function getLoaderConfigPath() {
     if (isPyonLoader()) {
         return "pyoncord/loader.json";
-    } else if (isPyonLoader()) {
-        return "pyoncord/loader.json";
     } else if (isVendettaLoader()) {
         return "vendetta_loader.json";
     }
@@ -252,7 +226,6 @@ export function getLoaderConfigPath() {
 
 export function isFontSupported() {
     if (isPyonLoader()) return pyonLoaderIdentity.fontPatch === 2;
-    if (isPupuLoader()) return pyonLoaderIdentity.fontPatch === 2;
 
     return false;
 }
