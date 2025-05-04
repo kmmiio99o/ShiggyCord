@@ -4650,7 +4650,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "c56bcf6-local";
+      versionHash = "efebe66-local";
     }
   });
 
@@ -7581,7 +7581,7 @@
               variant: "secondary",
               icon: findAssetId("WrenchIcon"),
               disabled: !plugin.getPluginSettingsComponent(),
-              onPress: () => navigation2.push("BUNNY_CUSTOM_PAGE", {
+              onPress: () => navigation2.push("PUPU_CUSTOM_PAGE", {
                 title: plugin.name,
                 render: plugin.getPluginSettingsComponent()
               })
@@ -15182,7 +15182,7 @@
             uri: pupu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"c56bcf6-local"})`
+          useTrailing: () => `(${"efebe66-local"})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15679,7 +15679,7 @@
         alert([
           "Failed to load Pupu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Pupu: ${"c56bcf6-local"}`,
+          `Pupu: ${"efebe66-local"}`,
           stack || e?.toString?.()
         ].join("\n"));
       }
