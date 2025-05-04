@@ -5732,11 +5732,11 @@
       unpatches.push(after("default", findByNameLazy("getScreens", false), (_a, screens) => ({
         ...screens,
         VendettaCustomPage: {
-          title: "Bunny",
+          title: "Pupu",
           render: () => /* @__PURE__ */ jsx(CustomPageRenderer, {})
         },
-        BUNNY_CUSTOM_PAGE: {
-          title: "Bunny",
+        PUPU_CUSTOM_PAGE: {
+          title: "Pupu",
           render: () => /* @__PURE__ */ jsx(CustomPageRenderer, {})
         }
       })));
@@ -5816,7 +5816,7 @@
             getComponent: () => CustomPageRenderer
           }
         },
-        BUNNY_CUSTOM_PAGE: {
+        PUPU_CUSTOM_PAGE: {
           type: "route",
           title: () => "Pupu",
           screen: {

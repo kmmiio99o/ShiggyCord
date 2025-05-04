@@ -49,5 +49,5 @@ jobs:
 
           - name: Purge CDN cache
             run: |
-                curl https://purge.jsdelivr.net/gh/C0C0B01/bunny-build-infos@${{ github.ref_name }}/pupu.js
+                curl https://purge.jsdelivr.net/gh/C0C0B01/pupu-build-infos@${{ github.ref_name }}/pupu.js
                 

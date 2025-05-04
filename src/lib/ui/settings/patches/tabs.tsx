@@ -48,7 +48,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
                     getComponent: () => CustomPageRenderer
                 }
             },
-            BUNNY_CUSTOM_PAGE: {
+            PUPU_CUSTOM_PAGE: {
                 type: "route",
                 title: () => "Pupu",
                 screen: {
