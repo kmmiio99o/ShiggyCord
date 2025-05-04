@@ -3586,6 +3586,8 @@
   function isThemeSupported() {
     if (isPyonLoader()) {
       return pyonLoaderIdentity.hasThemeSupport;
+    } else if (isPupuLoader()) {
+      return pupuLoaderIdentity.hasThemeSupport;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.themes != null;
     }
@@ -3594,6 +3596,8 @@
   function getStoredTheme() {
     if (isPyonLoader()) {
       return pyonLoaderIdentity.storedTheme;
+    } else if (isPupuLoader()) {
+      return pupuLoaderIdentity.storedTheme;
     } else if (isVendettaLoader()) {
       var themeProp = vendettaLoaderIdentity.features.themes?.prop;
       if (!themeProp)
@@ -3604,6 +3608,9 @@
   }
   function getThemeFilePath() {
     if (isPyonLoader()) {
+      return "pyoncord/current-theme.json";
+    }
+    if (isPupuLoader()) {
       return "pyoncord/current-theme.json";
     } else if (isVendettaLoader()) {
       return "vendetta_theme.json";
@@ -3626,6 +3633,10 @@
       window.__pyoncord_rdt = window.__reactDevTools.exports;
       return "__pyoncord_rdt";
     }
+    if (isPupuLoader()) {
+      window.__pyoncord_rdt = window.__reactDevTools.exports;
+      return "__pyoncord_rdt";
+    }
     if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.devtools.prop;
     }
@@ -3637,6 +3648,9 @@
     if (isPyonLoader()) {
       return window.__reactDevTools.version || null;
     }
+    if (isPupuLoader()) {
+      return window.__reactDevTools.version || null;
+    }
     if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.devtools.version;
     }
@@ -3645,6 +3659,8 @@
   function isSysColorsSupported() {
     if (isPyonLoader())
       return pyonLoaderIdentity.isSysColorsSupported;
+    if (isPupuLoader())
+      return pupuLoaderIdentity.isSysColorsSupported;
     else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.syscolors != null;
     }
@@ -3655,6 +3671,9 @@
       return null;
     if (isPyonLoader()) {
       return pyonLoaderIdentity.sysColors;
+    }
+    if (isPupuLoader()) {
+      return pupuLoaderIdentity.sysColors;
     } else if (isVendettaLoader()) {
       return vendettaLoaderIdentity.features.syscolors.prop;
     }
@@ -3673,13 +3692,14 @@
       return pyonLoaderIdentity.fontPatch === 2;
     return false;
   }
-  var pyonLoaderIdentity, vendettaLoaderIdentity;
+  var pyonLoaderIdentity, pupuLoaderIdentity, vendettaLoaderIdentity;
   var init_loader = __esm({
     "src/lib/api/native/loader.ts"() {
       "use strict";
       init_asyncIteratorSymbol();
       init_promiseAllSettled();
       pyonLoaderIdentity = globalThis.__PYON_LOADER__;
+      pupuLoaderIdentity = globalThis.__PYON_LOADER__;
       vendettaLoaderIdentity = globalThis.__vendetta_loader;
       getVendettaLoaderIdentity();
     }

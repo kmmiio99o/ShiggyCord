@@ -3,6 +3,8 @@ import { VdThemeInfo } from "@lib/addons/themes";
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
 // @ts-ignore
+const pupuLoaderIdentity = globalThis.__PYON_LOADER__;
+// @ts-ignore
 const vendettaLoaderIdentity = globalThis.__vendetta_loader;
 
 export interface VendettaLoaderIdentity {
@@ -36,8 +38,8 @@ function polyfillVendettaLoaderIdentity() {
 
     const loader = {
         name: pyonLoaderIdentity.loaderName,
-        features: {} as Record<string, any>
-    };
+        features: {} as Record<string, any>,
+    }
 
     if (isLoaderConfigSupported()) loader.features.loaderConfig = true;
     if (isSysColorsSupported()) {
@@ -80,6 +82,8 @@ function polyfillVendettaLoaderIdentity() {
 export function getLoaderIdentity() {
     if (isPyonLoader()) {
         return pyonLoaderIdentity;
+    } else if (isPupuLoader()) {
+        return pupuLoaderIdentity();
     } else if (isVendettaLoader()) {
         return getVendettaLoaderIdentity();
     }
@@ -122,6 +126,8 @@ export function isLoaderConfigSupported() {
 export function isThemeSupported() {
     if (isPyonLoader()) {
         return pyonLoaderIdentity.hasThemeSupport;
+    } else if (isPupuLoader()) {
+        return pupuLoaderIdentity.hasThemeSupport;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.themes != null;
     }
@@ -132,6 +138,8 @@ export function isThemeSupported() {
 export function getStoredTheme(): VdThemeInfo | null {
     if (isPyonLoader()) {
         return pyonLoaderIdentity.storedTheme;
+    } else if (isPupuLoader()) {
+        return pupuLoaderIdentity.storedTheme;
     } else if (isVendettaLoader()) {
         const themeProp = vendettaLoaderIdentity!!.features.themes?.prop;
         if (!themeProp) return null;
@@ -144,6 +152,8 @@ export function getStoredTheme(): VdThemeInfo | null {
 
 export function getThemeFilePath() {
     if (isPyonLoader()) {
+        return "pyoncord/current-theme.json";
+    } if (isPupuLoader()) {
         return "pyoncord/current-theme.json";
     } else if (isVendettaLoader()) {
         return "vendetta_theme.json";
@@ -171,6 +181,11 @@ export function getReactDevToolsProp(): string | null {
         return "__pyoncord_rdt";
     }
 
+    if (isPupuLoader()) {
+        window.__pyoncord_rdt = window.__reactDevTools.exports;
+        return "__pyoncord_rdt";
+    }
+
     if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.devtools!!.prop;
     }
@@ -184,6 +199,9 @@ export function getReactDevToolsVersion() {
     if (isPyonLoader()) {
         return window.__reactDevTools.version || null;
     }
+    if (isPupuLoader()) {
+        return window.__reactDevTools.version || null;
+    }
     if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.devtools!!.version;
     }
@@ -193,6 +211,7 @@ export function getReactDevToolsVersion() {
 
 export function isSysColorsSupported() {
     if (isPyonLoader()) return pyonLoaderIdentity.isSysColorsSupported;
+    if (isPupuLoader()) return pupuLoaderIdentity.isSysColorsSupported;
     else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.syscolors != null;
     }
@@ -204,6 +223,8 @@ export function getSysColors() {
     if (!isSysColorsSupported()) return null;
     if (isPyonLoader()) {
         return pyonLoaderIdentity.sysColors;
+    } if (isPupuLoader()) {
+        return pupuLoaderIdentity.sysColors;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.syscolors!!.prop;
     }
