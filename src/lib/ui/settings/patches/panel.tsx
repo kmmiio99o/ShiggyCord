@@ -39,6 +39,10 @@ export function patchPanelUI(unpatches: (() => void | boolean)[]) {
                     title: "Pupu",
                     render: () => <CustomPageRenderer />
                 },
+                BUNNY_CUSTOM_PAGE: {
+                    title: "Pupu",
+                    render: () => <CustomPageRenderer />
+                },
                 PUPU_CUSTOM_PAGE: {
                     title: "Pupu",
                     render: () => <CustomPageRenderer />

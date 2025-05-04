@@ -5735,6 +5735,10 @@
           title: "Pupu",
           render: () => /* @__PURE__ */ jsx(CustomPageRenderer, {})
         },
+        BUNNY_CUSTOM_PAGE: {
+          title: "Pupu",
+          render: () => /* @__PURE__ */ jsx(CustomPageRenderer, {})
+        },
         PUPU_CUSTOM_PAGE: {
           title: "Pupu",
           render: () => /* @__PURE__ */ jsx(CustomPageRenderer, {})
@@ -5810,7 +5814,7 @@
         ...rendererConfigValue,
         VendettaCustomPage: {
           type: "route",
-          title: () => "Bunny",
+          title: () => "Pupu",
           screen: {
             route: "VendettaCustomPage",
             getComponent: () => CustomPageRenderer
@@ -5821,6 +5825,14 @@
           title: () => "Pupu",
           screen: {
             route: "PUPU_CUSTOM_PAGE",
+            getComponent: () => CustomPageRenderer
+          }
+        },
+        BUNNY_CUSTOM_PAGE: {
+          type: "route",
+          title: () => "Pupu",
+          screen: {
+            route: "BUNNY_CUSTOM_PAGE",
             getComponent: () => CustomPageRenderer
           }
         },
