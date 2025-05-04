@@ -4650,7 +4650,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "v0.0.2-test2";
+      versionHash = "v0.0.2-test3";
     }
   });
 
@@ -15188,13 +15188,13 @@
       name: "Pupu",
       items: [
         {
-          key: "PUPU",
+          key: "BUNNY",
           title: () => Strings.PUPU,
           icon: {
             uri: pupu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"v0.0.2-test2"})`
+          useTrailing: () => `(${"v0.0.2-test3"})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15691,7 +15691,7 @@
         alert([
           "Failed to load Pupu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Pupu: ${"v0.0.2-test2"}`,
+          `Pupu: ${"v0.0.2-test3"}`,
           stack || e?.toString?.()
         ].join("\n"));
       }
