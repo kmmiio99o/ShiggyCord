@@ -14,7 +14,7 @@ export default function initSettings() {
         name: "Bunny",
         items: [
             {
-                key: "BUNNY",
+                key: "PUPU",
                 title: () => Strings.PUPU,
                 icon: { uri: PupuIcon },
                 render: () => import("@core/ui/settings/pages/General"),

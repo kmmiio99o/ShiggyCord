@@ -15176,7 +15176,7 @@
       name: "Bunny",
       items: [
         {
-          key: "BUNNY",
+          key: "PUPU",
           title: () => Strings.PUPU,
           icon: {
             uri: pupu_default
