@@ -4649,7 +4649,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "v0.0.3";
+      versionHash = "v0.1.0";
     }
   });
 
@@ -13353,7 +13353,7 @@
     var repo = pluginRepositories[props.url];
     var isOfficial = props.url === OFFICIAL_PLUGINS_REPO_URL;
     return /* @__PURE__ */ jsx(TableRow, {
-      label: isOfficial ? "Pupu's Repository" : repo.$meta?.name ?? "Unknown",
+      label: isOfficial ? "Bunny's Repository" : repo.$meta?.name ?? "Unknown",
       subLabel: props.url,
       trailing: /* @__PURE__ */ jsxs(Stack, {
         direction: "horizontal",
@@ -15223,7 +15223,7 @@
             uri: pupu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"v0.0.3"})`
+          useTrailing: () => `(${"v0.1.0"})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15260,6 +15260,10 @@
     });
     registerSection({
       name: "Bunny",
+      items: []
+    });
+    registerSection({
+      name: "Revenge",
       items: []
     });
   }
@@ -15724,7 +15728,7 @@
         alert([
           "Failed to load Pupu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Pupu: ${"v0.0.3"}`,
+          `Pupu: ${"v0.1.0"}`,
           stack || e?.toString?.()
         ].join("\n"));
       }

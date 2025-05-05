@@ -203,7 +203,7 @@ function RepositoryRow(props: { url: string; }) {
 
     return (
         <TableRow
-            label={isOfficial ? "Pupu's Repository" : (repo.$meta?.name ?? "Unknown")}
+            label={isOfficial ? "Bunny's Repository" : (repo.$meta?.name ?? "Unknown")}
             subLabel={props.url}
             trailing={(
                 <Stack direction="horizontal">
