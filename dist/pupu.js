@@ -6036,8 +6036,7 @@
       },
       {
         label: import_react_native15.Platform.select({
-          android: Strings.CODENAME,
-          ios: Strings.MACHINE_ID
+          android: Strings.CODENAME
         }),
         version: debugInfo.device.codename,
         icon: "TagIcon"
