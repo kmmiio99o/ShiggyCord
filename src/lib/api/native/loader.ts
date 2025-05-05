@@ -4,9 +4,6 @@ import { VdThemeInfo } from "@lib/addons/themes";
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
 
 // @ts-ignore
-const pupuLoaderIdentity = globalThis.__PUPU_LOADER__;
-
-// @ts-ignore
 const vendettaLoaderIdentity = globalThis.__vendetta_loader;
 
 export interface VendettaLoaderIdentity {
@@ -28,10 +25,6 @@ export function isVendettaLoader() {
 }
 
 export function isPyonLoader() {
-    return pyonLoaderIdentity != null;
-}
-
-export function isPupuLoader() {
     return pyonLoaderIdentity != null;
 }
 
