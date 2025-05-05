@@ -3668,14 +3668,13 @@
       return pyonLoaderIdentity.fontPatch === 2;
     return false;
   }
-  var pyonLoaderIdentity, pupuLoaderIdentity, vendettaLoaderIdentity;
+  var pyonLoaderIdentity, vendettaLoaderIdentity;
   var init_loader = __esm({
     "src/lib/api/native/loader.ts"() {
       "use strict";
       init_asyncIteratorSymbol();
       init_promiseAllSettled();
       pyonLoaderIdentity = globalThis.__PYON_LOADER__;
-      pupuLoaderIdentity = globalThis.__PUPU_LOADER__;
       vendettaLoaderIdentity = globalThis.__vendetta_loader;
       getVendettaLoaderIdentity();
     }
@@ -4311,6 +4310,8 @@
         BYTECODE: "Bytecode",
         CANCEL: "Cancel",
         CLEAR: "Clear",
+        CLEAR_BUNDLE: "Clear JS Bundle",
+        CLEAR_BUNDLE_DESC: "Clear the cached bundle. This will force a re-download of the bundle next app launch.",
         CLEAR_DATA: "Clear data",
         CLEAR_DATA_FAILED: "Failed to clear data for {name}!",
         CLEAR_DATA_SUCCESSFUL: "Cleared data for {name}.",
@@ -4366,6 +4367,8 @@
         MANUFACTURER: "Manufacturer",
         MESSAGE: "Message",
         MISCELLANEOUS: "Miscellaneous",
+        MODAL_RELOAD_REQUIRED: "Reload app?",
+        MODAL_RELOAD_REQUIRED_DESC: "A reload is required to see the changes. Do you want to reload now?",
         MODAL_THEME_REFETCHED: "Theme refetched",
         MODAL_THEME_REFETCHED_DESC: "A reload is required to see the changes. Do you want to reload now?",
         MODAL_UNPROXIED_PLUGIN_DESC: "The plugin you are trying to install has not been proxied/verified by staffs. Are you sure you want to continue?",
@@ -15050,6 +15053,33 @@
               title: "Other",
               children: [
                 /* @__PURE__ */ jsx(TableRow, {
+                  // Thanks for this vendetta team!
+                  label: Strings.CLEAR_BUNDLE,
+                  subLabel: Strings.CLEAR_BUNDLE_DESC,
+                  icon: /* @__PURE__ */ jsx(TableRow.Icon, {
+                    source: findAssetId("trash")
+                  }),
+                  onPress: () => {
+                    openAlert3("pupu-clear-bundle-reload-confirmation", /* @__PURE__ */ jsx(AlertModal4, {
+                      title: Strings.MODAL_RELOAD_REQUIRED,
+                      content: Strings.MODAL_RELOAD_REQUIRED_DESC,
+                      actions: /* @__PURE__ */ jsxs(Stack, {
+                        children: [
+                          /* @__PURE__ */ jsx(AlertActionButton4, {
+                            text: Strings.RELOAD,
+                            variant: "destructive",
+                            onPress: () => import_react_native31.NativeModules.BundleUpdaterManager.reload()
+                          }),
+                          /* @__PURE__ */ jsx(AlertActionButton4, {
+                            text: Strings.CANCEL,
+                            variant: "secondary"
+                          })
+                        ]
+                      })
+                    }));
+                  }
+                }),
+                /* @__PURE__ */ jsx(TableRow, {
                   arrow: true,
                   label: Strings.ASSET_BROWSER,
                   icon: /* @__PURE__ */ jsx(TableRow.Icon, {
@@ -15141,7 +15171,7 @@
       })
     });
   }
-  var import_react_native30, hideActionSheet3, showSimpleActionSheet4, RDT_EMBED_LINK, useStyles4;
+  var import_react_native30, import_react_native31, hideActionSheet3, showSimpleActionSheet4, AlertModal4, AlertActionButton4, openAlert3, RDT_EMBED_LINK, useStyles4;
   var init_Developer = __esm({
     "src/core/ui/settings/pages/Developer/index.tsx"() {
       "use strict";
@@ -15165,8 +15195,11 @@
       init_components2();
       init_styles();
       import_react_native30 = __toESM(require_react_native());
+      import_react_native31 = __toESM(require_react_native());
       ({ hideActionSheet: hideActionSheet3 } = lazyDestructure(() => findByProps("openLazy", "hideActionSheet")));
       ({ showSimpleActionSheet: showSimpleActionSheet4 } = lazyDestructure(() => findByProps("showSimpleActionSheet")));
+      ({ AlertModal: AlertModal4, AlertActionButton: AlertActionButton4 } = lazyDestructure(() => findByProps("AlertModal", "AlertActions")));
+      ({ openAlert: openAlert3 } = lazyDestructure(() => findByProps("openAlert", "dismissAlert")));
       RDT_EMBED_LINK = "https://raw.githubusercontent.com/amsyarasyiq/rdt-embedder/main/dist.js";
       useStyles4 = createStyles({
         leadingText: {
@@ -15264,7 +15297,7 @@
   });
 
   // src/core/vendetta/api.tsx
-  var import_react11, import_react_native31, initVendettaObject;
+  var import_react11, import_react_native32, initVendettaObject;
   var init_api3 = __esm({
     "src/core/vendetta/api.tsx"() {
       "use strict";
@@ -15294,7 +15327,7 @@
       init_toasts();
       init_dist();
       import_react11 = __toESM(require_react());
-      import_react_native31 = __toESM(require_react_native());
+      import_react_native32 = __toESM(require_react_native());
       init_plugins();
       initVendettaObject = () => {
         var createStackBasedFilter = (fn) => {
@@ -15325,7 +15358,7 @@
                     ActionSheetTitleHeader: module.BottomSheetTitleHeader,
                     ActionSheetContentContainer: ({ children }) => {
                       (0, import_react11.useEffect)(() => console.warn("Discord has removed 'ActionSheetContentContainer', please move into something else. This has been temporarily replaced with View"), []);
-                      return /* @__PURE__ */ (0, import_react11.createElement)(import_react_native31.View, null, children);
+                      return /* @__PURE__ */ (0, import_react11.createElement)(import_react_native32.View, null, children);
                     }
                   };
                 }

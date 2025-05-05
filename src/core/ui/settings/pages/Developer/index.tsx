@@ -14,9 +14,12 @@ import { semanticColors } from "@ui/color";
 import { ErrorBoundary } from "@ui/components";
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { ScrollView, StyleSheet } from "react-native";
+import { NativeModules } from "react-native";
 
 const { hideActionSheet } = lazyDestructure(() => findByProps("openLazy", "hideActionSheet"));
 const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
+const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("AlertModal", "AlertActions"));
+const { openAlert } = lazyDestructure(() => findByProps("openAlert", "dismissAlert"));
 
 const RDT_EMBED_LINK = "https://raw.githubusercontent.com/amsyarasyiq/rdt-embedder/main/dist.js";
 
@@ -96,6 +99,24 @@ export default function Developer() {
                         </TableRowGroup>
                     </>}
                     <TableRowGroup title="Other">
+                        <TableRow
+                            // Thanks for this vendetta team!
+                            label={Strings.CLEAR_BUNDLE}
+                            subLabel={Strings.CLEAR_BUNDLE_DESC}
+                            icon={<TableRow.Icon source={findAssetId("trash")} />}
+                            onPress={() => {
+                                openAlert("pupu-clear-bundle-reload-confirmation", <AlertModal
+                                    title={Strings.MODAL_RELOAD_REQUIRED}
+                                    content={Strings.MODAL_RELOAD_REQUIRED_DESC}
+                                    actions={
+                                        <Stack>
+                                            <AlertActionButton text={Strings.RELOAD} variant="destructive" onPress={() => NativeModules.BundleUpdaterManager.reload()} />
+                                            <AlertActionButton text={Strings.CANCEL} variant="secondary" />
+                                        </Stack>
+                                    }
+                                />);
+                            }}
+                        />
                         <TableRow
                             arrow
                             label={Strings.ASSET_BROWSER}
