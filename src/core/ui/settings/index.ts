@@ -62,4 +62,10 @@ export default function initSettings() {
         name: "Bunny",
         items: []
     });
+
+    // Compat with Revenge Plugins that use configs in settings
+    registerSection({
+        name: "Revenge",
+        items: []
+    });
 }
