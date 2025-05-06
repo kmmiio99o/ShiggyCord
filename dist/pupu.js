@@ -15053,7 +15053,7 @@
               title: "Other",
               children: [
                 /* @__PURE__ */ jsx(TableRow, {
-                  // Thanks for this vendetta team!
+                  // Thanks for this Revenge team!
                   label: Strings.CLEAR_BUNDLE,
                   subLabel: Strings.CLEAR_BUNDLE_DESC,
                   icon: /* @__PURE__ */ jsx(TableRow.Icon, {

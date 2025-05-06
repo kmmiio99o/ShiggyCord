@@ -100,9 +100,9 @@ export default function Developer() {
                     </>}
                     <TableRowGroup title="Other">
                         <TableRow
-                            // Thanks for this vendetta team!
+                            // Thanks for this Revenge team!
                             label={Strings.CLEAR_BUNDLE}
-                            subLabel={Strings.CLEAR_BUNDLE_DESC}
+
                             icon={<TableRow.Icon source={findAssetId("trash")} />}
                             onPress={() => {
                                 openAlert("pupu-clear-bundle-reload-confirmation", <AlertModal
