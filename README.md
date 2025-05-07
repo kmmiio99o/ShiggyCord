@@ -1,4 +1,4 @@
-# Pupu ![Discord](https://img.shields.io/discord/1368145952266911755?style=flat&logo=discord&label=Discord)
+# Pupu ![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&label=Discord&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)
 
 A mod for Discord on Android
 
