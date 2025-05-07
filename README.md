@@ -1,4 +1,5 @@
-# Pupu [![Discord](https://img.shields.io/discord/1196075698301968455?style=social&logo=discord&label=Discord)](https://discord.gg/6cN7wKa8gp)
+# Pupu https://img.shields.io/discord/1368145952266911755?style=flat&logo=discord&label=Discord
+
 A mod for Discord on Android
 
 ## Installing
