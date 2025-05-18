@@ -227,7 +227,7 @@ export const initVendettaObject = (): any => {
             createFileBackend: (file: string) => {
                 // Redirect path to vendetta_theme.json
                 if (isPyonLoader() && file === "vendetta_theme.json") {
-                    file = "pyoncord/current-theme.json";
+                    file = "pyon/current-theme.json";
                 }
 
                 return storage.createFileBackend(file);
