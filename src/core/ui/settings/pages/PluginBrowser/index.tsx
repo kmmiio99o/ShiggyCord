@@ -5,7 +5,8 @@ import { dismissAlert, openAlert } from "@lib/ui/alerts";
 import { AlertActionButton } from "@lib/ui/components/wrappers";
 import { hideSheet, showSheet } from "@lib/ui/sheets";
 import { showToast } from "@lib/ui/toasts";
-import { OFFICIAL_PLUGINS_REPO_URL } from "@lib/utils/constants";
+import { OFFICIAL_BUNNY_PLUGINS_REPO_URL } from "@lib/utils/constants";
+import { NEXPID_PLUGINS_REPO_URL } from "@lib/utils/constants";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
 import { clipboard, NavigationNative } from "@metro/common";
 import { ActionSheet, AlertActions, AlertModal, Button, Card, FlashList, IconButton, Stack, TableRow, TableRowGroup, Text, TextInput } from "@metro/common/components";
@@ -199,11 +200,12 @@ function PluginBrowserOptions() {
 
 function RepositoryRow(props: { url: string; }) {
     const repo = pluginRepositories[props.url];
-    const isOfficial = props.url === OFFICIAL_PLUGINS_REPO_URL;
+    const isOfficialBunny = props.url === OFFICIAL_BUNNY_PLUGINS_REPO_URL;
+    const isNexpid = props.url === NEXPID_PLUGINS_REPO_URL;
 
     return (
         <TableRow
-            label={isOfficial ? "Bunny's Repository" : (repo.$meta?.name ?? "Unknown")}
+            label={isOfficialBunny ? "Bunny's Repository" : (repo.$meta?.name ?? "Unknown")}
             subLabel={props.url}
             trailing={(
                 <Stack direction="horizontal">
@@ -219,7 +221,7 @@ function RepositoryRow(props: { url: string; }) {
                     <IconButton
                         size="sm"
                         variant="destructive"
-                        disabled={isOfficial}
+                        disabled={isOfficialBunny}
                         icon={findAssetId("TrashIcon")}
                         onPress={() => {
                             openAlert("bunny-remove-repository", <AlertModal

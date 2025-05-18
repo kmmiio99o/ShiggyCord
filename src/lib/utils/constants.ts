@@ -5,7 +5,8 @@ export const HTTP_REGEX_MULTI = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,25
 
 export const BUNNY_PROXY_PREFIX = "https://bn-plugins.github.io/vd-proxy";
 
-export const OFFICIAL_PLUGINS_REPO_URL = "https://bn-plugins.github.io/dist/repo.json";
+export const NEXPID_PLUGINS_REPO_URL = "https://revenge.nexpid.xyz";
+export const OFFICIAL_BUNNY_PLUGINS_REPO_URL = "https://bn-plugins.github.io/dist/repo.json";
 
 export const VD_PROXY_PREFIX = "https://vd-plugins.github.io/proxy";
 export const VD_DISCORD_SERVER_ID = "1015931589865246730";
