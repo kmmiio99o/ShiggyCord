@@ -29,7 +29,7 @@ let context = null;
 const config = {
     entryPoints: ["src/entry.ts"],
     bundle: true,
-    outfile: "dist/pupu-dev.js",
+    outfile: "dist/pupu.js",
     format: "iife",
     splitting: false,
     external: [],
@@ -72,7 +72,7 @@ const config = {
                                 constModules: {
                                     globals: {
                                         "bunny-build-info": {
-                                            version: `"v0.1.0-dev"`
+                                            version: `"v1.0.0"`
                                         }
                                     }
                                 },

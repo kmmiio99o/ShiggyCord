@@ -4649,7 +4649,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "v0.1.0";
+      versionHash = "v1.0.0";
     }
   });
 
@@ -15054,7 +15054,6 @@
                 /* @__PURE__ */ jsx(TableRow, {
                   // Thanks for this Revenge team!
                   label: Strings.CLEAR_BUNDLE,
-                  subLabel: Strings.CLEAR_BUNDLE_DESC,
                   icon: /* @__PURE__ */ jsx(TableRow.Icon, {
                     source: findAssetId("trash")
                   }),
@@ -15222,7 +15221,7 @@
             uri: pupu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"v0.1.0"})`
+          useTrailing: () => `(${"v1.0.0"})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15516,7 +15515,7 @@
             createMMKVBackend: (store) => createMMKVBackend(store),
             createFileBackend: (file) => {
               if (isPyonLoader() && file === "vendetta_theme.json") {
-                file = "pyoncord/current-theme.json";
+                file = "Pyon/current-theme.json";
               }
               return createFileBackend(file);
             }
@@ -15727,7 +15726,7 @@
         alert([
           "Failed to load Pupu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Pupu: ${"v0.1.0"}`,
+          `Pupu: ${"v1.0.0"}`,
           stack || e?.toString?.()
         ].join("\n"));
       }
