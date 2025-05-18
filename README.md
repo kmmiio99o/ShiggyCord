@@ -1,6 +1,7 @@
-# Pupu [![Discord](https://img.shields.io/discord/1196075698301968455?style=social&logo=discord&label=Discord)](https://discord.gg/6cN7wKa8gp)
+# Pupu
 A mod for Discord on Android
 
+Discord https://discord.gg/6cN7wKa8gp
 ## Installing
 
 - **Root** with Xposed - [PupuXposed](https://github.com/C0C0B01/PupuXposed/releases/latest)
