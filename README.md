@@ -4,8 +4,8 @@ A mod for Discord on Android
 Discord https://discord.gg/6cN7wKa8gp
 ## Installing
 
-- **Root** with Xposed - [PupuXposed](https://github.com/C0C0B01/PupuXposed/releases/latest)
-- **Non-root** - [PupuManager](https://github.com/C0C0B01/PupuManager/releases/latest)
+- **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
+- **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
