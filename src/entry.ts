@@ -17,9 +17,9 @@ async function initializeBunny() {
 
         console.log(stack ?? e?.toString?.() ?? e);
         alert([
-            "Failed to load Pupu!\n",
+            "Failed to load Kettu!\n",
             `Build Number: ${ClientInfoManager.Build}`,
-            `Pupu: ${version}`,
+            `Kettu: ${version}`,
             stack || e?.toString?.(),
         ].join("\n"));
     }

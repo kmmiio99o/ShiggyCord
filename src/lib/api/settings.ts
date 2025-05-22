@@ -26,7 +26,7 @@ export const loaderConfig = wrapSync(createStorage<LoaderConfig>(
     createFileBackend(getLoaderConfigPath(), {
         customLoadUrl: {
             enabled: false,
-            url: "http://localhost:4040/pupu.js"
+            url: "http://localhost:4040/kettu.js"
         }
     })
 ));

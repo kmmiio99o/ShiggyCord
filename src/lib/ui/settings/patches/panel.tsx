@@ -36,15 +36,15 @@ export function patchPanelUI(unpatches: (() => void | boolean)[]) {
             after("default", findByNameLazy("getScreens", false), (_a, screens) => ({
                 ...screens,
                 VendettaCustomPage: {
-                    title: "Pupu",
+                    title: "Kettu",
                     render: () => <CustomPageRenderer />
                 },
                 BUNNY_CUSTOM_PAGE: {
-                    title: "Pupu",
+                    title: "Kettu",
                     render: () => <CustomPageRenderer />
                 },
                 PUPU_CUSTOM_PAGE: {
-                    title: "Pupu",
+                    title: "Kettu",
                     render: () => <CustomPageRenderer />
                 }
             }))

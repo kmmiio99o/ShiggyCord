@@ -1,4 +1,4 @@
-import PupuIcon from "@assets/icons/pupu.png";
+import PupuIcon from "@assets/icons/kettu.png";
 import { Strings } from "@core/i18n";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
@@ -11,10 +11,10 @@ export { PupuIcon };
 
 export default function initSettings() {
     registerSection({
-        name: "Pupu",
+        name: "Kettu",
         items: [
             {
-                key: "PUPU",
+                key: "KETTU",
                 title: () => Strings.PUPU,
                 icon: { uri: PupuIcon },
                 render: () => import("@core/ui/settings/pages/General"),
@@ -50,8 +50,7 @@ export default function initSettings() {
         ]
     });
 
-    // Compat for plugins which injects into the settings
-    // Flaw: in the old UI, this will be displayed anyway with no items
+    // Compat with Vendetta Plugins that use configs in settings
     registerSection({
         name: "Vendetta",
         items: []

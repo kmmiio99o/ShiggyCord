@@ -29,7 +29,7 @@ let context = null;
 const config = {
     entryPoints: ["src/entry.ts"],
     bundle: true,
-    outfile: "dist/pupu-dev.js",
+    outfile: "dist/kettu.js",
     format: "iife",
     splitting: false,
     external: [],
@@ -39,7 +39,7 @@ const config = {
         "const-and-let": false
     },
     footer: {
-        js: "//# sourceURL=pupu"
+        js: "//# sourceURL=kettu"
     },
     loader: {
         ".png": "dataurl"
@@ -50,14 +50,14 @@ const config = {
     inject: ["./shims/asyncIteratorSymbol.js", "./shims/promiseAllSettled.js"],
     legalComments: "none",
     alias: {
-        "!pupu-deps-shim!": "./shims/depsModule.ts",
+        "!kettu-deps-shim!": "./shims/depsModule.ts",
         "spitroast": "./node_modules/spitroast",
         "react/jsx-runtime": "./shims/jsxRuntime"
     },
     plugins: [
         globalPlugin({
             ...metroDeps.reduce((obj, key) => {
-                obj[key] = `require("!pupu-deps-shim!")[${JSON.stringify(key)}]`;
+                obj[key] = `require("!kettu-deps-shim!")[${JSON.stringify(key)}]`;
                 return obj;
             }, {})
         }),
@@ -72,7 +72,7 @@ const config = {
                                 constModules: {
                                     globals: {
                                         "bunny-build-info": {
-                                            version: `"v1.0.1-dev"`
+                                            version: `"v1.0.2"`
                                         }
                                     }
                                 },

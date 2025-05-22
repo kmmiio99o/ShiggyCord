@@ -84,7 +84,7 @@ export default function Developer() {
                                 defaultValue={loaderConfig.customLoadUrl.url}
                                 size="md"
                                 onChange={(v: string) => loaderConfig.customLoadUrl.url = v}
-                                placeholder="http://localhost:4040/pupu.js"
+                                placeholder="http://localhost:4040/kettu.js"
                                 label={Strings.PUPU_URL}
                             />} />}
                             {isReactDevToolsPreloaded() && isVendettaLoader() && <TableSwitchRow

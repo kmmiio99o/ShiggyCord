@@ -42,7 +42,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             ...rendererConfigValue,
             VendettaCustomPage: {
                 type: "route",
-                title: () => "Pupu",
+                title: () => "Kettu",
                 screen: {
                     route: "VendettaCustomPage",
                     getComponent: () => CustomPageRenderer
@@ -50,7 +50,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             },
             PUPU_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "Pupu",
+                title: () => "Kettu",
                 screen: {
                     route: "PUPU_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
@@ -58,7 +58,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             },
             BUNNY_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "Pupu",
+                title: () => "Kettu",
                 screen: {
                     route: "BUNNY_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer

@@ -65,7 +65,7 @@ export default function General() {
                     />
                     <TableSwitchRow
                         label={"Safe Mode"}
-                        subLabel={"Load Pupu without loading add-ons"}
+                        subLabel={"Load Kettu without loading add-ons"}
                         icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
                         value={isSafeMode()}
                         onValueChange={(to: boolean) => {

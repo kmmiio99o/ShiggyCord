@@ -44,12 +44,12 @@ export default async () => {
         .then(u => lib.unload.push(u))
         .catch(() => alert("Failed to initialize Vendetta plugins"));
 
-    // And then, load Pupu plugins
+    // And then, load Kettu plugins
     initPlugins();
 
     // Update the fonts
     updateFonts();
 
     // We good :)
-    logger.log("Pupu is ready!");
+    logger.log("Kettu is ready!");
 };

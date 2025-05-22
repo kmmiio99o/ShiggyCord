@@ -16,8 +16,8 @@ export default () => <ApplicationCommand>{
     execute([ephemeral], ctx) {
         const info = getDebugInfo();
         const content = [
-            "**Pupu Debug Info**",
-            `> Pupu: ${info.pupu.version} (${info.pupu.loader.name} ${info.pupu.loader.version})`,
+            "**Kettu Debug Info**",
+            `> Kettu: ${info.pupu.version} (${info.pupu.loader.name} ${info.pupu.loader.version})`,
             `> Discord: ${info.discord.version} (${info.discord.build})`,
             `> React: ${info.react.version} (RN ${info.react.nativeVersion})`,
             `> Hermes: ${info.hermes.version} (bcv${info.hermes.bytecodeVersion})`,
