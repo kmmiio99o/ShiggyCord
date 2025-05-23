@@ -4651,7 +4651,7 @@
       init_logger();
       init_toasts();
       import_react_native5 = __toESM(require_react_native());
-      versionHash = "v1.0.2";
+      versionHash = "v1.0.3";
     }
   });
 
@@ -15225,7 +15225,7 @@
             uri: kettu_default
           },
           render: () => Promise.resolve().then(() => (init_General(), General_exports)),
-          useTrailing: () => `(${"v1.0.2"})`
+          useTrailing: () => `(${"v1.0.3"})`
         },
         {
           key: "BUNNY_PLUGINS",
@@ -15730,7 +15730,7 @@
         alert([
           "Failed to load Kettu!\n",
           `Build Number: ${ClientInfoManager.Build}`,
-          `Kettu: ${"v1.0.2"}`,
+          `Kettu: ${"v1.0.3"}`,
           stack || e?.toString?.()
         ].join("\n"));
       }
