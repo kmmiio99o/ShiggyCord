@@ -5,7 +5,7 @@ import { dismissAlert, openAlert } from "@lib/ui/alerts";
 import { AlertActionButton } from "@lib/ui/components/wrappers";
 import { hideSheet, showSheet } from "@lib/ui/sheets";
 import { showToast } from "@lib/ui/toasts";
-import { OFFICIAL_BUNNY_PLUGINS_REPO_URL } from "@lib/utils/constants";
+import { OFFICIAL_PLUGINS_REPO_URL } from "@lib/utils/constants";
 import { NEXPID_PLUGINS_REPO_URL } from "@lib/utils/constants";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
 import { clipboard, NavigationNative } from "@metro/common";
