@@ -13352,7 +13352,7 @@
   }
   function RepositoryRow(props) {
     var repo = pluginRepositories[props.url];
-    var isOfficialBunny = props.url === OFFICIAL_BUNNY_PLUGINS_REPO_URL;
+    var isOfficialBunny = props.url === OFFICIAL_PLUGINS_REPO_URL;
     var isNexpid = props.url === NEXPID_PLUGINS_REPO_URL;
     return /* @__PURE__ */ jsx(TableRow, {
       label: isOfficialBunny ? "Bunny's Repository" : repo.$meta?.name ?? "Unknown",
@@ -13422,6 +13422,7 @@
       init_wrappers2();
       init_sheets();
       init_toasts();
+      init_constants();
       init_constants();
       init_isValidHttpUrl();
       init_common();

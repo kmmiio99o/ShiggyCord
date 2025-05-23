@@ -200,7 +200,7 @@ function PluginBrowserOptions() {
 
 function RepositoryRow(props: { url: string; }) {
     const repo = pluginRepositories[props.url];
-    const isOfficialBunny = props.url === OFFICIAL_BUNNY_PLUGINS_REPO_URL;
+    const isOfficialBunny = props.url === OFFICIAL_PLUGINS_REPO_URL;
     const isNexpid = props.url === NEXPID_PLUGINS_REPO_URL;
 
     return (
