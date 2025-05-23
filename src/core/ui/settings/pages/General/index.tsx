@@ -37,7 +37,7 @@ export default function General() {
                         arrow
                         label={Strings.ABOUT}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
-                        onPress={() => navigation.push("BUNNY_CUSTOM_PAGE", {
+                        onPress={() => navigation.push("PUPU_CUSTOM_PAGE", {
                             title: Strings.ABOUT,
                             render: () => <About />,
                         })}

@@ -6166,7 +6166,7 @@
                 icon: /* @__PURE__ */ jsx(TableRow.Icon, {
                   source: findAssetId("CircleInformationIcon-primary")
                 }),
-                onPress: () => navigation2.push("BUNNY_CUSTOM_PAGE", {
+                onPress: () => navigation2.push("PUPU_CUSTOM_PAGE", {
                   title: Strings.ABOUT,
                   render: () => /* @__PURE__ */ jsx(About, {})
                 })
