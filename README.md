@@ -9,6 +9,7 @@ Discord https://discord.gg/6cN7wKa8gp
 
 ## Support Me
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cocobo1)
+
 Please do not donate if you are not able to, if you are able to please don't donate much :)
 
 ## Building
