@@ -1,4 +1,4 @@
-import patchErrorBoundary from "@core/debug/patches/patchErrorBoundary";
+// import patchErrorBoundary from "@core/debug/patches/patchErrorBoundary";
 import initFixes from "@core/fixes";
 import { initFetchI18nStrings } from "@core/i18n";
 import initSettings from "@core/ui/settings";
@@ -29,7 +29,7 @@ export default async () => {
         initFetchI18nStrings(),
         initSettings(),
         initFixes(),
-        patchErrorBoundary(),
+//        patchErrorBoundary(),
         updatePlugins()
     ]).then(
         // Push them all to unloader
