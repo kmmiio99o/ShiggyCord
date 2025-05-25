@@ -7,6 +7,11 @@ Discord https://discord.gg/6cN7wKa8gp
 - **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
+## Support Me
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cocobo1)
+
+Please do not donate if you are not able to, if you are able to please don't donate much :)
+
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
 1. Go to Settings > General and enable Developer Settings.
