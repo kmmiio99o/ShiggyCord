@@ -60,7 +60,7 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        build-mode: autobuilder
+        build-mode: autobuild
 
     - name: Build project
       run: pnpm build --release-branch=${{ github.ref_name }} --build-minify
