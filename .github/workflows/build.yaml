@@ -1,0 +1,89 @@
+name: Node.js CI / CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  buildAndRelease:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+      
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - run: |
+          pnpm build --release-branch=${{ github.ref_name }} --build-minify
+          
+      # - name: Create Release
+      #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: v${{ github.run_number }}
+      #     release_name: Release v${{ github.run_number }}
+      #     draft: false
+      #     prerelease: false
+          
+      - name: Push JS files to dist branch
+        run: |
+            # Configure git
+            git config --local user.email "actions@github.com"
+            git config --local user.name "GitHub Actions"
+            
+            # Create a temporary directory for the dist branch
+            mkdir -p temp_dist
+            
+            # Copy only JS files from dist/ to temp directory
+            find dist -name "*.js" -exec cp {} temp_dist/ \;
+            
+            # Create and checkout dist branch
+            git checkout --orphan dist-temp
+            git rm -rf --cached .
+            
+            # Move the JS files to the root
+            cp -r temp_dist/* .
+            rm -rf temp_dist
+            
+            # Add, commit and push to dist branch
+            git add *.js
+            git commit -m "Update build $GITHUB_SHA" || exit 0
+            git push -f origin HEAD:dist
+            
+            # Return to the original branch
+            git checkout -f ${GITHUB_REF#refs/heads/}
