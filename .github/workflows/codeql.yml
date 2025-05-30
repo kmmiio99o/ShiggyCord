@@ -60,8 +60,10 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        build-mode: manual
-        build-command: pnpm build --release-branch=${{ github.ref_name }} --build-minify
+        build-mode: none
+
+    - name: Build project
+      run: pnpm build --release-branch=${{ github.ref_name }} --build-minify
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
