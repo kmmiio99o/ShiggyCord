@@ -16,7 +16,7 @@ export const NativeDeviceModule = __turboModuleProxy(
     'NativeClientInfoModule',
 ) as DiscordNativeModules.ClientInfoModule
 
-export const BundleUpdaterModule = getNativeModule("BundleUpdaterManager");
+export const BundleUpdaterManager = getNativeModule("BundleUpdaterManager");
 
 export const NativeThemeModule = __turboModuleProxy(
     'NativeThemeModule',
