@@ -1,11 +1,23 @@
-import { RNModules } from "./types";
+import type { DiscordNativeModules } from "./types";
 
-const nmp = window.nativeModuleProxy;
+export const NativeCacheModule = __turboModuleProxy(
+    'NativeCacheModule',
+) as DiscordNativeModules.CacheModule
 
-export const NativeCacheModule = (nmp.NativeCacheModule ?? nmp.MMKVManager) as RNModules.MMKVManager;
-export const NativeFileModule = (nmp.NativeFileModule ?? nmp.RTNFileManager ?? nmp.DCDFileManager) as RNModules.FileManager;
-export const NativeClientInfoModule = nmp.NativeClientInfoModule ?? nmp.RTNClientInfoManager ?? nmp.InfoDictionaryManager;
-export const NativeDeviceModule = nmp.NativeDeviceModule ?? nmp.RTNDeviceManager ?? nmp.DCDDeviceManager;
-export const NativeThemeModule = nmp.NativeThemeModule ?? nmp.RTNThemeManager ?? nmp.DCDTheme;
+export const NativeFileModule = __turboModuleProxy(
+    'NativeFileModule',
+) as DiscordNativeModules.FileModule
 
-export const { BundleUpdaterManager } = nmp;
+export const NativeClientInfoModule = __turboModuleProxy(
+    'NativeClientInfoModule',
+) as DiscordNativeModules.ClientInfoModule
+
+export const NativeDeviceModule = __turboModuleProxy(
+    'NativeClientInfoModule',
+) as DiscordNativeModules.ClientInfoModule
+
+export const BundleUpdaterModule = getNativeModule("BundleUpdaterManager");
+
+export const NativeThemeModule = __turboModuleProxy(
+    'NativeThemeModule',
+) as DiscordNativeModules.ThemeModule
