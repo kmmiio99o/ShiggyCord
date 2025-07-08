@@ -35,4 +35,4 @@ Please do not donate if you are not able to, if you are able to please don't don
 Alternatively, you can directly *serve* the bundled code by running `pnpm serve`. `kettu.js` will be served on your local address under the port 4040. You will then insert `http://<local ip address>:4040/kettu.js` as a custom url and reload. Whenever you restart your mobile client, the script will rebuild the bundle as your client fetches it.
 
 ## Stargazers
-[![Star History Chart](https://api.star-history.com/svg?repos=C0C0B0/Kettu&type=Date)](https://star-history.com/#bytebase/star-history&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=C0C0B0 /Kettu&type=Date)](https://star-history.com/#bytebase/star-history&Date)
