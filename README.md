@@ -4,6 +4,8 @@ A mod for Discord on Android
 Discord https://discord.gg/6cN7wKa8gp
 ## Installing
 
+Only Discord versions 287 and below are supported
+
 - **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
