@@ -1,7 +1,10 @@
 # Kettu
 A mod for Discord on Android
 
-Discord https://discord.gg/6cN7wKa8gp
+.. image:: https://discord.com/api/guilds/336642139381301249/embed.png
+   :target: https://discord.gg/6cN7wKa8gp
+   :alt: Discord server invite
+   
 ## Installing
 
 Only Discord versions 287 and below are supported
