@@ -1,9 +1,7 @@
 # Kettu
 A mod for Discord on Android
 
-.. image:: https://discord.com/api/guilds/336642139381301249/embed.png
-   :target: https://discord.gg/6cN7wKa8gp
-   :alt: Discord server invite
+Discord https://discord.gg/6cN7wKa8gp
    
 ## Installing
 
