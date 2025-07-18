@@ -1,6 +1,8 @@
 # Kettu
 A mod for Discord on Android
 
+NOTE: Kettu only supports 287 and below, if you want to use the latest version or have particular issues with Kettu, try out its future work-in-progress successor [*Lumi*](https://github.com/C0C0B01/Lumi)
+
 Discord https://discord.gg/6cN7wKa8gp
    
 ## Installing
