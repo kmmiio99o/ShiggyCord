@@ -20,7 +20,8 @@ const metroDeps = await (async () => {
 const args = yargs(process.argv.slice(2));
 const {
     "release-branch": releaseBranch,
-    "build-minify": buildMinify
+    "build-minify": buildMinify,
+    "dev": dev
 } = args;
 
 let context = null;

@@ -90,7 +90,7 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
                                 size="sm"
                                 variant="secondary"
                                 disabled={selected}
-                                icon={findAssetId("PencilIcon")}
+                                icon={findAssetId("WrenchIcon")}
                             />
                             <Button
                                 size="sm"

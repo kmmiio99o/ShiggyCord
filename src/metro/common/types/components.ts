@@ -142,7 +142,6 @@ interface FABProps {
     style?: Style;
     onPress: () => void;
     positionBottom?: number;
-
 }
 
 export type FloatingActionButton = React.FC<FABProps>;

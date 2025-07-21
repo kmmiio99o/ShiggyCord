@@ -19,6 +19,15 @@ export async function removeFile(path: string, { prefix = "pyoncord/" } = {}) {
 }
 
 /**
+ * Remove file from given path, currently no check for any failure
+ * @param path Path to the file
+ */
+export async function removeCacheFile(path: string, prefix = "pyoncord/") {
+    if (typeof NativeFileModule.removeFile !== "function") throw new Error("'fs.removeFile' is not supported");
+    return void await NativeFileModule.removeFile("cache", `${prefix}${path}`);
+}
+
+/**
  * Check if the file or directory given by the path exists
  * @param path Path to the file
  */
@@ -57,7 +66,7 @@ export async function readFile(path: string, { prefix = "pyoncord/" } = {}): Pro
 export async function downloadFile(url: string, path: string, { prefix = "pyoncord/" } = {}) {
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error(`Failed to download file from ${url}: ${response.statusText}`);
+        throw new Error(`Failed to download file from ${url}: ${response.status}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();

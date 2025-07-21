@@ -5,6 +5,8 @@ import { findByNameLazy, findByPropsLazy } from "@metro/wrappers";
 import { registeredSections } from "@ui/settings";
 
 import { CustomPageRenderer, wrapOnPress } from "./shared";
+import { Strings } from "@core/i18n";
+import { TableRowIcon } from "@metro/common/components";
 
 const settingConstants = findByPropsLazy("SETTING_RENDERER_CONFIG");
 const SettingsOverviewScreen = findByNameLazy("SettingsOverviewScreen", false);

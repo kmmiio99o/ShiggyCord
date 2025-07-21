@@ -13,15 +13,15 @@ import { findByProps } from "@metro/wrappers";
 import { semanticColors } from "@ui/color";
 import { ErrorBoundary } from "@ui/components";
 import { createStyles, TextStyleSheet } from "@ui/styles";
-import { ScrollView, StyleSheet } from "react-native";
 import { NativeModules } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 const { hideActionSheet } = lazyDestructure(() => findByProps("openLazy", "hideActionSheet"));
 const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
-const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("AlertModal", "AlertActions"));
 const { openAlert } = lazyDestructure(() => findByProps("openAlert", "dismissAlert"));
+const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("AlertModal", "AlertActions"));
 
-const RDT_EMBED_LINK = "https://raw.githubusercontent.com/amsyarasyiq/rdt-embedder/main/dist.js";
+const RDT_EMBED_LINK = "https://github.com/revenge-mod/react-devtools-core/releases/latest/download/rdtc.js";
 
 const useStyles = createStyles({
     leadingText: {
@@ -173,7 +173,7 @@ export default function Developer() {
                             label={Strings.ENABLE_EVAL_COMMAND}
                             subLabel={Strings.ENABLE_EVAL_COMMAND_DESC}
                             icon={<TableRow.Icon source={findAssetId("PencilIcon")} />}
-                            value={settings.enableEvalCommand}
+                            value={!!settings.enableEvalCommand}
                             onValueChange={(v: boolean) => {
                                 settings.enableEvalCommand = v;
                             }}

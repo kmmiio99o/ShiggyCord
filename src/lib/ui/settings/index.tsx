@@ -2,7 +2,6 @@
 import { lazy } from "react";
 import type { ImageURISource } from "react-native";
 
-import { patchPanelUI } from "./patches/panel";
 import { patchTabsUI } from "./patches/tabs";
 
 export interface RowConfig {
@@ -11,6 +10,7 @@ export interface RowConfig {
     onPress?: () => any;
     render?: Parameters<typeof lazy>[0];
     icon?: ImageURISource | number;
+    IconComponent?: React.ReactNode,
     usePredicate?: () => boolean,
     useTrailing?: () => string | JSX.Element,
     rawTabsConfig?: Record<string, any>;
@@ -31,7 +31,6 @@ export function registerSection(section: { name: string; items: RowConfig[]; }) 
 export function patchSettings() {
     const unpatches = new Array<() => boolean>;
 
-    patchPanelUI(unpatches);
     patchTabsUI(unpatches);
 
     return () => unpatches.forEach(u => u());

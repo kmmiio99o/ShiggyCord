@@ -17,11 +17,9 @@ const useStyles = createStyles({
         backgroundColor: tokens.colors.BG_BASE_SECONDARY,
         paddingHorizontal: 16,
         height: "100%",
-        padding: 8,
         gap: 12
     }
 });
-
 
 export default function ErrorBoundaryScreen(props: {
     error: Error;
@@ -31,12 +29,11 @@ export default function ErrorBoundaryScreen(props: {
     const debugInfo = getDebugInfo();
 
     return <ErrorBoundary>
-        {/* for iOS */}
         <SafeAreaProvider>
             <SafeAreaView style={styles.container}>
                 <View style={{ gap: 4 }}>
                     <Text variant="display-lg">Uh oh.</Text>
-                    <Text variant="text-md/normal">A crash occurred while rendering a component. This could be caused by a plugin, Bunny or Discord itself.</Text>
+                    <Text variant="text-md/normal">A crash occurred while rendering a component. This could be caused by a plugin, Revenge, or Discord itself.</Text>
                     <Text variant="text-sm/normal" color="text-muted">{debugInfo.os.name}; {debugInfo.discord.build} ({debugInfo.discord.version}); {debugInfo.bunny.version}</Text>
                 </View>
                 <ScrollView fadingEdgeLength={64} contentContainerStyle={{ gap: 12 }}>

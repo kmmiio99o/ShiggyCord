@@ -10,6 +10,7 @@ import { version } from "bunny-build-info";
 export { PupuIcon };
 
 export default function initSettings() {
+    
     registerSection({
         name: "Kettu",
         items: [

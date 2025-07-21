@@ -1,4 +1,5 @@
 import { VdThemeInfo } from "@lib/addons/themes";
+import { removeCacheFile } from "./fs";
 
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
@@ -221,4 +222,9 @@ export function isFontSupported() {
     if (isPyonLoader()) return pyonLoaderIdentity.fontPatch === 2;
 
     return false;
+}
+
+export async function clearBundle() {
+    // TODO: This should be not be hardcoded, maybe put in loader.json?
+    return void await removeCacheFile("bundle.js");
 }

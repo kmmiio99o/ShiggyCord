@@ -4,13 +4,12 @@ import { safeFetch } from "@lib/utils";
 
 type FontMap = Record<string, string>;
 
-export interface FontDefinition {
+export type FontDefinition = {
     spec: 1;
     name: string;
     description?: string;
     main: FontMap;
-    __source?: string;
-    __edited?: boolean;
+    source?: string
 }
 
 type FontStorage = Record<string, FontDefinition> & { __selected?: string; };
@@ -40,12 +39,9 @@ export function validateFont(font: FontDefinition) {
 export async function saveFont(data: string | FontDefinition, selected = false) {
     let fontDefJson: FontDefinition;
 
-    if (typeof data === "object" && data.__source) data = data.__source;
-
     if (typeof data === "string") {
         try {
             fontDefJson = await (await safeFetch(data)).json();
-            fontDefJson.__source = data;
         } catch (e) {
             throw new Error(`Failed to fetch fonts at ${data}`, { cause: e });
         }
@@ -55,16 +51,14 @@ export async function saveFont(data: string | FontDefinition, selected = false) 
 
     validateFont(fontDefJson);
 
-    try {
-        await Promise.all(Object.entries(fontDefJson.main).map(async ([font, url]) => {
-            let ext = url.split(".").pop();
-            if (ext !== "ttf" && ext !== "otf") ext = "ttf";
-            const path = `downloads/fonts/${fontDefJson.name}/${font}.${ext}`;
-            if (!await fileExists(path)) await downloadFile(url, path);
-        }));
-    } catch (e) {
-        throw new Error("Failed to download font assets", { cause: e });
-    }
+    const errors = await Promise.allSettled(Object.entries(fontDefJson.main).map(async ([font, url]) => {
+        let ext = url.split(".").pop();
+        if (ext !== "ttf" && ext !== "otf") ext = "ttf";
+        const path = `downloads/fonts/${fontDefJson.name}/${font}.${ext}`;
+        if (!await fileExists(path)) await downloadFile(url, path);
+    })).then(it => it.map(it => it.status === 'fulfilled' ? undefined : it.reason));
+
+    if (errors.some(it => it)) throw errors
 
     fonts[fontDefJson.name] = fontDefJson;
 
@@ -72,14 +66,21 @@ export async function saveFont(data: string | FontDefinition, selected = false) 
     return fontDefJson;
 }
 
-export async function installFont(url: string, selected = false) {
-    if (
-        typeof url !== "string"
-        || Object.values(fonts).some(f => typeof f === "object" && f.__source === url)
-    ) {
-        throw new Error("Invalid source or font was already installed");
+export async function updateFont(fontDef: FontDefinition) {
+    let fontDefCopy = { ...fontDef }
+    if (fontDefCopy.source) fontDefCopy = {
+        ...await fetch(fontDefCopy.source).then(it => it.json()),
+        // Can't change these properties
+        name: fontDef.name,
+        source: fontDef.source
     }
 
+    const selected = fonts.__selected === fontDef.name
+    await removeFont(fontDef.name)
+    await saveFont(fontDefCopy, selected)
+}
+
+export async function installFont(url: string, selected = false) {
     const font = await saveFont(url);
     if (selected) await selectFont(font.name);
 }

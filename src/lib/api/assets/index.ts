@@ -8,6 +8,7 @@ export interface Asset {
     id: number;
     name: string;
     moduleId: number;
+    type: string;
 }
 
 // Cache common usage

@@ -6,9 +6,7 @@ import { ModuleFlags, ModulesMapInternal } from "./enums";
 const { before, instead } = require("spitroast");
 
 export const metroModules: Metro.ModuleList = window.modules;
-// Since modules registry is now a Map, the id is now strictly a number
-// Making the codebase to adapt to this change would be more ideal, though
-const metroRequire = (id: number | string) => window.__r(+id);
+const metroRequire = (id: string | number) => window.__r(+id);
 
 // eslint-disable-next-line func-call-spacing
 const moduleSubscriptions = new Map<number, Set<() => void>>();
