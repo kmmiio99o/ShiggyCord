@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/C0C0B01/Kettu/compare/v1.0.0...v1.0.1) (2025-07-29)
+
+
+### Bug Fixes
+
+* **ios:** restore ios support ([2268a92](https://github.com/C0C0B01/Kettu/commit/2268a92ba17feeda0f6e2ac28919df23dfff1fd0))
+
 # 1.0.0 (2025-07-26)
 
 
