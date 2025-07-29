@@ -11,6 +11,7 @@ A mod for Discord on Android
 
 ### iOS
 - [BoundTweak](https://github.com/CloudySn0w/BoundTweak)
+
 note: boundtweak is not developed by me
 
 ## Building
