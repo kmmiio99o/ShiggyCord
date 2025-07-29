@@ -10,8 +10,8 @@ A mod for Discord on Android
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
 ### iOS
-[BoundTweak](https://github.com/CloudySn0w/BoundTweak)
-- note: boundtweak is not developed by me
+- [BoundTweak](https://github.com/CloudySn0w/BoundTweak)
+note: boundtweak is not developed by me
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
