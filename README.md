@@ -11,7 +11,7 @@ A mod for Discord on Android
 
 ### iOS
 [BoundTweak](https://github.com/CloudySn0w/BoundTweak)
-note: boundtweak is not developed by me
+- note: boundtweak is not developed by me
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
