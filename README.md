@@ -5,8 +5,13 @@ A mod for Discord on Android
    
 ## Installing
 
+### Android
 - **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
+
+### iOS
+[BoundTweak](https://github.com/CloudySn0w/BoundTweak)
+note: boundtweak is not developed by me
 
 ## Support Me
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cocobo1)
