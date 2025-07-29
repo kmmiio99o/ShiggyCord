@@ -13,11 +13,6 @@ A mod for Discord on Android
 [BoundTweak](https://github.com/CloudySn0w/BoundTweak)
 note: boundtweak is not developed by me
 
-## Support Me
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cocobo1)
-
-Please do not donate if you are not able to, if you are able to please don't donate much :)
-
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
 1. Go to Settings > General and enable Developer Settings.
