@@ -1,13 +1,9 @@
 # Kettu
 A mod for Discord on Android
 
-NOTE: Kettu only supports 287 and below, if you want to use the latest version or have particular issues with Kettu, try out its future work-in-progress successor [**Lumi**](https://github.com/C0C0B01/Lumi)
-
-Discord https://discord.gg/6cN7wKa8gp
+### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp) [![Static Badge](https://img.shields.io/badge/kofi-cocobo1-%23FF6433?style=flat&logo=ko-fi&labelColor=%23ffffff)](https://www.ko-fi.com/cocobo1) ![GitHub last commit](https://img.shields.io/github/last-commit/c0c0b01/kettu?logo=github) 
    
 ## Installing
-
-Only Discord versions 287 and below are supported
 
 - **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
