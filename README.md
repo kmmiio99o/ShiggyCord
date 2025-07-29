@@ -10,7 +10,7 @@ A mod for Discord on Android
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
 ### iOS
-- [BoundTweak](https://github.com/CloudySn0w/BoundTweak)
+- [BTLoader](https://github.com/CloudySn0w/BTLoader)
 
 note: boundtweak is not developed by me
 
