@@ -12,7 +12,7 @@ A mod for Discord on Android
 ### iOS
 - [BTLoader](https://github.com/CloudySn0w/BTLoader)
 
-note: boundtweak is not developed by me
+note: btloader is not developed by me and loads revenge by default 
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
