@@ -1,4 +1,4 @@
-
+import fixStatusBar from "./fix";
 import patchChatBackground from "./patches/background";
 import patchDefinitionAndResolver from "./patches/resolver";
 import patchStorage from "./patches/storage";
@@ -12,6 +12,8 @@ export default function initColors(manifest: ColorManifest | null) {
         patchDefinitionAndResolver(),
         patchChatBackground()
     ];
+
+    fixStatusBar();
 
     if (manifest) updateBunnyColor(manifest, { update: false });
 
