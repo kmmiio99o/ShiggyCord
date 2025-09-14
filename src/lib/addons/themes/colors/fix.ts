@@ -25,10 +25,6 @@ function getBarStyle() {
         return (lowerTheme.includes("dark") || lowerTheme.includes("midnight")) ? "light-content" : "dark-content";
     }
 
-    if (typeof ThemeStore?.isDark === "boolean") {
-        return ThemeStore.isDark ? "light-content" : "dark-content";
-    }
-
     return "dark-content";
 }
 
