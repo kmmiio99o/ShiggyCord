@@ -57,5 +57,5 @@ jobs:
           git config --local user.name "Forgejo Actions"
           git fetch origin
           git checkout github || git checkout -b github
-          git merge origin/main --no-edit
+          git merge origin/main --no-edit --allow-unrelated-histories
           git push origin github
