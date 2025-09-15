@@ -7,10 +7,15 @@ let patches = [] as (() => unknown)[];
 export default defineCorePlugin({
     manifest: {
         id: "bunny.quickinstall",
-        name: "QuickInstall",
         version: "1.0.0",
-        description: "Quickly install Vendetta plugins and themes",
-        authors: [{ name: "Vendetta Team" }]
+        type: "plugin",
+        spec: 3,
+        main: "",
+        display: {
+            name: "QuickInstall",
+            description: "Quickly install Vendetta plugins and themes",
+            authors: [{ name: "Vendetta Team" }]
+        }
     },
     start() {
         patches = [patchForumPost(), patchUrl()];

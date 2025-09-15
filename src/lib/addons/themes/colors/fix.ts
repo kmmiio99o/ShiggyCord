@@ -1,6 +1,6 @@
 import { StatusBar } from "react-native";
 import { findByStoreNameLazy } from "@metro/wrappers";
-import { _colorRef } from "./updater"; // <-- import your colorRef
+import { _colorRef } from "./updater";
 
 const ThemeStore = findByStoreNameLazy("ThemeStore");
 

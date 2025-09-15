@@ -15,10 +15,15 @@ const useBadgesModule = findByName("useBadges", false);
 export default defineCorePlugin({
     manifest: {
         id: "bunny.badges",
-        name: "Badges",
         version: "1.0.0",
-        description: "Adds badges to user's profile",
-        authors: [{ name: "pylixonly" }]
+        type: "plugin",
+        spec: 3,
+        main: "",
+        display: {
+            name: "Badges",
+            description: "Adds badges to user's profile",
+            authors: [{ name: "pylixonly" }]
+        }
     },
     start() {
         const propHolder = {} as Record<string, any>;
