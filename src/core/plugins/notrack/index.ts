@@ -27,13 +27,10 @@ export default defineCorePlugin({
         }
     },
     start() {
-        logger.log("gyat");
-        const patches = [
-            network(),
-            console(),
-            miscellanous(),
-            sentry(),
-        ];
+        network(),
+        console(),
+        miscellanous(),
+        sentry()
     }
 });
 
