@@ -51,12 +51,6 @@ export default function initSettings() {
         ]
     });
 
-    // Compat with Vendetta Plugins that use configs in settings
-    registerSection({
-        name: "Vendetta",
-        items: []
-    });
-
     // Compat with Bunny Plugins that use configs in settings
     registerSection({
         name: "Bunny",
@@ -66,6 +60,12 @@ export default function initSettings() {
     // Compat with Revenge Plugins that use configs in settings
     registerSection({
         name: "Revenge",
+        items: []
+    });
+
+    // Compat with Vendetta Plugins that use configs in settings
+    registerSection({
+        name: "Vendetta",
         items: []
     });
 }
