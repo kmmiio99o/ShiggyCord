@@ -26,7 +26,7 @@ export default defineCorePlugin({
     },
     
     start() {
-        const badgeCache = {} as Record<string, BunnyBadge[]>;
+        let allBadges: { [x: string]: any; } | null = null;
         const badgeProps = {} as Record<string, any>;
         
         onJsxCreate("ProfileBadge", (component, ret) => {
@@ -50,22 +50,22 @@ export default defineCorePlugin({
         });
         
         after("default", useBadgesModule, ([user], result) => {
-            const [badges, setBadges] = useState<BunnyBadge[]>(
-                user ? badgeCache[user.userId] || [] : []
-            );
+            const [badges, setBadges] = useState<BunnyBadge[]>([]);
             
             useEffect(() => {
-                if (user && !badgeCache[user.userId]) {
-                    fetch(`https://raw.githubusercontent.com/ra1ncord/badges/refs/heads/main/${user.userId}.json`)
+                if (!user) return;
+                
+                if (!allBadges) {
+                    fetch("https://raw.githubusercontent.com/ra1ncord/badges/main/badges.json")
                         .then(r => r.json())
-                        .then(fetchedBadges => {
-                            badgeCache[user.userId] = fetchedBadges;
-                            setBadges(fetchedBadges);
+                        .then(data => {
+                            allBadges = data;
+                            //@ts-expect-error
+                            setBadges(allBadges[user.userId] || []);
                         })
-                        //user has no badges, but maybe they should get some by contributing 
-                        .catch(() => {
-                            badgeCache[user.userId] = [];
-                        });
+                } else {
+                    //user has no badges, but maybe they should get some by contributing 
+                    setBadges(allBadges[user.userId] || []);
                 }
             }, [user?.userId]);
             
@@ -83,7 +83,7 @@ export default defineCorePlugin({
                     result.push({
                         id: badgeId,
                         description: badge.label,
-                        icon: "dummy",
+                        icon: " _",
                     });
                 });
             }
