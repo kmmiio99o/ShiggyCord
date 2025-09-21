@@ -56,7 +56,7 @@ export default defineCorePlugin({
                 if (!user) return;
                 
                 if (!allBadges) {
-                    fetch("https://raw.githubusercontent.com/ra1ncord/badges/main/badges.json")
+                    fetch("https://codeberg.org/cocobo1/badges/raw/branch/main/badges.json")
                         .then(r => r.json())
                         .then(data => {
                             allBadges = data;
