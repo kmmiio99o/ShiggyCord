@@ -63,7 +63,7 @@ export default function About() {
         {
             label: Strings.BRAND,
             version: debugInfo.device.brand,
-            icon: "StarShootingIcon"
+            icon: "MagicWandIcon"
         },
         {
             label: Strings.MODEL,
