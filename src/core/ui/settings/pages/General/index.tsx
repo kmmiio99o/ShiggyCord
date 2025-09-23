@@ -8,7 +8,7 @@ import { getDebugInfo } from "@lib/api/debug";
 import { BundleUpdaterManager } from "@lib/api/native/modules";
 import { settings } from "@lib/api/settings";
 import { openAlert } from "@lib/ui/alerts";
-import { DISCORD_SERVER, GITHUB } from "@lib/utils/constants";
+import { DISCORD_SERVER, GITHUB, CODEBERG } from "@lib/utils/constants";
 import { NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
