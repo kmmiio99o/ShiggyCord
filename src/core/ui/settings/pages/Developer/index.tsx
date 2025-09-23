@@ -103,7 +103,7 @@ export default function Developer() {
                             // Thanks for this Revenge team!
                             label={Strings.CLEAR_BUNDLE}
 
-                            icon={<TableRow.Icon source={findAssetId("CircleErrorIcon")} />}
+                            icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}
                             onPress={() => {
                                 openAlert("pupu-clear-bundle-reload-confirmation", <AlertModal
                                     title={Strings.MODAL_RELOAD_REQUIRED}
