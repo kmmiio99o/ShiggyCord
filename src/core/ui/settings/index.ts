@@ -42,6 +42,12 @@ export default function initSettings() {
                 usePredicate: () => isFontSupported()
             },
             {
+                key: "KETTU_BROWSER",
+                title: () => Strings.BROWSER,
+                icon: findAssetId("UploadIcon"),
+                render: () => import("@core/ui/settings/pages/PluginBrowser"),
+            },
+            {
                 key: "BUNNY_DEVELOPER",
                 title: () => Strings.DEVELOPER,
                 icon: findAssetId("WrenchIcon"),
