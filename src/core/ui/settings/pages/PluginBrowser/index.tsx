@@ -1,12 +1,12 @@
 import { React, NavigationNative } from "@metro/common";
 import { View } from "react-native";
-import { Stack, Button, IconButton, Text, Card, FlashList, SegmentedControl, useSegmentedControlState } from "@metro/common/components";
+import { Stack, Button, IconButton, Text, Card, FlashList } from "@metro/common/components";
 import { findAssetId } from "@lib/api/assets";
 import safeFetch from "@lib/utils/safeFetch";
 import { showToast } from "@ui/toasts";
 import Search from "@ui/components/Search";
 import { VdPluginManager } from "@core/vendetta/plugins";
-import { getCurrentTheme, installTheme, themes, fetchTheme, removeTheme, selectTheme } from "@lib/addons/themes";
+import { installTheme, themes, removeTheme } from "@lib/addons/themes";
 import { clipboard } from "@metro/common";
 import { hideSheet, showSheet } from "@lib/ui/sheets";
 import { AlertActionButton } from "@lib/ui/components/wrappers";
