@@ -1,27 +1,19 @@
-# Kettu
-A mod for Discord on Android
+# ShiggyCord
 
-### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp) [![Static Badge](https://img.shields.io/badge/kofi-cocobo1-%23FF6433?style=flat&logo=ko-fi&labelColor=%23ffffff)](https://www.ko-fi.com/cocobo1) ![Codeberg Last Commit](https://img.shields.io/gitea/last-commit/cocobo1/Kettu?gitea_url=https%3A%2F%2Fwww.codeberg.org&logo=codeberg&logoColor=%23ffffffff)
+An unofficial fork of Kettu, made just for fun
+-# Idea taken from Rosiecord
 
 ## Installing
 
-### Android
-- **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
-- **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
-
-### iOS
-- [BTLoader](https://github.com/CloudySn0w/BTLoader)
-
-note: btloader is not developed by me and loads revenge by default 
-
-## This is a mirror of the [codeberg repository](https://codeberg.org/cocobo1/Kettu), please make all commits and issues there
+### Android/iOS
+- **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/<VERSION>/kettu.js``
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
 1. Go to Settings > General and enable Developer Settings.
 1. Clone the repo:
     ```
-    git clone https://codeberg.org/cocobo1/Kettu
+    git clone https://codeberg.org/kmmiio99o/Shiggycord.git
     ```
 1. Install dependencies:
     ```
