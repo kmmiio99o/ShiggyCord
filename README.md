@@ -1,7 +1,7 @@
 # ShiggyCord
 
 An unofficial fork of Kettu, made just for fun
--# Idea taken from Rosiecord
+Idea taken from Rosiecord
 
 ## Installing
 
