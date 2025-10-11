@@ -5,12 +5,14 @@ import { useObservable } from "@lib/api/storage";
 
 import { UnifiedPluginModel } from ".";
 
-export default function unifyBunnyPlugin(manifest: BunnyPluginManifest): UnifiedPluginModel {
-    return {
-        id: manifest.id,
-        name: manifest.display.name,
-        description: manifest.display.description,
-        authors: manifest.display.authors,
+export default function unifyBunnyPlugin(
+  manifest: BunnyPluginManifest,
+): UnifiedPluginModel {
+  return {
+    id: manifest.id,
+    name: manifest.display.name,
+    description: manifest.display.description,
+    authors: manifest.display.authors,
 
         getBadges() {
             return [

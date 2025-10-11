@@ -5,22 +5,22 @@ import patchUrl from "./url";
 let patches = [] as (() => unknown)[];
 
 export default defineCorePlugin({
-    manifest: {
-        id: "bunny.quickinstall",
-        version: "1.0.0",
-        type: "plugin",
-        spec: 3,
-        main: "",
-        display: {
-            name: "QuickInstall",
-            description: "Quickly install Vendetta plugins and themes",
-            authors: [{ name: "Vendetta Team" }]
-        }
+  manifest: {
+    id: "bunny.quickinstall",
+    version: "1.0.0",
+    type: "plugin",
+    spec: 3,
+    main: "",
+    display: {
+      name: "QuickInstall",
+      description: "Quickly install Vendetta plugins and themes",
+      authors: [{ name: "Vendetta Team" }],
     },
-    start() {
-        patches = [patchForumPost(), patchUrl()];
-    },
-    stop() {
-        patches.forEach(p => p());
-    }
+  },
+  start() {
+    patches = [patchForumPost(), patchUrl()];
+  },
+  stop() {
+    patches.forEach((p) => p());
+  },
 });

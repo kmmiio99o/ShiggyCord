@@ -17,39 +17,39 @@ import { patchSettings } from "@ui/settings";
 import * as lib from "./lib";
 
 export default async () => {
-    // Load everything in parallel
-    await Promise.all([
-        initThemes(),
-        injectFluxInterceptor(),
-        patchSettings(),
-        patchLogHook(),
-        patchCommands(),
-        patchJsx(),
-        initVendettaObject(),
-        initFetchI18nStrings(),
-        initSettings(),
-        initFixes(),
-//        patchErrorBoundary(),
-        updatePlugins()
-    ]).then(
-        // Push them all to unloader
-        u => u.forEach(f => f && lib.unload.push(f))
-    );
+  // Load everything in parallel
+  await Promise.all([
+    initThemes(),
+    injectFluxInterceptor(),
+    patchSettings(),
+    patchLogHook(),
+    patchCommands(),
+    patchJsx(),
+    initVendettaObject(),
+    initFetchI18nStrings(),
+    initSettings(),
+    initFixes(),
+    //        patchErrorBoundary(),
+    updatePlugins(),
+  ]).then(
+    // Push them all to unloader
+    (u) => u.forEach((f) => f && lib.unload.push(f)),
+  );
 
-    // Assign window object
-    window.bunny = lib;
+  // Assign window object
+  window.bunny = lib;
 
-    // Once done, load Vendetta plugins
-    VdPluginManager.initPlugins()
-        .then(u => lib.unload.push(u))
-        .catch(() => alert("Failed to initialize Vendetta plugins"));
+  // Once done, load Vendetta plugins
+  VdPluginManager.initPlugins()
+    .then((u) => lib.unload.push(u))
+    .catch(() => alert("Failed to initialize Vendetta plugins"));
 
-    // And then, load Kettu plugins
-    initPlugins();
+  // And then, load ShiggyCord plugins
+  initPlugins();
 
-    // Update the fonts
-    updateFonts();
+  // Update the fonts
+  updateFonts();
 
-    // We good :)
-    logger.log("Kettu is ready!");
+  // We good :)
+  logger.log("ShiggyCord is ready!");
 };

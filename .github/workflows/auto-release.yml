@@ -1,0 +1,51 @@
+name: Automatic Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "dist/shiggycord.js"
+      - "dist/shiggycord.min.js"
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Extract bunny version
+        id: bunny_version
+        run: |
+          version=$(grep 'const version:' src/modules.d.ts | head -n1 | sed 's/[^0-9.]//g')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Build (if needed)
+        run: bun run build
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bunny_version.outputs.version }}
+          name: Release v${{ steps.bunny_version.outputs.version }}
+          files: |
+            dist/shiggycord.js
+            dist/shiggycord.min.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

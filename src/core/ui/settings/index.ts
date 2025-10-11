@@ -1,4 +1,4 @@
-import PupuIcon from "@assets/icons/kettu.png";
+import PupuIcon from "@assets/icons/shiggy.png";
 import { Strings } from "@core/i18n";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
@@ -10,68 +10,62 @@ import { version } from "bunny-build-info";
 export { PupuIcon };
 
 export default function initSettings() {
-    
-    registerSection({
-        name: "Kettu",
-        items: [
-            {
-                key: "KETTU",
-                title: () => Strings.PUPU,
-                icon: { uri: PupuIcon },
-                render: () => import("@core/ui/settings/pages/General"),
-                useTrailing: () => `(${version})`
-            },
-            {
-                key: "BUNNY_PLUGINS",
-                title: () => Strings.PLUGINS,
-                icon: findAssetId("ActivitiesIcon"),
-                render: () => import("@core/ui/settings/pages/Plugins")
-            },
-            {
-                key: "BUNNY_THEMES",
-                title: () => Strings.THEMES,
-                icon: findAssetId("PaintPaletteIcon"),
-                render: () => import("@core/ui/settings/pages/Themes"),
-                usePredicate: () => isThemeSupported()
-            },
-            {
-                key: "BUNNY_FONTS",
-                title: () => Strings.FONTS,
-                icon: findAssetId("ic_add_text"),
-                render: () => import("@core/ui/settings/pages/Fonts"),
-                usePredicate: () => isFontSupported()
-            },
-            {
-                key: "KETTU_BROWSER",
-                title: () => Strings.BROWSER,
-                icon: findAssetId("UploadIcon"),
-                render: () => import("@core/ui/settings/pages/PluginBrowser"),
-            },
-            {
-                key: "BUNNY_DEVELOPER",
-                title: () => Strings.DEVELOPER,
-                icon: findAssetId("WrenchIcon"),
-                render: () => import("@core/ui/settings/pages/Developer"),
-                usePredicate: () => useProxy(settings).developerSettings ?? false
-            }
-        ]
-    });
+  registerSection({
+    name: "ShiggyCord",
+    items: [
+      {
+        key: "SHIGGYCORD",
+        title: () => Strings.PUPU,
+        icon: { uri: PupuIcon },
+        render: () => import("@core/ui/settings/pages/General"),
+        useTrailing: () => `(${version})`,
+      },
+      {
+        key: "BUNNY_PLUGINS",
+        title: () => Strings.PLUGINS,
+        icon: findAssetId("ActivitiesIcon"),
+        render: () => import("@core/ui/settings/pages/Plugins"),
+      },
+      {
+        key: "BUNNY_THEMES",
+        title: () => Strings.THEMES,
+        icon: findAssetId("PaintPaletteIcon"),
+        render: () => import("@core/ui/settings/pages/Themes"),
+        usePredicate: () => isThemeSupported(),
+      },
+      {
+        key: "BUNNY_FONTS",
+        title: () => Strings.FONTS,
+        icon: findAssetId("ic_add_text"),
+        render: () => import("@core/ui/settings/pages/Fonts"),
+        usePredicate: () => isFontSupported(),
+      },
 
-    // Compat with Bunny Plugins that use configs in settings
-    registerSection({
-        name: "Bunny",
-        items: []
-    });
+      {
+        key: "BUNNY_DEVELOPER",
+        title: () => Strings.DEVELOPER,
+        icon: findAssetId("WrenchIcon"),
+        render: () => import("@core/ui/settings/pages/Developer"),
+        usePredicate: () => useProxy(settings).developerSettings ?? false,
+      },
+    ],
+  });
 
-    // Compat with Revenge Plugins that use configs in settings
-    registerSection({
-        name: "Revenge",
-        items: []
-    });
+  // Compat with Bunny Plugins that use configs in settings
+  registerSection({
+    name: "Bunny",
+    items: [],
+  });
 
-    // Compat with Vendetta Plugins that use configs in settings
-    registerSection({
-        name: "Vendetta",
-        items: []
-    });
+  // Compat with Revenge Plugins that use configs in settings
+  registerSection({
+    name: "Revenge",
+    items: [],
+  });
+
+  // Compat with Vendetta Plugins that use configs in settings
+  registerSection({
+    name: "Vendetta",
+    items: [],
+  });
 }
