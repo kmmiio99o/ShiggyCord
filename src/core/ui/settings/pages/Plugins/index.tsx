@@ -78,7 +78,7 @@ export default function Plugins() {
 
             const corePlugins = [...corePluginInstances.keys()]
             .map((id) => registeredPlugins.get(id))
-            .filter((manifest): manifest is BunnyPluginManifest => manifest !== undefined)
+            .filter(Boolean)
             .map(unifyBunnyPlugin);
             const vdPlugins = Object.values(VdPluginManager.plugins).map(unifyVdPlugin);
             const bnPlugins = [...registeredPlugins.values()].filter(p => isPluginInstalled(p.id) && !isCorePlugin(p.id)).map(unifyBunnyPlugin);
