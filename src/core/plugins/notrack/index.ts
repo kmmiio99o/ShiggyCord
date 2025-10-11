@@ -197,7 +197,7 @@ function patchSentry(): PatchCleanupFn {
 export default defineCorePlugin({
   manifest: {
     id: "bunny.notrack",
-    version: "1.0.0",
+    version: "1.1.0",
     type: "plugin",
     spec: 3,
     main: "",
