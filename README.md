@@ -5,8 +5,9 @@ Idea taken from Rosiecord
 
 ## Installing
 
-###Android
-- Rooted: [Xposed Module](https://github.com/kmmiio99o/ShiggyXposed)
+### Android
+- Rooted: [Shiggy Xposed](https://github.com/kmmiio99o/ShiggyXposed)
+~~- Non-Rooted: [Shiggy Manger](https://github.com/kmmiio99o/ShiggyManager)~~
 
 ### Android/iOS
 - **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/<VERSION>/shiggycord.js``
