@@ -3,7 +3,7 @@ import AddonPage from "@core/ui/components/AddonPage";
 import PluginCard from "@core/ui/settings/pages/Plugins/components/PluginCard";
 import { VdPluginManager } from "@core/vendetta/plugins";
 import { useProxy } from "@core/vendetta/storage";
-import { isCorePlugin, isPluginInstalled, pluginSettings, registeredPlugins } from "@lib/addons/plugins";
+import { isCorePlugin, isPluginInstalled, pluginSettings, registeredPlugins, corePluginInstances } from "@lib/addons/plugins";
 import { Author } from "@lib/addons/types";
 import { findAssetId } from "@lib/api/assets";
 import { settings } from "@lib/api/settings";
@@ -16,6 +16,7 @@ import { NavigationNative } from "@metro/common";
 import { Button, Card, FlashList, IconButton, Text } from "@metro/common/components";
 import { ComponentProps } from "react";
 import { View } from "react-native";
+import type { BunnyPluginManifest } from "@lib/addons/plugins/types";
 
 import { UnifiedPluginModel } from "./models";
 import unifyBunnyPlugin from "./models/bunny";
@@ -60,10 +61,14 @@ export default function Plugins() {
             useProxy(VdPluginManager.plugins);
             useObservable([pluginSettings]);
 
+            const corePlugins = [...corePluginInstances.keys()]
+            .map((id) => registeredPlugins.get(id))
+            .filter((manifest): manifest is BunnyPluginManifest => manifest !== undefined)
+            .map(unifyBunnyPlugin);
             const vdPlugins = Object.values(VdPluginManager.plugins).map(unifyVdPlugin);
             const bnPlugins = [...registeredPlugins.values()].filter(p => isPluginInstalled(p.id) && !isCorePlugin(p.id)).map(unifyBunnyPlugin);
 
-            return [...vdPlugins, ...bnPlugins];
+            return [... corePlugins, ...vdPlugins, ...bnPlugins];
         }}
         ListHeaderComponent={() => {
             const unproxiedPlugins = Object.values(VdPluginManager.plugins).filter(p => !p.id.startsWith(VD_PROXY_PREFIX) && !p.id.startsWith(BUNNY_PROXY_PREFIX));
