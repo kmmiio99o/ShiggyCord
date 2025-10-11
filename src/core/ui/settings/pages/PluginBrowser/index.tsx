@@ -1,73 +1,223 @@
-import { deleteRepository, installPlugin, isCorePlugin, isPluginInstalled, pluginRepositories, registeredPlugins, uninstallPlugin, updateAllRepository, updateRepository } from "@lib/addons/plugins";
-import { BunnyPluginManifestInternal } from "@lib/addons/plugins/types";
-import { findAssetId } from "@lib/api/assets";
-import { dismissAlert, openAlert } from "@lib/ui/alerts";
-import { AlertActionButton } from "@lib/ui/components/wrappers";
-import { hideSheet, showSheet } from "@lib/ui/sheets";
-import { showToast } from "@lib/ui/toasts";
-import { OFFICIAL_PLUGINS_REPO_URL } from "@lib/utils/constants";
-import { NEXPID_PLUGINS_REPO_URL } from "@lib/utils/constants";
-import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
-import { clipboard, NavigationNative } from "@metro/common";
-import { ActionSheet, AlertActions, AlertModal, Button, Card, FlashList, IconButton, Stack, TableRow, TableRowGroup, Text, TextInput } from "@metro/common/components";
-import { QueryClient, QueryClientProvider, useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { React, NavigationNative } from "@metro/common";
 import { View } from "react-native";
+import { Stack, Button, IconButton, Text, Card, FlashList } from "@metro/common/components";
+import { findAssetId } from "@lib/api/assets";
+import safeFetch from "@lib/utils/safeFetch";
+import { showToast } from "@ui/toasts";
+import Search from "@ui/components/Search";
+import { VdPluginManager } from "@core/vendetta/plugins";
+import { installTheme, themes, removeTheme } from "@lib/addons/themes";
+import { clipboard } from "@metro/common";
+import { hideSheet, showSheet } from "@lib/ui/sheets";
+import { AlertActionButton } from "@lib/ui/components/wrappers";
+import { dismissAlert, openAlert } from "@lib/ui/alerts";
+import { ActionSheet, AlertModal, AlertActions, TableRow, TableRowGroup } from "@metro/common/components";
+import { lazyDestructure } from "@lib/utils/lazy";
+import { findByProps } from "@metro";
 
-const queryClient = new QueryClient();
+const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
 
-async function getManifests() {
-    await updateAllRepository();
-    const plugins = [...registeredPlugins.values()];
-    return plugins.filter(p => !isCorePlugin(p.id));
+interface BaseAddonData {
+    name: string;
+    description: string;
+    authors: string[];
+    installUrl: string;
 }
 
-function InstallButton(props: { id: string; }) {
-    const [installed, setInstalled] = useState(isPluginInstalled(props.id));
-    const installationState = useMutation<void, Error, { install: boolean; }>({
-        mutationFn: async ({ install }) => {
-            await (install ? installPlugin : uninstallPlugin)(props.id, true);
-        },
-        onSettled() {
-            setInstalled(isPluginInstalled(props.id));
-        },
-        onError(error) {
-            showToast(error instanceof Error ? error.message : String(error));
+interface PluginData extends BaseAddonData {
+    status: "working" | "broken" | "warning" | string;
+    sourceUrl: string;
+    warningMessage?: string;
+}
+
+interface ThemeData extends BaseAddonData {}
+
+type AddonData = PluginData | ThemeData;
+
+const PLUGIN_URL = "https://raw.githubusercontent.com/Purple-EyeZ/Plugins-List/refs/heads/main/src/plugins-data.json";
+const THEME_URL = "https://raw.githubusercontent.com/kmmiio99o/theme-marketplace/refs/heads/main/themes.json";
+
+function normalizeIdFromInstallUrl(url: string) {
+    return url.endsWith("/") ? url : url + "/";
+}
+
+// @ts-ignore (i cant be bothered to type these)
+function InstallButton({ addon, isPluginMode, installing, setInstalling, setRefreshTick }) {
+    const normId = normalizeIdFromInstallUrl(addon.installUrl);
+    const [installed, setInstalled] = React.useState(() => 
+        isPluginMode ? Boolean(VdPluginManager.plugins[normId]) : Boolean(themes[addon.installUrl])
+    );
+
+    React.useEffect(() => {
+        setInstalled(isPluginMode ? Boolean(VdPluginManager.plugins[normId]) : Boolean(themes[addon.installUrl]));
+    }, [addon.installUrl, setRefreshTick, isPluginMode]);
+    
+    const installAddon = async () => {
+        if (installing.has(normId)) return;
+        setInstalling((prev: Iterable<unknown> | null | undefined) => new Set(prev).add(normId));
+        try {
+            if (isPluginMode) {
+                await VdPluginManager.installPlugin(normId, true);
+            } else {
+                await installTheme(addon.installUrl);
+            }
+            showToast(`Installed ${addon.name}`, findAssetId("CheckIcon"));
+            setInstalled(true);
+        } catch (e) {
+            showToast(e instanceof Error ? e.message : String(e), findAssetId("CircleXIcon-primary"));
+        } finally {
+            setInstalling((prev: Iterable<unknown> | null | undefined) => { const s = new Set(prev); s.delete(normId); return s; });
+            setRefreshTick((t: number) => t + 1);
         }
-    });
+    };
 
-    return <Button
-        size="sm"
-        loading={installationState.isPending}
-        text={!installed ? "Install" : "Uninstall"}
-        onPress={() => installationState.mutate({ install: !installed })}
-        variant={!installed ? "primary" : "destructive"}
-        icon={findAssetId(!installed ? "DownloadIcon" : "TrashIcon")}
-    />;
-}
+    const uninstallAddon = async () => {
+        try {
+            if (isPluginMode) {
+                await VdPluginManager.removePlugin(normId);
+            } else {
+                await removeTheme(addon.installUrl);
+            }
+            showToast(`Uninstalled ${addon.name}`, findAssetId("TrashIcon"));
+            setInstalled(false);
+        } catch (e) {
+            showToast(e instanceof Error ? e.message : String(e), findAssetId("CircleXIcon-primary"));
+        } finally {
+            setRefreshTick((t: number) => t + 1);
+        }
+    };
 
-function TrailingButtons(props: { id: string; }) {
-    return <Stack spacing={8} direction="horizontal">
-        <IconButton
+    const promptInstall = () => {
+        if (!isPluginMode) return installAddon();
+        
+        const plugin = addon as PluginData;
+        const needsWarn = (plugin.status && plugin.status !== "working") || (plugin.warningMessage && plugin.warningMessage.trim().length > 0);
+        if (!needsWarn) return installAddon();
+
+        const lines: string[] = [];
+        if (plugin.status && plugin.status !== "working") {
+            if (plugin.status === "broken") lines.push("This plugin is marked as broken, please be aware you may encounter issues");
+            else if (plugin.status === "warning") lines.push("This plugin may have issues");
+            else lines.push(`Status: ${plugin.status}`);
+        }
+        if (plugin.warningMessage) lines.push(plugin.warningMessage);
+
+        openAlert("plugins-list-install-warning", (
+            <AlertModal
+                title="Warning!"
+                content="This plugin may not work as expected."
+                extraContent={<Text variant="text-sm/normal" color="text-muted">{lines.join("\n\n")}</Text>}
+                actions={<AlertActions>
+                    <AlertActionButton
+                        text="Install Anyway"
+                        variant="primary"
+                        onPress={() => { dismissAlert("plugins-list-install-warning"); installAddon(); }}
+                    />
+                    <AlertActionButton
+                        text="Cancel"
+                        variant="secondary"
+                        onPress={() => dismissAlert("plugins-list-install-warning")}
+                    />
+                </AlertActions>}
+            />
+        ));
+    };
+
+    return (
+        <Button
             size="sm"
-            onPress={() => {
-                showSheet("plugin-info", () => {
-                    return <ActionSheet>
-                        <TableRowGroup title="Plugin Info">
-                            <TableRow label="ID" subLabel={props.id} />
-                        </TableRowGroup>
-                    </ActionSheet>;
-                });
-            }}
-            variant="secondary"
-            icon={findAssetId("CircleInformationIcon")}
+            loading={installing.has(normId)}
+            text={!installed ? (installing.has(normId) ? "Installing..." : "Install") : "Uninstall"}
+            disabled={installing.has(normId)}
+            onPress={!installed ? promptInstall : uninstallAddon}
+            variant={!installed ? "primary" : "destructive"}
+            icon={findAssetId(!installed ? "DownloadIcon" : "TrashIcon")}
         />
-        <InstallButton id={props.id} />
-    </Stack>;
+    );
 }
 
-function PluginCard(props: { manifest: BunnyPluginManifestInternal; }) {
-    const { display, version } = props.manifest;
+// @ts-ignore (i cant be bothered to type these)
+function TrailingButtons({ addon, isPluginMode, installing, setInstalling, setRefreshTick }) {
+    const copyAddonLink = () => {
+        clipboard.setString(addon.installUrl);
+        // @ts-ignore
+        showToast.showCopyToClipboard?.();
+    };
+
+    const copySourceUrl = () => {
+        const plugin = addon as PluginData;
+        clipboard.setString(plugin.sourceUrl);
+        // @ts-ignore
+        showToast.showCopyToClipboard?.();
+    };
+
+    const openAddonMenu = () => {
+        const actions = [
+            {
+                label: `Copy ${isPluginMode ? 'Plugin' : 'Theme'} Link`,
+                icon: findAssetId("CopyIcon"),
+                onPress: copyAddonLink
+            }
+        ];
+
+        if (isPluginMode && (addon as PluginData).sourceUrl) {
+            actions.push({
+                label: "Copy Source URL",
+                icon: findAssetId("CopyIcon"),
+                onPress: copySourceUrl
+            });
+        }
+
+        const sheetKey = `${isPluginMode ? 'plugin' : 'theme'}-menu`;
+        showSheet(sheetKey, () => (
+            <ActionSheet>
+                <TableRowGroup title={`${isPluginMode ? 'Plugin' : 'Theme'} Info`}>
+                    {actions.map((action, index) => (
+                        <TableRow
+                            key={index}
+                            label={action.label}
+                            icon={<TableRow.Icon source={action.icon} />}
+                            onPress={() => {
+                                action.onPress();
+                                hideSheet(sheetKey);
+                            }}
+                        />
+                    ))}
+                </TableRowGroup>
+            </ActionSheet>
+        ));
+    };
+
+    return (
+        <Stack spacing={8} direction="horizontal">
+            <IconButton
+                size="sm"
+                onPress={openAddonMenu}
+                variant="secondary"
+                icon={findAssetId("MoreHorizontalIcon")}
+            />
+            <InstallButton 
+                addon={addon}
+                isPluginMode={isPluginMode}
+                installing={installing} 
+                setInstalling={setInstalling} 
+                setRefreshTick={setRefreshTick} 
+            />
+        </Stack>
+    );
+}
+
+// @ts-ignore (i cant be bothered to type these)
+function AddonCard({ addon, isPluginMode, installing, setInstalling, setRefreshTick }) {
+    const { name, description, authors } = addon;
+    const plugin = addon as PluginData;
+
+    let statusColor = "text-normal";
+    if (isPluginMode) {
+        if (plugin.status === "working") statusColor = "#4ADE80";
+        if (plugin.status === "broken") statusColor = "#EF4444";
+        if (plugin.status === "warning") statusColor = "#F59E0B";
+    }
 
     return (
         <Card>
@@ -75,184 +225,275 @@ function PluginCard(props: { manifest: BunnyPluginManifestInternal; }) {
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <View style={{ flexShrink: 1 }}>
                         <Text numberOfLines={1} variant="heading-lg/semibold">
-                            {display.name}
+                            {name}
                         </Text>
                         <Text variant="text-md/semibold" color="text-muted">
-                            by {display.authors?.map(a => a.name).join(", ") || "Unknown"} ({version})
+                            by {authors?.join(", ") || "Unknown"}
                         </Text>
+                        {isPluginMode && (
+                            <Text variant="text-md/semibold" style={{ color: statusColor }}>
+                                Status: {plugin.status}
+                            </Text>
+                        )}
                     </View>
                     <View>
-                        <TrailingButtons id={props.manifest.id} />
+                        <TrailingButtons 
+                            addon={addon}
+                            isPluginMode={isPluginMode}
+                            installing={installing} 
+                            setInstalling={setInstalling} 
+                            setRefreshTick={setRefreshTick} 
+                        />
                     </View>
                 </View>
                 <Text variant="text-md/medium">
-                    {display.description}
+                    {description}
                 </Text>
+                {isPluginMode && plugin.warningMessage && (
+                    <Text variant="text-sm/medium" color="text-muted">
+                        Warning: {plugin.warningMessage}
+                    </Text>
+                )}
             </Stack>
         </Card>
     );
 }
 
-function BrowserPage() {
+enum Sort {
+    DateNewest = "Newest",
+    DateOldest = "Oldest",
+    NameAZ = "Name (A–Z)",
+    NameZA = "Name (Z–A)",
+    WorkingFirst = "Working First",
+    BrokenFirst = "Broken First",
+}
+
+export default function BrowserPage() {
     const navigation = NavigationNative.useNavigation();
-    useEffect(() => {
+
+    const [mode, setMode] = React.useState<"plugins" | "themes">("plugins");
+    const [plugins, setPlugins] = React.useState<PluginData[]>([]);
+    const [themesList, setThemesList] = React.useState<ThemeData[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = React.useState("");
+    const [installing, setInstalling] = React.useState<Set<string>>(new Set());
+    const [refreshTick, setRefreshTick] = React.useState(0);
+    const [sort, setSort] = React.useState<Sort>(Sort.DateNewest);
+
+    React.useEffect(() => {
         navigation.setOptions({
-            title: "Plugin Browser",
-            headerRight: () => <IconButton
-                size="sm"
-                variant="secondary"
-                icon={findAssetId("PlusSmallIcon")}
-                onPress={() => {
-                    showSheet("plugin-browser-options", PluginBrowserOptions);
-                }}
-            />
+            title: "Browser"
         });
     }, [navigation]);
 
-    const { data, error, isPending, refetch } = useQuery({
-        queryKey: ["plugins-repo-fetch"],
-        queryFn: () => getManifests()
-    });
+    const fetchData = React.useCallback(async (isPluginMode: boolean) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const url = isPluginMode ? PLUGIN_URL : THEME_URL;
+            const response = await safeFetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const data = await response.json();
+            
+            let addonList: AddonData[] = [];
+            if (Array.isArray(data)) {
+                addonList = data;
+            } else if (isPluginMode && data.OFFICIAL_PLUGINS) {
+                addonList = data.OFFICIAL_PLUGINS;
+            } else if (!isPluginMode) {
+                // Handle any other structure for themes - try common property names
+                addonList = data.OFFICIAL_THEMES || data.themes || data.THEMES || data.items || [];
+            }
+            
+            if (isPluginMode) {
+                setPlugins(addonList as PluginData[]);
+            } else {
+                setThemesList(addonList as ThemeData[]);
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : String(e));
+            if (isPluginMode) {
+                setPlugins([]);
+            } else {
+                setThemesList([]);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchPlugins = React.useCallback(() => fetchData(true), [fetchData]);
+    const fetchThemes = React.useCallback(() => fetchData(false), [fetchData]);
+
+    React.useEffect(() => {
+        fetchPlugins();
+        fetchThemes();
+    }, [fetchPlugins, fetchThemes]);
+
+    const filterList = (list: AddonData[]) => {
+        if (!list) return [] as AddonData[];
+        const q = searchQuery.toLowerCase();
+        if (!q) return list;
+        return list.filter(p =>
+            p.name.toLowerCase().includes(q)
+            || p.description.toLowerCase().includes(q)
+            || (p.authors || []).some(a => a.toLowerCase().includes(q))
+        );
+    };
+
+    const sortedAndFiltered = React.useMemo(() => {
+        const list = filterList(mode === "plugins" ? plugins : themesList);
+
+        const getStatusPriority = (status: PluginData["status"], sortBy: Sort): number => {
+            if (sortBy === Sort.WorkingFirst) {
+                return status === "working" || status === "warning" ? 0 : 1;
+            }
+            if (sortBy === Sort.BrokenFirst) {
+                return status === "broken" ? 0 : 1;
+            }
+            return 0;
+        };
+
+        switch (sort) {
+            case Sort.DateNewest:
+                return [...list].reverse();
+            case Sort.DateOldest:
+                return [...list];
+            case Sort.NameAZ:
+                return [...list].sort((a, b) => a.name.localeCompare(b.name));
+            case Sort.NameZA:
+                return [...list].sort((a, b) => b.name.localeCompare(a.name));
+            case Sort.WorkingFirst:
+                if (mode === "plugins") {
+                    return [...list].sort((a, b) => {
+                        const pa = getStatusPriority((a as PluginData).status, Sort.WorkingFirst);
+                        const pb = getStatusPriority((b as PluginData).status, Sort.WorkingFirst);
+                        return pa !== pb ? pa - pb : a.name.localeCompare(b.name);
+                    });
+                }
+                return list;
+            case Sort.BrokenFirst:
+                if (mode === "plugins") {
+                    return [...list].sort((a, b) => {
+                        const pa = getStatusPriority((a as PluginData).status, Sort.BrokenFirst);
+                        const pb = getStatusPriority((b as PluginData).status, Sort.BrokenFirst);
+                        return pa !== pb ? pa - pb : a.name.localeCompare(b.name);
+                    });
+                }
+                return list;
+            default:
+                return list;
+        }
+    }, [plugins, themesList, mode, searchQuery, sort]);
 
     if (error) {
-        return <View style={{
-            flex: 1,
-            paddingHorizontal: 8,
-            justifyContent: "center",
-            alignItems: "center",
-        }}>
-            <Card style={{ gap: 8 }}>
-                <Text style={{ textAlign: "center" }} variant="heading-lg/bold">
-                    An error occured while fetching the repository!
-                </Text>
-                <Text style={{ textAlign: "center" }} variant="text-sm/medium" color="text-muted">
-                    {error instanceof Error ? error.message : String(error)}
-                </Text>
-                <Button
-                    size="lg"
-                    text="Refetch"
-                    onPress={refetch}
-                    icon={findAssetId("RetryIcon")}
-                />
-            </Card>
-        </View>;
+        return (
+            <View style={{ flex: 1, paddingHorizontal: 8, justifyContent: "center", alignItems: "center" }}>
+                <Card style={{ gap: 8 }}>
+                    <Text style={{ textAlign: "center" }} variant="heading-lg/bold">
+                        An error occurred while fetching the repository
+                    </Text>
+                    <Text style={{ textAlign: "center" }} variant="text-sm/medium" color="text-muted">
+                        {error}
+                    </Text>
+                    <Button
+                        size="lg"
+                        text="Refetch"
+                        onPress={() => fetchData(mode === "plugins")}
+                        icon={findAssetId("RetryIcon")}
+                    />
+                </Card>
+            </View>
+        );
     }
 
-    return <FlashList
-        data={data}
-        refreshing={isPending}
-        onRefresh={refetch}
-        estimatedItemSize={136}
-        contentContainerStyle={{ paddingBottom: 90, paddingHorizontal: 5 }}
-        renderItem={({ item: manifest }: any) => (
-            <View style={{ paddingVertical: 6, paddingHorizontal: 8 }}>
-                <PluginCard manifest={manifest} />
-            </View>
-        )}
-    />;
-}
-
-function AddRepositoryAlert() {
-    const [value, setValue] = useState("");
-
-    return <AlertModal
-        title="Add Repository"
-        content="Enter the URL of the repository you want to add."
-        extraContent={<TextInput
-            value={value}
-            onChange={setValue}
-            placeholder="https://example.com/repo.json" />}
-        actions={<AlertActions>
-            <AlertActionButton
-                text="Add"
-                variant="primary"
-                disabled={!isValidHttpUrl(value)}
-                onPress={async () => {
-                    try {
-                        await updateRepository(value);
-                        showToast("Added repository!", findAssetId("Check"));
-                    } catch (e) {
-                        showToast("Failed to add repository!", findAssetId("Small"));
-                    } finally {
-                        dismissAlert("bunny-add-plugin-repository");
-                        showSheet("plugin-browser-options", PluginBrowserOptions);
-                    }
-                }} />
-        </AlertActions>} />;
-}
-
-function PluginBrowserOptions() {
-    return <ActionSheet>
-        <TableRowGroup title="Repositories">
-            {Object.keys(pluginRepositories).map(url => {
-                return <RepositoryRow key={url} url={url} />;
-            })}
-            <TableRow
-                label="Add Repository..."
-                icon={<TableRow.Icon source={findAssetId("PlusMediumIcon")} />}
-                onPress={() => {
-                    openAlert("bunny-add-plugin-repository", <AddRepositoryAlert />);
-                    hideSheet("plugin-browser-options");
-                }} />
-        </TableRowGroup>
-    </ActionSheet>;
-}
-
-function RepositoryRow(props: { url: string; }) {
-    const repo = pluginRepositories[props.url];
-    const isOfficialBunny = props.url === OFFICIAL_PLUGINS_REPO_URL;
-    const isNexpid = props.url === NEXPID_PLUGINS_REPO_URL;
-
     return (
-        <TableRow
-            label={isOfficialBunny ? "Bunny's Repository" : (repo.$meta?.name ?? "Unknown")}
-            subLabel={props.url}
-            trailing={(
-                <Stack direction="horizontal">
-                    <IconButton
-                        size="sm"
-                        variant="secondary"
-                        icon={findAssetId("LinkIcon")}
-                        onPress={() => {
-                            clipboard.setString(props.url);
-                            showToast.showCopyToClipboard();
-                        }}
-                    />
-                    <IconButton
-                        size="sm"
-                        variant="destructive"
-                        disabled={isOfficialBunny}
-                        icon={findAssetId("TrashIcon")}
-                        onPress={() => {
-                            openAlert("bunny-remove-repository", <AlertModal
-                                title="Remove Repository"
-                                content="Are you sure you want to remove this repository?"
-                                extraContent={<Card>
-                                    <Text variant="text-md/normal">{props.url}</Text>
-                                </Card>}
-                                actions={<AlertActions>
-                                    <AlertActionButton
-                                        text="Remove"
-                                        variant="destructive"
-                                        onPress={async () => {
-                                            await deleteRepository(props.url);
-                                            showToast("Removed repository!", findAssetId("Trash"));
-                                            dismissAlert("bunny-remove-repository");
-                                        }}
-                                    />
-                                </AlertActions>}
-                            />);
-                        }}
-                    />
+        <View style={{ flex: 1 }}>
+            <View style={{ justifyContent: "center", alignItems: "center", paddingHorizontal: 10 }}>
+                <Stack spacing={12}>
+                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: 'center', paddingTop: 10 }}>
+                        <Stack spacing={10} style={{ flexDirection: "row", justifyContent: "center", alignItems: 'center' }}>
+                            <Button
+                                size="sm"
+                                text="Plugins"
+                                variant={mode === "plugins" ? "primary" : "secondary"}
+                                onPress={() => setMode("plugins")}
+                            />
+                            <Button
+                                size="sm"
+                                text="Themes"
+                                variant={mode === "themes" ? "primary" : "secondary"}
+                                onPress={() => setMode("themes")}
+                            />
+                        </Stack>
+                    </View>
+
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingBottom: 6 }}>
+                        <Search 
+                            placeholder={`Search ${mode}...`} 
+                            onChangeText={setSearchQuery} 
+                            style={{ flex: 1 }}
+                        />
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <IconButton
+                            size="sm"
+                            variant="tertiary"
+                            icon={findAssetId("MoreVerticalIcon")}
+                            disabled={!!searchQuery}
+                            onPress={() => showSimpleActionSheet({
+                                key: "AddonListSortOptions",
+                                header: {
+                                    title: "Sort Options",
+                                    onClose: () => hideActionSheet("AddonListSortOptions"),
+                                },
+                                options: Object.entries(Sort).map(([key, value]) => ({
+                                    label: value,
+                                    onPress: () => {
+                                        setSort(value as Sort);
+                                    }
+                                }))
+                            })}
+                        />
+                    </View>
+                        
+                    </View>
                 </Stack>
-            )} />
-    );
-}
-
-export default function PluginBrowser() {
-    return (
-        <QueryClientProvider client={queryClient}>
-            <BrowserPage />
-        </QueryClientProvider>
+            </View>
+            
+            <FlashList
+                data={sortedAndFiltered}
+                refreshing={loading}
+                onRefresh={mode === "plugins" ? fetchPlugins : fetchThemes}
+                estimatedItemSize={200}
+                contentContainerStyle={{ paddingBottom: 90, paddingHorizontal: 5 }}
+                ListHeaderComponent={mode === "plugins" ? (
+                    <View style={{ paddingVertical: 6, paddingHorizontal: 8 }}>
+                        <Card border="strong">
+                            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", flexDirection: "row" }}>
+                                <View style={{ gap: 6, flexShrink: 1 }}>
+                                    <Text variant="heading-md/bold">Unproxied Plugins</Text>
+                                    <Text variant="text-sm/medium" color="text-muted">
+                                        Plugins installed from this source have not been checked for safety, install at your own risk
+                                    </Text>
+                                </View>
+                            </View>
+                        </Card>
+                    </View>
+                ) : null}
+                //@ts-ignore
+                renderItem={({ item: addon }) => (
+                    <View style={{ paddingVertical: 6, paddingHorizontal: 8 }}>
+                        <AddonCard 
+                            addon={addon}
+                            isPluginMode={mode === "plugins"}
+                            installing={installing} 
+                            setInstalling={setInstalling} 
+                            setRefreshTick={setRefreshTick} 
+                        />
+                    </View>
+                )}
+            />
+        </View>
     );
 }

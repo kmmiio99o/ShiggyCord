@@ -5,7 +5,7 @@ const { instead } = require("spitroast");
 // @ts-ignore - window is defined later in the bundle, so we assign it early
 globalThis.window = globalThis;
 
-async function initializeRevenge() {
+async function initializeKettu() {
     try {
         // Make 'freeze' and 'seal' do nothing
         Object.freeze = Object.seal = Object;
@@ -31,7 +31,6 @@ if (typeof window.__r === "undefined") {
     var _requireFunc: any;
 
     // Calls from the native side are deferred until the index.ts(x) is loaded
-    // Revenge delays the execution of index.ts(x) because Revenge's initialization is asynchronous
     interface DeferredQueue {
         object: any;
         method: string;
@@ -102,7 +101,7 @@ if (typeof window.__r === "undefined") {
         }
 
         const startDiscord = async () => {
-            await initializeRevenge();
+            await initializeKettu();
             
             for (const unpatch of unpatches) unpatch();
             unpatches.length = 0;
@@ -143,7 +142,5 @@ if (typeof window.__r === "undefined") {
         }
     });
 } else {
-    // It is too late to late to hook __r, so we just initialize Revenge here
-    // Likely because of using the legacy loader (from Vendetta)
-    initializeRevenge();
+    initializeKettu();
 }

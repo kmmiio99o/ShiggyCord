@@ -42,6 +42,12 @@ export default function initSettings() {
                 usePredicate: () => isFontSupported()
             },
             {
+                key: "KETTU_BROWSER",
+                title: () => Strings.BROWSER,
+                icon: findAssetId("UploadIcon"),
+                render: () => import("@core/ui/settings/pages/PluginBrowser"),
+            },
+            {
                 key: "BUNNY_DEVELOPER",
                 title: () => Strings.DEVELOPER,
                 icon: findAssetId("WrenchIcon"),
@@ -49,12 +55,6 @@ export default function initSettings() {
                 usePredicate: () => useProxy(settings).developerSettings ?? false
             }
         ]
-    });
-
-    // Compat with Vendetta Plugins that use configs in settings
-    registerSection({
-        name: "Vendetta",
-        items: []
     });
 
     // Compat with Bunny Plugins that use configs in settings
@@ -66,6 +66,12 @@ export default function initSettings() {
     // Compat with Revenge Plugins that use configs in settings
     registerSection({
         name: "Revenge",
+        items: []
+    });
+
+    // Compat with Vendetta Plugins that use configs in settings
+    registerSection({
+        name: "Vendetta",
         items: []
     });
 }

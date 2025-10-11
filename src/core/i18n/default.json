@@ -8,6 +8,7 @@
     "BRAND": "Brand",
     "PUPU": "Kettu",
     "PUPU_URL": "Kettu URL",
+    "BROWSER": "Browser",
     "BYTECODE": "Bytecode",
     "CANCEL": "Cancel",
     "CLEAR": "Clear",
@@ -16,6 +17,7 @@
     "CLEAR_DATA": "Clear data",
     "CLEAR_DATA_FAILED": "Failed to clear data for {name}",
     "CLEAR_DATA_SUCCESSFUL": "Cleared data for {name}",
+    "CODEBERG": "Codeberg",
     "CODENAME": "Codename",
     "COMMAND_DEBUG_DESC": "Send Kettu debug info.",
     "COMMAND_DEBUG_OPT_EPHEMERALLY": "Send debug info ephemerally.",
@@ -113,7 +115,7 @@
     "UH_OH": "Uh Oh",
     "UNINSTALL": "Uninstall",
     "UNINSTALL_TITLE": "Uninstall {title}",
-    "URL_PLACEHOLDER": "https://github.com/C0C0B01/Kettu",
+    "URL_PLACEHOLDER": "https://codeberg.org/cocobo1/Kettu",
     "VERSION": "Version",
     "VERSIONS": "Versions"
 }

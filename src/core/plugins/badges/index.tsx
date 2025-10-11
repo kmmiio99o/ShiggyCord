@@ -2,7 +2,6 @@ import { after } from "@lib/api/patcher";
 import { onJsxCreate } from "@lib/api/react/jsx";
 import { findByName } from "@metro";
 import { useEffect, useState } from "react";
-
 import { defineCorePlugin } from "..";
 
 interface BunnyBadge {
@@ -15,44 +14,76 @@ const useBadgesModule = findByName("useBadges", false);
 export default defineCorePlugin({
     manifest: {
         id: "bunny.badges",
-        name: "Badges",
-        version: "1.0.0",
-        description: "Adds badges to user's profile",
-        authors: [{ name: "pylixonly" }]
+        version: "1.1.0",
+        type: "plugin",
+        spec: 3,
+        main: "",
+        display: {
+            name: "Badges",
+            description: "Adds badges to user's profile",
+            authors: [{ name: "cocobo1"}, { name: "pylixonly" }]
+        }
     },
+    
     start() {
-        const propHolder = {} as Record<string, any>;
-        const badgeCache = {} as Record<string, BunnyBadge[]>;
-
-        onJsxCreate("RenderedBadge", (_, ret) => {
-            if (ret.props.id.match(/bunny-\d+-\d+/)) {
-                Object.assign(ret.props, propHolder[ret.props.id]);
+        let allBadges: { [x: string]: any; } | null = null;
+        const badgeProps = {} as Record<string, any>;
+        
+        onJsxCreate("ProfileBadge", (component, ret) => {
+            if (ret.props.id?.startsWith("bunny-")) {
+                const cachedProps = badgeProps[ret.props.id];
+                if (cachedProps) {
+                    ret.props.source = cachedProps.source;
+                    ret.props.label = cachedProps.label;
+                    ret.props.id = cachedProps.id;
+                }
             }
         });
-
-        after("default", useBadgesModule, ([user], r) => {
-            const [badges, setBadges] = useState<BunnyBadge[]>(user ? badgeCache[user.userId] ??= [] : []);
-
-            useEffect(() => {
-                if (user) {
-                    fetch(`https://raw.githubusercontent.com/pyoncord/badges/refs/heads/main/${user.userId}.json`)
-                        .then(r => r.json())
-                        .then(badges => setBadges(badgeCache[user.userId] = badges));
+        
+        onJsxCreate("RenderedBadge", (component, ret) => {
+            if (ret.props.id?.startsWith("bunny-")) {
+                const cachedProps = badgeProps[ret.props.id];
+                if (cachedProps) {
+                    Object.assign(ret.props, cachedProps);
                 }
-            }, [user]);
-
-            if (user) {
-                badges.forEach((badges, i) => {
-                    propHolder[`bunny-${user.userId}-${i}`] = {
-                        source: { uri: badges.url },
-                        id: `bunny-${i}`,
-                        label: badges.label
+            }
+        });
+        
+        after("default", useBadgesModule, ([user], result) => {
+            const [badges, setBadges] = useState<BunnyBadge[]>([]);
+            
+            useEffect(() => {
+                if (!user) return;
+                
+                if (!allBadges) {
+                    fetch("https://codeberg.org/raincord/badges/raw/branch/main/badges.json")
+                        .then(r => r.json())
+                        .then(data => {
+                            allBadges = data;
+                            //@ts-expect-error
+                            setBadges(allBadges[user.userId] || []);
+                        })
+                } else {
+                    //user has no badges, but maybe they should get some by contributing 
+                    setBadges(allBadges[user.userId] || []);
+                }
+            }, [user?.userId]);
+            
+            if (user && badges.length > 0) {
+                badges.forEach((badge, i) => {
+                    const badgeId = `bunny-${user.userId}-${i}`;
+                    
+                    badgeProps[badgeId] = {
+                        id: badgeId,
+                        source: { uri: badge.url },
+                        label: badge.label,
+                        userId: user.userId,
                     };
 
-                    r.push({
-                        id: `bunny-${user.userId}-${i}`,
-                        description: badges.label,
-                        icon: "_",
+                    result.push({
+                        id: badgeId,
+                        description: badge.label,
+                        icon: " _",
                     });
                 });
             }

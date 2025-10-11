@@ -1,4 +1,3 @@
-
 import { FilterCheckDef, FilterDefinition, ModuleExports } from "./types";
 
 export function createFilterDefinition<A extends unknown[]>(

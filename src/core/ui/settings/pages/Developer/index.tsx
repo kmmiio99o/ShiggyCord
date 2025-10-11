@@ -21,7 +21,7 @@ const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleA
 const { openAlert } = lazyDestructure(() => findByProps("openAlert", "dismissAlert"));
 const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("AlertModal", "AlertActions"));
 
-const RDT_EMBED_LINK = "https://github.com/revenge-mod/react-devtools-core/releases/latest/download/rdtc.js";
+const RDT_EMBED_LINK = "";
 
 const useStyles = createStyles({
     leadingText: {
@@ -103,7 +103,7 @@ export default function Developer() {
                             // Thanks for this Revenge team!
                             label={Strings.CLEAR_BUNDLE}
 
-                            icon={<TableRow.Icon source={findAssetId("trash")} />}
+                            icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}
                             onPress={() => {
                                 openAlert("pupu-clear-bundle-reload-confirmation", <AlertModal
                                     title={Strings.MODAL_RELOAD_REQUIRED}
