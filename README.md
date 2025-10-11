@@ -8,7 +8,8 @@ Idea taken from Rosiecord
 ### Android
 
 - Rooted: [Shiggy Xposed](https://github.com/kmmiio99o/ShiggyXposed)
-~~- Non-Rooted: [Shiggy Manger](https://github.com/kmmiio99o/ShiggyManager)~~ Coming in the meaning time
+
+- ~~Non-Rooted: [Shiggy Manger](https://github.com/kmmiio99o/ShiggyManager)~~ Coming in the meaning time
 
 ### Android/iOS
 - **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/<VERSION>/shiggycord.js``
