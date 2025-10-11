@@ -9,7 +9,7 @@ interface CorePlugin {
 export const getCorePlugins = (): Record<string, CorePlugin> => ({
     "bunny.quickinstall": require("./quickinstall"),
     "bunny.badges": require("./badges"),
-    "vendetta.notrack": require("./notrack")
+    "bunny.notrack": require("./notrack")
 });
 
 /**
