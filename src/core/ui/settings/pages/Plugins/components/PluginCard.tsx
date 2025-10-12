@@ -1,8 +1,8 @@
+import { React, NavigationNative, tokens } from "@metro/common";
 import { CardWrapper } from "@core/ui/components/AddonCard";
 import { UnifiedPluginModel } from "@core/ui/settings/pages/Plugins/models";
 import { usePluginCardStyles } from "@core/ui/settings/pages/Plugins/usePluginCardStyles";
 import { findAssetId } from "@lib/api/assets";
-import { NavigationNative, tokens } from "@metro/common";
 import {
   Card,
   IconButton,
@@ -152,6 +152,11 @@ export default function PluginCard({
     [plugin, result],
   );
 
+  // Protect specific core plugins from being toggled
+  const idLower = ((plugin.id || "") as string).toLowerCase();
+  const isProtectedCore =
+    idLower.includes("quickinstall") || idLower === "bunny.badges";
+
   return (
     <CardContext.Provider value={cardContextValue}>
       <Card>
@@ -166,13 +171,18 @@ export default function PluginCard({
             <View>
               <Stack spacing={12} direction="horizontal">
                 <Actions />
-                <TableSwitch
-                  value={plugin.isEnabled()}
-                  onValueChange={(v: boolean) => {
-                    plugin.toggle(v);
-                    forceUpdate();
-                  }}
-                />
+                {/* Dim and disable the switch for protected core plugins */}
+                <View style={{ opacity: isProtectedCore ? 0.45 : 1 }}>
+                  <TableSwitch
+                    value={plugin.isEnabled()}
+                    disabled={isProtectedCore}
+                    onValueChange={(v: boolean) => {
+                      if (isProtectedCore) return;
+                      plugin.toggle(v);
+                      forceUpdate();
+                    }}
+                  />
+                </View>
               </Stack>
             </View>
           </View>

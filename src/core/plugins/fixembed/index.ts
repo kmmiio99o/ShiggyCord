@@ -5,13 +5,13 @@ import { logger } from "@lib/utils/logger";
 import { settings } from "@lib/api/settings";
 import { React } from "@metro/common";
 
-const { FormSection, FormRow, FormSwitch, FormText } = findByProps(
-  "FormSection",
-  "FormRow",
-  "FormSwitch",
-  "FormText",
+const { TableRowGroup, TableRow, TableSwitchRow, Stack } = findByProps(
+  "TableRowGroup",
+  "TableRow",
+  "TableSwitchRow",
+  "Stack",
 );
-const { ScrollView } = require("react-native");
+const { ScrollView, Text } = require("react-native");
 
 type FixEmbedSettings = {
   enabled: boolean;
@@ -101,60 +101,84 @@ export default defineCorePlugin({
       setConfig((prev) => ({ ...prev, [key]: value }));
     };
 
+    // Prefer table-style rows (TableRowGroup / TableSwitchRow) and Stack layout similar to other core plugins.
+    const {
+      TableRowGroup: _TRG,
+      TableRow: _TR,
+      TableSwitchRow: _TSR,
+      Stack: _S,
+    } = findByProps("TableRowGroup", "TableRow", "TableSwitchRow", "Stack");
+
+    // Fallback if the table-style components are not available in the host environment
+    if (!_TRG || !_TSR || !_TR || !_S) {
+      return React.createElement(
+        ScrollView,
+        { style: { flex: 1, padding: 12 } },
+        React.createElement(
+          Text,
+          null,
+          "FixEmbed UI unavailable (missing TableRow components).",
+        ),
+      );
+    }
+
+    // Use the resolved components
+    const TableRowGroup = _TRG;
+    const TableRow = _TR;
+    const TableSwitchRow = _TSR;
+    const Stack = _S;
+
     return React.createElement(ScrollView, { style: { flex: 1 } }, [
       React.createElement(
-        FormSection,
-        { title: "General Settings" },
-        React.createElement(FormRow, {
-          label: "Enable FixEmbed",
-          subLabel: "Master switch for all link conversions",
-          trailing: React.createElement(FormSwitch, {
+        Stack,
+        { spacing: 8, style: { padding: 10 } },
+        React.createElement(
+          TableRowGroup,
+          { title: "General Settings" },
+          React.createElement(TableSwitchRow, {
+            label: "Enable FixEmbed",
+            subLabel: "Master switch for all link conversions",
             value: config.enabled,
             onValueChange: (v: boolean) => updateConfig("enabled", v),
           }),
-        }),
-      ),
-      React.createElement(FormSection, { title: "Platforms" }, [
-        React.createElement(FormRow, {
-          label: "Twitter/X",
-          trailing: React.createElement(FormSwitch, {
-            value: config.twitter,
-            disabled: !config.enabled,
-            onValueChange: (v: boolean) => updateConfig("twitter", v),
-          }),
-        }),
-        React.createElement(FormRow, {
-          label: "Instagram",
-          trailing: React.createElement(FormSwitch, {
-            value: config.instagram,
-            disabled: !config.enabled,
-            onValueChange: (v: boolean) => updateConfig("instagram", v),
-          }),
-        }),
-        React.createElement(FormRow, {
-          label: "TikTok",
-          trailing: React.createElement(FormSwitch, {
-            value: config.tiktok,
-            disabled: !config.enabled,
-            onValueChange: (v: boolean) => updateConfig("tiktok", v),
-          }),
-        }),
-        React.createElement(FormRow, {
-          label: "Reddit",
-          trailing: React.createElement(FormSwitch, {
-            value: config.reddit,
-            disabled: !config.enabled,
-            onValueChange: (v: boolean) => updateConfig("reddit", v),
-          }),
-        }),
-      ]),
-      React.createElement(
-        FormSection,
-        { title: "About" },
+        ),
         React.createElement(
-          FormText,
-          { style: { padding: 12 } },
-          "This plugin automatically converts social media links to privacy-friendly alternative frontends for better embeds.",
+          TableRowGroup,
+          { title: "Platforms" },
+          React.createElement(TableSwitchRow, {
+            label: "Twitter/X",
+            value: config.twitter,
+            onValueChange: (v: boolean) => updateConfig("twitter", v),
+            disabled: !config.enabled,
+          }),
+          React.createElement(TableSwitchRow, {
+            label: "Instagram",
+            value: config.instagram,
+            onValueChange: (v: boolean) => updateConfig("instagram", v),
+            disabled: !config.enabled,
+          }),
+          React.createElement(TableSwitchRow, {
+            label: "TikTok",
+            value: config.tiktok,
+            onValueChange: (v: boolean) => updateConfig("tiktok", v),
+            disabled: !config.enabled,
+          }),
+          React.createElement(TableSwitchRow, {
+            label: "Reddit",
+            value: config.reddit,
+            onValueChange: (v: boolean) => updateConfig("reddit", v),
+            disabled: !config.enabled,
+          }),
+        ),
+        React.createElement(
+          TableRowGroup,
+          { title: "About" },
+          React.createElement(TableRow, {
+            label: "Description",
+            subLabel:
+              "This plugin automatically converts social media links to privacy-friendly alternative frontends for better embeds.",
+            disabled: true,
+          }),
         ),
       ),
     ]);

@@ -29,6 +29,11 @@ export default function CorePlugins() {
             ?.map((a: any) => (typeof a === "string" ? a : a.name))
             .join() || "",
       ]}
+      // Provide simple sort options so the Search input renders round and a sort menu appears
+      sortOptions={{
+        "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
+        "Name (Z-A)": (a, b) => b.name.localeCompare(a.name),
+      }}
       // Only core plugins: map corePluginInstances -> registeredPlugins -> unify
       items={[...corePluginInstances.keys()]
         .map((id) => registeredPlugins.get(id))
