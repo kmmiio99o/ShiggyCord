@@ -18,6 +18,9 @@ import * as lib from "./lib";
 
 export default async () => {
     // Load everything in parallel
+
+    updatePlugins();
+
     await Promise.all([
         initThemes(),
         injectFluxInterceptor(),
@@ -30,7 +33,10 @@ export default async () => {
         initSettings(),
         initFixes(),
 //        patchErrorBoundary(),
-        updatePlugins()
+        updatePlugins(),
+        updateFonts(),
+        initPlugins(),
+        VdPluginManager.initPlugins(),
     ]).then(
         // Push them all to unloader
         u => u.forEach(f => f && lib.unload.push(f))
@@ -38,17 +44,6 @@ export default async () => {
 
     // Assign window object
     window.bunny = lib;
-
-    // Once done, load Vendetta plugins
-    VdPluginManager.initPlugins()
-        .then(u => lib.unload.push(u))
-        .catch(() => alert("Failed to initialize Vendetta plugins"));
-
-    // And then, load Kettu plugins
-    initPlugins();
-
-    // Update the fonts
-    updateFonts();
 
     // We good :)
     logger.log("Kettu is ready!");
