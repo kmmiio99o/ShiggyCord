@@ -8,6 +8,7 @@ import { showSheet } from "@ui/sheets";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo } from "react";
 import { Image, View } from "react-native";
+import { isCorePlugin } from "@lib/addons/plugins";
 
 const CardContext = createContext<{ plugin: UnifiedPluginModel, result: Fuzzysort.KeysResult<UnifiedPluginModel>; }>(null!);
 const useCardContext = () => useContext(CardContext);
@@ -125,6 +126,7 @@ export default function PluginCard({ result, item: plugin }: CardWrapper<Unified
 
     const [, forceUpdate] = React.useReducer(() => ({}), 0);
     const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
+    const core = isCorePlugin(plugin.id);
 
     return (
         <CardContext.Provider value={cardContextValue}>
@@ -138,13 +140,18 @@ export default function PluginCard({ result, item: plugin }: CardWrapper<Unified
                         <View>
                             <Stack spacing={12} direction="horizontal">
                                 <Actions />
-                                <TableSwitch
-                                    value={plugin.isEnabled()}
-                                    onValueChange={(v: boolean) => {
-                                        plugin.toggle(v);
-                                        forceUpdate();
-                                    }}
-                                />
+                                <View style={core ? { opacity: 0.5 } : undefined}>
+                                    <TableSwitch
+                                        value={core ? true : plugin.isEnabled()}
+                                        disabled={core}
+                                        onValueChange={(v: boolean) => {
+                                            if (!core) {
+                                                plugin.toggle(v);
+                                                forceUpdate();
+                                            }
+                                        }}
+                                    />
+                                </View>
                             </Stack>
                         </View>
                     </View>

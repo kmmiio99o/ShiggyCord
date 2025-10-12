@@ -77,21 +77,6 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
                         });
                     }}
                 />
-                <PluginInfoIconButton
-                    label="Refetch"
-                    variant="secondary"
-                    icon={findAssetId("RetryIcon")}
-                    onPress={() => {
-                        startPlugin(plugin.id);
-                    }}
-                />
-                <PluginInfoIconButton
-                    label="Copy URL"
-                    variant="secondary"
-                    icon={findAssetId("LinkIcon")}
-                    onPress={() => {
-                    }}
-                />
             </View>
             <Card>
                 <Text variant="text-md/semibold" color="text-primary" style={{ marginBottom: 4 }}>

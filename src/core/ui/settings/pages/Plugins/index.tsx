@@ -61,10 +61,11 @@ export default function Plugins() {
             useProxy(VdPluginManager.plugins);
             useObservable([pluginSettings]);
 
+            const corePlugins = [...registeredPlugins.values()].filter(p => isPluginInstalled(p.id) && isCorePlugin(p.id)).map(unifyBunnyPlugin);
             const vdPlugins = Object.values(VdPluginManager.plugins).map(unifyVdPlugin);
-            const bnPlugins = [...registeredPlugins.values()].filter(p => isPluginInstalled(p.id) && isCorePlugin(p.id)).map(unifyBunnyPlugin);
+            const bnPlugins = [...registeredPlugins.values()].filter(p => isPluginInstalled(p.id) && !isCorePlugin(p.id)).map(unifyBunnyPlugin);
 
-            return [...vdPlugins, ...bnPlugins];
+            return [...corePlugins, ...vdPlugins, ...bnPlugins];
         }}
         ListHeaderComponent={() => {
             const unproxiedPlugins = Object.values(VdPluginManager.plugins).filter(p => !p.id.startsWith(VD_PROXY_PREFIX) && !p.id.startsWith(BUNNY_PROXY_PREFIX));
