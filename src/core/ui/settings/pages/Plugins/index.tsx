@@ -510,7 +510,8 @@ export default function Plugins() {
             .filter((p) => isPluginInstalled(p.id) && !isCorePlugin(p.id))
             .map(unifyBunnyPlugin);
 
-          return [...corePlugins, ...vdPlugins, ...bnPlugins];
+          // Show only Vendetta plugins + non-core Bunny plugins (exclude core plugins)
+          return [...vdPlugins, ...bnPlugins];
         }}
         ListHeaderComponent={() => null}
         installAction={{

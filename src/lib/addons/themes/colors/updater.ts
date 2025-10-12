@@ -29,7 +29,7 @@ export const _colorRef: InternalColorRef = {
 
 export function updateBunnyColor(
   colorManifest: ColorManifest | null,
-  { update = true },
+  { update = true, startup = true },
 ) {
   if (settings.safeMode?.enabled) return;
 
@@ -60,6 +60,15 @@ export function updateBunnyColor(
   }
 
   if (update) {
+    AppearanceManager.setShouldSyncAppearanceSettings(false);
+    AppearanceManager.updateTheme(
+      internalDef != null ? ref.key : ref.lastSetDiscordTheme,
+    );
+  }
+
+  if (startup) {
+    // scuffed but it works
+    AppearanceManager.setShouldSyncAppearanceSettings(true);
     AppearanceManager.updateTheme(
       internalDef != null ? ref.key : ref.lastSetDiscordTheme,
     );
