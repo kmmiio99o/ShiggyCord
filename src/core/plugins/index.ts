@@ -12,6 +12,7 @@ export const getCorePlugins = (): Record<string, CorePlugin> => ({
   "bunny.notrack": { ...require("./notrack"), preenabled: true },
   "bunny.messagefix": { ...require("./messagefix") },
   "bunny.fixembed": { ...require("./fixembed"), preenabled: true },
+  "bunny.thememanager": require("./thememanager"),
   "bunny.themelister": { ...require("./themelister"), preenabled: false },
 });
 

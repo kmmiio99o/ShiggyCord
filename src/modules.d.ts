@@ -1,5 +1,5 @@
 declare module "bunny-build-info" {
-  const version: "MINING";
+  const version: "1.1.0-1";
 }
 
 declare module "*.png" {
