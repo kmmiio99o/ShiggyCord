@@ -147,11 +147,10 @@ export default function PluginCard({
 }: CardWrapper<UnifiedPluginModel>) {
   plugin.usePluginState();
 
-  const [, forceUpdate] = React.useReducer(() => ({}), 0);
-  const cardContextValue = useMemo(
-    () => ({ plugin, result }),
-    [plugin, result],
-  );
+  
+const [, forceUpdate] = React.useReducer(() => ({}), 0);
+const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
+    const core = isCorePlugin(plugin.id);
 
     return (
         <CardContext.Provider value={cardContextValue}>
