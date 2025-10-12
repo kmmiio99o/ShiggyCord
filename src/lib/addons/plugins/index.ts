@@ -387,7 +387,7 @@ export async function updatePlugins() {
  * @internal
  */
 export async function initPlugins() {
-    awaitStorage(pluginRepositories, pluginSettings);
+    await awaitStorage(pluginRepositories, pluginSettings);
 
     // Now, start all enabled plugins...
     Promise.allSettled([...registeredPlugins.keys()].map(async id => {
