@@ -60,8 +60,7 @@ export default async () => {
       .catch((e) => logger.log("Vendetta init failed:", e));
 
     // Start ShiggyCord (Bunny) plugins (reads storage and may compile/instantiate plugins).
-    // Use staggered startup options to reduce CPU spikes while still starting multiple plugins quickly.
-    initPlugins({ staggerInterval: 50, batchSize: 5 });
+    initPlugins();
 
     // Perform an immediate (deferred) repository update; network-heavy.
     updatePlugins().catch((e) => logger.log("updatePlugins failed:", e));
