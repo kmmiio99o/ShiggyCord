@@ -52,6 +52,9 @@ export function updateBunnyColor(colorManifest: ColorManifest | null, { update =
     }
 
     if (update) {
+        // scuffed but it works
+        AppearanceManager.setShouldSyncAppearanceSettings(true);
+        AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
         AppearanceManager.setShouldSyncAppearanceSettings(false);
         AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
     }
