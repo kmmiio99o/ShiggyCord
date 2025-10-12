@@ -33,6 +33,9 @@ const config = {
   outfile: "dist/shiggycord.js",
   format: "iife",
   splitting: false,
+  // Enable minification by default for release builds (when a release-branch is provided).
+  // This keeps development builds unminified for easier debugging.
+  minify: Boolean(releaseBranch),
   external: [],
   supported: {
     // Hermes does not actually support const and let, even though it syntactically
@@ -74,7 +77,7 @@ const config = {
                 constModules: {
                   globals: {
                     "bunny-build-info": {
-                      version: `"dev1.1.1-1"`,
+                      version: `"dev1.1.0-2"`,
                     },
                   },
                 },

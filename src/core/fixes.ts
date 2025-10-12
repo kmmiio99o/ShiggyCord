@@ -8,20 +8,22 @@
 
 import { logger } from "@lib/utils/logger";
 import { FluxDispatcher } from "@metro/common";
-import moment from "moment";
 
-function onDispatch({ locale }: { locale: string; }) {
-    // Timestamps
-    try {
-        moment.locale(locale.toLowerCase());
-    } catch (e) {
-        logger.error("Failed to fix timestamps...", e);
-    }
+function onDispatch({ locale }: { locale: string }) {
+  // Timestamps - require moment lazily so we avoid top-level import cost
+  try {
+    // require at runtime (lazy) to keep startup/bundle lighter
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const moment = require("moment");
+    moment.locale(locale.toLowerCase());
+  } catch (e) {
+    logger.error("Failed to fix timestamps (lazy moment)...", e);
+  }
 
-    // We're done here!
-    FluxDispatcher.unsubscribe("I18N_LOAD_SUCCESS", onDispatch);
+  // We're done here!
+  FluxDispatcher.unsubscribe("I18N_LOAD_SUCCESS", onDispatch);
 }
 
 export default () => {
-    FluxDispatcher.subscribe("I18N_LOAD_SUCCESS", onDispatch);
+  FluxDispatcher.subscribe("I18N_LOAD_SUCCESS", onDispatch);
 };

@@ -14,7 +14,6 @@ const { TableRowGroup, TableRow, TableSwitchRow, Stack } = findByProps(
 const { ScrollView, Text } = require("react-native");
 
 type FixEmbedSettings = {
-  enabled: boolean;
   twitter: boolean;
   instagram: boolean;
   tiktok: boolean;
@@ -86,7 +85,6 @@ export default defineCorePlugin({
   SettingsComponent() {
     const { useState, useEffect } = React;
     const [config, setConfig] = useState<FixEmbedSettings>({
-      enabled: settings.fixembed?.enabled ?? true,
       twitter: settings.fixembed?.twitter ?? true,
       instagram: settings.fixembed?.instagram ?? true,
       tiktok: settings.fixembed?.tiktok ?? true,
@@ -132,16 +130,7 @@ export default defineCorePlugin({
       React.createElement(
         Stack,
         { spacing: 8, style: { padding: 10 } },
-        React.createElement(
-          TableRowGroup,
-          { title: "General Settings" },
-          React.createElement(TableSwitchRow, {
-            label: "Enable FixEmbed",
-            subLabel: "Master switch for all link conversions",
-            value: config.enabled,
-            onValueChange: (v: boolean) => updateConfig("enabled", v),
-          }),
-        ),
+
         React.createElement(
           TableRowGroup,
           { title: "Platforms" },
@@ -149,25 +138,21 @@ export default defineCorePlugin({
             label: "Twitter/X",
             value: config.twitter,
             onValueChange: (v: boolean) => updateConfig("twitter", v),
-            disabled: !config.enabled,
           }),
           React.createElement(TableSwitchRow, {
             label: "Instagram",
             value: config.instagram,
             onValueChange: (v: boolean) => updateConfig("instagram", v),
-            disabled: !config.enabled,
           }),
           React.createElement(TableSwitchRow, {
             label: "TikTok",
             value: config.tiktok,
             onValueChange: (v: boolean) => updateConfig("tiktok", v),
-            disabled: !config.enabled,
           }),
           React.createElement(TableSwitchRow, {
             label: "Reddit",
             value: config.reddit,
             onValueChange: (v: boolean) => updateConfig("reddit", v),
-            disabled: !config.enabled,
           }),
         ),
         React.createElement(
@@ -187,7 +172,6 @@ export default defineCorePlugin({
   start() {
     logger.log("FixEmbed: Starting plugin");
     settings.fixembed = settings.fixembed || {
-      enabled: true,
       twitter: true,
       instagram: true,
       tiktok: true,
@@ -197,7 +181,6 @@ export default defineCorePlugin({
     if (!unpatch) {
       unpatch = after("sendMessage", MessageActions, (args) => {
         const config = settings.fixembed!;
-        if (!config.enabled) return;
         if (args[1]?.content) {
           args[1].content = transformLinks(args[1].content, config);
           args[1].nonce = args[1].nonce || Math.random().toString(36).slice(2);

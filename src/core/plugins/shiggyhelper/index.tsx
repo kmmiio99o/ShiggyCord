@@ -4,7 +4,7 @@ import { logger } from "@lib/utils/logger";
 import { settings } from "@lib/api/settings";
 import { React } from "@metro/common";
 import { showToast } from "@lib/ui/toasts";
-import { ScrollView } from "react-native";
+import { ScrollView, Text } from "react-native";
 
 // Button imported from components above
 
@@ -87,22 +87,22 @@ export default defineCorePlugin({
   SettingsComponent() {
     const { useState, useEffect } = React;
 
-    // Use table-style rows (TableRowGroup / TableSwitchRow) for settings UI.
-    // Resolve UI row components; guard if unavailable.
-    const { TableRow, TableRowGroup, TableSwitchRow } = findByProps(
+    // Resolve UI row components; prefer table-style rows and Stack for consistent layout.
+    const { TableRow, TableRowGroup, TableSwitchRow, Stack } = findByProps(
       "TableRow",
       "TableRowGroup",
       "TableSwitchRow",
+      "Stack",
     );
 
-    if (!TableRow || !TableRowGroup || !TableSwitchRow) {
+    if (!TableRow || !TableRowGroup || !TableSwitchRow || !Stack) {
       return React.createElement(
         ScrollView,
         { style: { flex: 1, padding: 12 } },
         React.createElement(
           Text,
           null,
-          "ShiggyHelper UI unavailable (missing TableRow components).",
+          "ShiggyHelper UI unavailable (missing TableRow / Stack components).",
         ),
       );
     }
@@ -144,69 +144,72 @@ export default defineCorePlugin({
 
     return React.createElement(ScrollView, { style: { flex: 1 } }, [
       React.createElement(
-        TableRowGroup,
-        { title: "ShiggyHelper" },
-        React.createElement(TableSwitchRow, {
-          label: "Verbose Logging",
-          subLabel:
-            "Capture console.log and console.error into internal buffer",
-          value: verbose,
-          onValueChange: (v: boolean) => setVerbose(v),
-          icon: null,
-        }),
-      ),
+        Stack,
+        { spacing: 8, style: { padding: 10 } },
+        React.createElement(
+          TableRowGroup,
+          { title: "ShiggyHelper" },
+          React.createElement(TableSwitchRow, {
+            label: "Verbose Logging",
+            subLabel:
+              "Capture console.log and console.error into internal buffer",
+            value: verbose,
+            onValueChange: (v: boolean) => setVerbose(v),
+          }),
+        ),
 
-      React.createElement(
-        TableRowGroup,
-        { title: "Actions" },
-        React.createElement(TableRow, {
-          key: "dump",
-          label: "Dump Logs",
-          subLabel: "Write recent captured logs to the debug logger",
-          trailing: React.createElement(TableRow.TrailingText, {
-            text: "Dump",
+        React.createElement(
+          TableRowGroup,
+          { title: "Actions" },
+          React.createElement(TableRow, {
+            key: "dump",
+            label: "Dump Logs",
+            subLabel: "Write recent captured logs to the debug logger",
+            trailing: React.createElement(TableRow.TrailingText, {
+              text: "Dump",
+            }),
+            onPress: () => {
+              if (actionsDisabled) {
+                showToast("Enable verbose logging first");
+                return;
+              }
+              dumpLogs();
+            },
+            disabled: actionsDisabled,
           }),
-          onPress: () => {
-            if (actionsDisabled) {
-              showToast("Enable verbose logging first");
-              return;
-            }
-            dumpLogs();
-          },
-          disabled: actionsDisabled,
-        }),
-        React.createElement(TableRow, {
-          key: "clear",
-          label: "Clear Logs",
-          subLabel: "Clear the internal captured log buffer",
-          trailing: React.createElement(TableRow.TrailingText, {
-            text: "Clear",
+          React.createElement(TableRow, {
+            key: "clear",
+            label: "Clear Logs",
+            subLabel: "Clear the internal captured log buffer",
+            trailing: React.createElement(TableRow.TrailingText, {
+              text: "Clear",
+            }),
+            onPress: () => {
+              if (actionsDisabled) {
+                showToast("Enable verbose logging first");
+                return;
+              }
+              clearLogs();
+            },
+            disabled: actionsDisabled,
           }),
-          onPress: () => {
-            if (actionsDisabled) {
-              showToast("Enable verbose logging first");
-              return;
-            }
-            clearLogs();
-          },
-          disabled: actionsDisabled,
-        }),
-        React.createElement(TableRow, {
-          key: "emit",
-          label: "Emit Test Logs",
-          subLabel: "Emit a test console.log / console.error entry",
-          trailing: React.createElement(TableRow.TrailingText, {
-            text: "Emit",
+          React.createElement(TableRow, {
+            key: "emit",
+            label: "Emit Test Logs",
+            subLabel: "Emit a test console.log / console.error entry",
+            trailing: React.createElement(TableRow.TrailingText, {
+              text: "Emit",
+            }),
+            onPress: () => {
+              if (actionsDisabled) {
+                showToast("Enable verbose logging first");
+                return;
+              }
+              triggerTestLog();
+            },
+            disabled: actionsDisabled,
           }),
-          onPress: () => {
-            if (actionsDisabled) {
-              showToast("Enable verbose logging first");
-              return;
-            }
-            triggerTestLog();
-          },
-          disabled: actionsDisabled,
-        }),
+        ),
       ),
     ]);
   },

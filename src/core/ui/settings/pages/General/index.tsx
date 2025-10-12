@@ -20,7 +20,6 @@ import {
   TableSwitchRow,
 } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
-import CodebergIcon from "@assets/icons/codeberg-logo_icon_white.png";
 
 export default function General() {
   useProxy(settings);

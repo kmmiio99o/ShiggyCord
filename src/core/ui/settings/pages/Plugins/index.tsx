@@ -387,6 +387,33 @@ function InstalledPluginPage(props: PluginPageProps) {
             .join() || "",
       ]}
       sortOptions={{
+        "Enabled First": (a, b) =>
+          Number(b.isEnabled()) - Number(a.isEnabled()),
+        "Disabled First": (a, b) =>
+          Number(a.isEnabled()) - Number(b.isEnabled()),
+        "Date (Newest)": (a, b) => {
+          // Prefer recently installed/registered plugins first. We look up insertion
+          // order from Vendetta manager and Bunny pluginSettings; later entries are
+          // considered newer (higher index). If missing, treat index as -1.
+          const vdOrder = Object.keys(VdPluginManager.plugins || {});
+          const bnOrder = Object.keys(pluginSettings || {});
+          const idx = (id: string) => {
+            const vdI = vdOrder.indexOf(id);
+            const bnI = bnOrder.indexOf(id);
+            return Math.max(vdI, bnI);
+          };
+          return idx(b.id) - idx(a.id);
+        },
+        "Date (Oldest)": (a, b) => {
+          const vdOrder = Object.keys(VdPluginManager.plugins || {});
+          const bnOrder = Object.keys(pluginSettings || {});
+          const idx = (id: string) => {
+            const vdI = vdOrder.indexOf(id);
+            const bnI = bnOrder.indexOf(id);
+            return Math.max(vdI, bnI);
+          };
+          return idx(a.id) - idx(b.id);
+        },
         "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
         "Name (Z-A)": (a, b) => b.name.localeCompare(a.name),
       }}
@@ -405,6 +432,51 @@ interface BrowsePluginPageProps {
 }
 
 function BrowsePluginPage(props: BrowsePluginPageProps) {
+  // Build quick lookup/index map based on the order fetched from remote repository.
+  // The remote list doesn't provide timestamps, so we treat the list order as the
+  // chronological order from oldest -> newest and use indices for Date sorting.
+  const indexMap = new Map<string, number>();
+  (props.plugins || []).forEach((p, i) =>
+    indexMap.set(normalizeIdFromInstallUrl(p.installUrl), i),
+  );
+
+  // Helpers to determine install / enabled state.
+  const findBunnyIdForAddon = (addon: PluginData) => {
+    for (const [id, manifest] of registeredPlugins) {
+      if (!manifest) continue;
+      const name = manifest.display?.name ?? id;
+      if (name === addon.name) return id;
+    }
+    return null;
+  };
+
+  const isEnabledForAddon = (addon: PluginData) => {
+    const vendettaId = normalizeIdFromInstallUrl(addon.installUrl);
+    const vd = VdPluginManager.plugins[vendettaId];
+    if (vd) return Boolean(vd.enabled ?? true);
+
+    const bnId = findBunnyIdForAddon(addon);
+    if (bnId) return Boolean(pluginSettings[bnId]?.enabled);
+
+    return false;
+  };
+
+  // Helper to determine whether an addon from the remote list is installed locally.
+  const isInstalledForAddon = (addon: PluginData) => {
+    const vendettaId = normalizeIdFromInstallUrl(addon.installUrl);
+    // Vendetta-managed plugin presence indicates installed
+    if (VdPluginManager.plugins[vendettaId]) return true;
+
+    // For Bunny-registered plugins, try to resolve by display name -> id and check pluginSettings
+    const bnId = findBunnyIdForAddon(addon);
+    if (bnId) return Boolean(pluginSettings[bnId] != null);
+
+    return false;
+  };
+
+  const getIndexForAddon = (addon: PluginData) =>
+    indexMap.get(normalizeIdFromInstallUrl(addon.installUrl)) ?? 0;
+
   return (
     <AddonPage<PluginData>
       CardComponent={({ item }) => (
@@ -422,8 +494,47 @@ function BrowsePluginPage(props: BrowsePluginPageProps) {
         (p) => (p.authors || []).join(", "),
       ]}
       sortOptions={{
-        "Date (Newest)": (a, b) => 0,
-        "Date (Oldest)": (a, b) => 0,
+        // Newest first -> larger index is newer (we treat list order as chronological)
+        "Date (Newest)": (a, b) => getIndexForAddon(b) - getIndexForAddon(a),
+        // Oldest first -> smaller index is older
+        "Date (Oldest)": (a, b) => getIndexForAddon(a) - getIndexForAddon(b),
+
+        // Health-based sorts: surface problematic plugins first or working ones first
+        "Broken First": (a, b) => {
+          const score = (p: PluginData) =>
+            p.status === "broken"
+              ? 3
+              : p.status === "warning"
+                ? 2
+                : p.status === "working"
+                  ? 1
+                  : 0;
+          return score(b) - score(a);
+        },
+        "Warning First": (a, b) => {
+          const score = (p: PluginData) =>
+            p.status === "warning"
+              ? 3
+              : p.status === "broken"
+                ? 2
+                : p.status === "working"
+                  ? 1
+                  : 0;
+          return score(b) - score(a);
+        },
+        "Working First": (a, b) => {
+          const score = (p: PluginData) =>
+            p.status === "working"
+              ? 3
+              : p.status === "warning"
+                ? 2
+                : p.status === "broken"
+                  ? 1
+                  : 0;
+          return score(b) - score(a);
+        },
+
+        // Keep name sorts
         "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
         "Name (Z-A)": (a, b) => b.name.localeCompare(a.name),
       }}
@@ -495,22 +606,33 @@ export default function Plugins() {
           useProxy(VdPluginManager.plugins);
           useObservable([pluginSettings]);
 
-          const vdPlugins = Object.values(VdPluginManager.plugins).map(
-            unifyVdPlugin,
-          );
+          // Vendetta plugins: preserve VdPluginManager.plugins insertion order,
+          // but display most recently added first (reverse the keys).
+          const vdIds = Object.keys(VdPluginManager.plugins || {});
+          const vdPlugins = vdIds
+            .slice()
+            .reverse()
+            .map((id) => unifyVdPlugin(VdPluginManager.plugins[id]));
 
-          // Core plugins (always shown first)
+          // Bunny external plugins which are installed (non-core).
+          // Use the insertion order of pluginSettings so newly-installed plugins
+          // (which add entries to pluginSettings) appear first.
+          const installedBnIds = Object.keys(pluginSettings || {})
+            .filter((id) => registeredPlugins.has(id) && !isCorePlugin(id))
+            .slice()
+            .reverse();
+
+          const bnPlugins = installedBnIds
+            .map((id) => registeredPlugins.get(id)!)
+            .map(unifyBunnyPlugin);
+
+          // Keep core plugins registration available if needed elsewhere
           const corePlugins = [...corePluginInstances.keys()]
-            .map((id) => registeredPlugins.get(id))
-            .filter(Boolean)
+            .map((id) => registeredPlugins.get(id)!)
             .map(unifyBunnyPlugin);
 
-          // Regular installed plugins (non-core)
-          const bnPlugins = [...registeredPlugins.values()]
-            .filter((p) => isPluginInstalled(p.id) && !isCorePlugin(p.id))
-            .map(unifyBunnyPlugin);
-
-          // Show only Vendetta plugins + non-core Bunny plugins (exclude core plugins)
+          // Merge lists: show Vendetta-managed plugins first (recent first),
+          // then Bunny-installed externals (recent first).
           return [...vdPlugins, ...bnPlugins];
         }}
         ListHeaderComponent={() => null}

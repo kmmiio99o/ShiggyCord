@@ -93,6 +93,11 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         -~sections.findIndex((i: any) => i.settings.includes("ACCOUNT")) || 1;
 
       Object.keys(registeredSections).forEach((sect) => {
+        // Prevent duplicate insertion: on some resumes/re-renders the same
+        // registeredSections keys may be inserted multiple times. Check if a
+        // section with the same label already exists before splicing.
+        const exists = sections.some((s: any) => s && s.label === sect);
+        if (exists) return;
         sections.splice(index++, 0, {
           label: sect,
           title: sect,
