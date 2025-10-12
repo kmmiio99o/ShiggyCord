@@ -7,15 +7,15 @@ import { updateBunnyColor } from "./updater";
 
 /** @internal */
 export default function initColors(manifest: ColorManifest | null) {
-    const patches = [
-        patchStorage(),
-        patchDefinitionAndResolver(),
-        patchChatBackground()
-    ];
+  const patches = [
+    patchStorage(),
+    patchDefinitionAndResolver(),
+    patchChatBackground(),
+  ];
 
-    fixStatusBar();
+  fixStatusBar();
 
-    if (manifest) updateBunnyColor(manifest, { update: false });
+  if (manifest) updateBunnyColor(manifest, { update: false });
 
-    return () => patches.forEach(p => p());
+  return () => patches.forEach((p) => p());
 }

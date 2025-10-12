@@ -41,40 +41,20 @@ export default function patchDefinitionAndResolver() {
     before("isThemeDark", isThemeModule, callback),
     before("isThemeLight", isThemeModule, callback),
     before("updateTheme", NativeThemeModule, callback),
-    // Prefer the active bn-theme for all resolveSemanticColor calls.
-    // Add debug logs to help trace resolution.
     instead(
       "resolveSemanticColor",
       tokenReference.default.meta ?? tokenReference.default.internal,
       (args: any[], orig: any) => {
-        // If we don't have an active bunny theme, fall back to original resolver
-        if (!_colorRef.current) {
-          try {
-            console.debug(
-              "[themesystem] no active _colorRef, delegating to original resolver",
-            );
-          } catch {}
-          return orig(...args);
-        }
+        if (!_colorRef.current) return orig(...args);
+        if (args[0] !== _colorRef.key) return orig(...args);
 
-        // Capture original theme arg for debugging / fallback usage
-        const originalThemeArg = args[0];
+        args[0] = _colorRef.current.reference;
 
-        // Force the resolver to use the active bn-theme key so all semantic requests
-        // are resolved against our active theme.
-        args[0] = _colorRef.key;
+        const [name, colorDef] = extractInfo(
+          _colorRef.current!.reference,
+          args[1],
+        );
 
-        try {
-          console.debug(
-            `[themesystem] resolveSemanticColor called. originalTheme=${String(originalThemeArg)}, forcedTheme=${_colorRef.key}`,
-          );
-        } catch {}
-
-        // Use the internal reference (darker/light) to extract color defs
-        const themeReference = _colorRef.current!.reference;
-        const [name, colorDef] = extractInfo(themeReference, args[1]);
-
-        // Try to resolve semantic from the active theme, with fallback mapping for spec 2
         let semanticDef = _colorRef.current.semantic[name];
         if (
           !semanticDef &&
@@ -85,66 +65,20 @@ export default function patchDefinitionAndResolver() {
         }
 
         if (semanticDef?.value) {
-          try {
-            const out =
-              semanticDef.opacity === 1
-                ? semanticDef.value
-                : chroma(semanticDef.value).alpha(semanticDef.opacity).hex();
-            try {
-              console.debug(
-                `[themesystem] resolved semantic ${name} => ${out}`,
-              );
-            } catch {}
-            return out;
-          } catch (e) {
-            // fallthrough to try raw or original
-            try {
-              console.warn(
-                "[themesystem] semantic resolution chroma failed",
-                e,
-              );
-            } catch {}
-          }
+          if (semanticDef.opacity === 1) return semanticDef.value;
+          return chroma(semanticDef.value).alpha(semanticDef.opacity).hex();
         }
 
-        // Try raw value from theme
         const rawValue = _colorRef.current.raw[colorDef.raw];
         if (rawValue) {
-          try {
-            const out =
-              colorDef.opacity === 1
-                ? rawValue
-                : chroma(rawValue).alpha(colorDef.opacity).hex();
-            try {
-              console.debug(
-                `[themesystem] resolved raw ${colorDef.raw} => ${out}`,
-              );
-            } catch {}
-            return out;
-          } catch (e) {
-            try {
-              console.warn("[themesystem] raw resolution chroma failed", e);
-            } catch {}
-          }
+          // Set opacity if needed
+          return colorDef.opacity === 1
+            ? rawValue
+            : chroma(rawValue).alpha(colorDef.opacity).hex();
         }
 
-        // If all fails, delegate back to original resolver.
-        // Attempt to call original resolver with the original theme argument to preserve expected behavior.
-        try {
-          try {
-            console.debug("[themesystem] falling back to original resolver");
-          } catch {}
-          return orig(originalThemeArg, args[1]);
-        } catch (origErr) {
-          // As a last resort, call with the mutated args
-          try {
-            console.warn(
-              "[themesystem] original resolver call with original arg failed, calling orig with mutated args",
-              origErr,
-            );
-          } catch {}
-          return orig(...args);
-        }
+        // Fallback to default
+        return orig(...args);
       },
     ),
     () => {
