@@ -27,7 +27,7 @@ export const _colorRef: InternalColorRef = {
     lastSetDiscordTheme: "darker"
 };
 
-export function updateBunnyColor(colorManifest: ColorManifest | null, { update = true }) {
+export function updateBunnyColor(colorManifest: ColorManifest | null, { update = true, startup = true } ) {
     if (settings.safeMode?.enabled) return;
 
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
@@ -52,10 +52,13 @@ export function updateBunnyColor(colorManifest: ColorManifest | null, { update =
     }
 
     if (update) {
+        AppearanceManager.setShouldSyncAppearanceSettings(false);
+        AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
+    }
+
+    if (startup) {
         // scuffed but it works
         AppearanceManager.setShouldSyncAppearanceSettings(true);
-        AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
-        AppearanceManager.setShouldSyncAppearanceSettings(false);
         AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
     }
 }
