@@ -15,6 +15,9 @@ import { logger } from "@lib/utils/logger";
 import { patchSettings } from "@ui/settings";
 import { InteractionManager } from "react-native";
 
+// Debug toggle helper (temporary runtime fallback). The helper is dynamically
+// imported when needed (to avoid bundling it permanently) and removed after use.
+
 import * as lib from "./lib";
 
 /**
@@ -59,14 +62,40 @@ export default async () => {
       .then((u) => lib.unload.push(u))
       .catch((e) => logger.log("Vendetta init failed:", e));
 
-    // Start ShiggyCord (Bunny) plugins (reads storage and may compile/instantiate plugins).
-    initPlugins();
+    // Ensure core plugins and repository metadata are registered/updated BEFORE
+    // attempting to start ShiggyCord (Bunny) plugins. This makes corePluginInstances
+    // available to `initPlugins()` so built-in core plugins are handled correctly.
+    updatePlugins()
+      .catch((e) => logger.log("updatePlugins failed (deferred):", e))
+      .finally(async () => {
+        // Start ShiggyCord (Bunny) plugins (reads storage and may compile/instantiate plugins).
+        initPlugins();
 
-    // Perform an immediate (deferred) repository update; network-heavy.
-    updatePlugins().catch((e) => logger.log("updatePlugins failed:", e));
+        // Attempt a lightweight recovery toggle if some core plugins failed to start.
+        try {
+          // Dynamically import the helper (if present) but suppress verbose errors.
+          const mod = await import("@core/debug/toggleCorePlugins").catch(
+            () => null,
+          );
+          if (mod?.default) {
+            // Run helper with minimal noise; ignore failures.
+            mod.default({ offDuration: 1500 }).catch(() => {});
+          }
 
-    // Update fonts in background
-    updateFonts().catch((e) => logger.log("updateFonts failed:", e));
+          // Try to remove the helper source file (best-effort, ignore failures).
+          await import("@lib/api/native/fs")
+            .then((fs) => fs.removeFile("src/core/debug/toggleCorePlugins.ts"))
+            .catch(() => {});
+        } catch {
+          // suppressed
+        }
+
+        // Update fonts in background
+        updateFonts().catch((e) => logger.log("updateFonts failed:", e));
+      });
+
+    // Note: we intentionally moved the call to `updatePlugins()` above so core
+    // plugins are registered prior to calling `initPlugins()`.
   };
 
   // Preferred: wait until interactions finish (animations / navigation).

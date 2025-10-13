@@ -1,10 +1,11 @@
+import React from "react";
 import { UnifiedPluginModel } from "@core/ui/settings/pages/Plugins/models";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByNameLazy, findByProps } from "@metro";
 import { FluxUtils } from "@metro/common";
 import { Avatar, AvatarPile, Text } from "@metro/common/components";
 import { UserStore } from "@metro/common/stores";
-import { View, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 
 const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
 const { getUser: maybeFetchUser } = lazyDestructure(() =>
@@ -22,29 +23,30 @@ export default function TitleComponent({
   });
 
   const { authors } = plugin;
-  const authorTextNode = [];
 
-  if (authors) {
-    for (const author of authors) {
-      authorTextNode.push(
-        <Text variant="text-md/medium" key={author.name}>
-          {author.name}
-        </Text>,
-      );
+  // Render all authors inline inside a single Text so punctuation and spacing are consistent.
+  // Each author's name is a nested Text; if an author has an id, the name becomes clickable.
+  const authorsTextNode = (
+    <Text variant="text-md/medium" style={{ flexWrap: "wrap" }}>
+      {(authors ?? []).map((author, idx) => (
+        <React.Fragment key={author.id ?? author.name}>
+          <Text
+            variant="text-md/medium"
+            onPress={
+              author.id
+                ? () => showUserProfileActionSheet({ userId: author.id })
+                : undefined
+            }
+          >
+            {author.name}
+          </Text>
+          {idx < (authors?.length ?? 0) - 1 ? ", " : ""}
+        </React.Fragment>
+      ))}
+    </Text>
+  );
 
-      authorTextNode.push(", ");
-    }
-
-    authorTextNode.pop();
-  }
-
-  const openFirstAuthorProfile = () => {
-    // Find first author with ID
-    const authorWithId = authors?.find((a) => !!a.id);
-    if (authorWithId?.id) {
-      showUserProfileActionSheet({ userId: authorWithId.id });
-    }
-  };
+  // openAuthorSelection removed — individual author names are now clickable inline
 
   return (
     <View style={{ gap: 4 }}>
@@ -53,7 +55,7 @@ export default function TitleComponent({
       </View>
       <View style={{ flexDirection: "row", flexShrink: 1 }}>
         {authors?.length && (
-          <TouchableOpacity
+          <View
             style={{
               flexDirection: "row",
               gap: 8,
@@ -63,10 +65,6 @@ export default function TitleComponent({
               backgroundColor: "#00000016",
               borderRadius: 32,
             }}
-            onPress={
-              authors.some((a) => !!a.id) ? openFirstAuthorProfile : undefined
-            }
-            disabled={!authors.some((a) => !!a.id)}
           >
             {users.length && (
               <AvatarPile
@@ -79,8 +77,16 @@ export default function TitleComponent({
                 ))}
               </AvatarPile>
             )}
-            <Text variant="text-md/medium">{authorTextNode}</Text>
-          </TouchableOpacity>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              {authorsTextNode}
+            </View>
+          </View>
         )}
       </View>
     </View>
