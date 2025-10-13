@@ -109,7 +109,7 @@ export async function removeFont(name: string) {
 
 export async function updateFonts() {
     await awaitStorage(fonts);
-    await Promise.allSettled(
+    Promise.allSettled(
         Object.keys(fonts).map(
             name => saveFont(fonts[name], fonts.__selected === name)
         )

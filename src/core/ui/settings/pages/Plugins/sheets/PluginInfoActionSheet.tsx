@@ -151,7 +151,7 @@ export default function PluginInfoActionSheet({
             justifyContent: "center",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: 12,
+            gap: 22,
             paddingHorizontal: 4,
           }}
         >
@@ -167,6 +167,7 @@ export default function PluginInfoActionSheet({
               });
             }}
           />
+          {!isCorePlugin && (
           <PluginInfoIconButton
             label="Refetch"
             variant="secondary"
@@ -174,12 +175,15 @@ export default function PluginInfoActionSheet({
             onPress={refetchPlugin}
             disabled={loading}
           />
+          )}
+          {!isCorePlugin && (
           <PluginInfoIconButton
             label="Copy URL"
             variant="secondary"
             icon={findAssetId("LinkIcon")}
             onPress={copyPluginUrl}
           />
+          )}
           <PluginInfoIconButton
             label="Clear Data"
             variant="secondary"

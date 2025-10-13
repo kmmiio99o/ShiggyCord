@@ -14,6 +14,7 @@ import { showSheet } from "@ui/sheets";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo } from "react";
 import { Image, View } from "react-native";
+import { isCorePlugin } from "@lib/addons/plugins";
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;
@@ -146,39 +147,41 @@ export default function PluginCard({
 }: CardWrapper<UnifiedPluginModel>) {
   plugin.usePluginState();
 
-  const [, forceUpdate] = React.useReducer(() => ({}), 0);
-  const cardContextValue = useMemo(
-    () => ({ plugin, result }),
-    [plugin, result],
-  );
+  
+const [, forceUpdate] = React.useReducer(() => ({}), 0);
+const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
+    const core = isCorePlugin(plugin.id);
 
-  return (
-    <CardContext.Provider value={cardContextValue}>
-      <Card>
-        <Stack spacing={16}>
-          <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
-          >
-            <View style={{ flexShrink: 1 }}>
-              <Title />
-              <Authors />
-            </View>
-            <View>
-              <Stack spacing={12} direction="horizontal">
-                <Actions />
-                <TableSwitch
-                  value={plugin.isEnabled()}
-                  onValueChange={(v: boolean) => {
-                    plugin.toggle(v);
-                    forceUpdate();
-                  }}
-                />
-              </Stack>
-            </View>
-          </View>
-          <Description />
-        </Stack>
-      </Card>
-    </CardContext.Provider>
-  );
+    return (
+        <CardContext.Provider value={cardContextValue}>
+            <Card>
+                <Stack spacing={16}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                        <View style={{ flexShrink: 1 }}>
+                            <Title />
+                            <Authors />
+                        </View>
+                        <View>
+                            <Stack spacing={12} direction="horizontal">
+                                <Actions />
+                                <View style={core ? { opacity: 0.5 } : undefined}>
+                                    <TableSwitch
+                                        value={core ? true : plugin.isEnabled()}
+                                        disabled={core}
+                                        onValueChange={(v: boolean) => {
+                                            if (!core) {
+                                                plugin.toggle(v);
+                                                forceUpdate();
+                                            }
+                                        }}
+                                    />
+                                </View>
+                            </Stack>
+                        </View>
+                    </View>
+                    <Description />
+                </Stack>
+            </Card>
+        </CardContext.Provider>
+    );
 }

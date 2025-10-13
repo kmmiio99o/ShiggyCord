@@ -380,7 +380,7 @@ export async function updatePlugins() {
         corePluginInstances.set(id, instance);
     }
 
-    await updateAllRepository();
+    updateAllRepository();
 }
 
 /**
@@ -390,9 +390,9 @@ export async function initPlugins() {
     await awaitStorage(pluginRepositories, pluginSettings);
 
     // Now, start all enabled plugins...
-    await Promise.allSettled([...registeredPlugins.keys()].map(async id => {
+    Promise.allSettled([...registeredPlugins.keys()].map(async id => {
         if (isPluginEnabled(id)) {
-            await startPlugin(id);
+            startPlugin(id);
         }
     }));
 }
