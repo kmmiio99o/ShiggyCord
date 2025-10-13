@@ -9,10 +9,10 @@ Idea taken from Rosiecord
 
 - Rooted: [Shiggy Xposed](https://github.com/kmmiio99o/ShiggyXposed)
 
-- ~~Non-Rooted: [Shiggy Manger](https://github.com/kmmiio99o/ShiggyManager)~~ Coming in the meaning time
+- Non-Rooted: [Shiggy Manger](https://github.com/kmmiio99o/ShiggyManager)
 
 ### Android/iOS
-- **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/<VERSION>/shiggycord.js``
+- **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/download/<VERSION>/shiggycord.js``
 
 ## Building
 1. Install a ShiggyCord loader with loader config support (any mentioned in the [Installing](#installing) section).
