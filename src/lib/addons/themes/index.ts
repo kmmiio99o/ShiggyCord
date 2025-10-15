@@ -104,10 +104,10 @@ export function selectTheme(theme: VdThemeInfo | null, write = true) {
     );
 
     if (theme == null && write) {
-        updateBunnyColor(null, { update: false, startup: true });
+        updateBunnyColor(null, { update: true });
         return writeThemeToNative({});
     } else if (theme) {
-        updateBunnyColor(theme.data, { update: true, startup: false });
+        updateBunnyColor(theme.data, { update: true });
         return writeThemeToNative(theme);
     }
 }
