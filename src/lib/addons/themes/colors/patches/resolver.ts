@@ -85,7 +85,7 @@ export default function patchDefinitionAndResolver() {
 
             const fallbackValue = getRawFallback(colorDef.raw);
             if (fallbackValue) {
-                return colorDef.opacity === 1 ? fallbackValue : chroma(fallbackValue).alpha(colorDef.opacity).hex();
+                return colorDef.opacity === 0 ? fallbackValue : chroma(fallbackValue).alpha(colorDef.opacity).hex();
             }
 
             // Fallback to default
