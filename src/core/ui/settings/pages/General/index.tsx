@@ -2,8 +2,6 @@ import { isSafeMode, toggleSafeMode } from "@core/debug/safeMode";
 import { Strings } from "@core/i18n";
 import { PupuIcon } from "@core/ui/settings";
 import About from "@core/ui/settings/pages/General/About";
-import AboutTeam from "@core/ui/settings/pages/General/AboutTeam";
-import AppHealth from "@core/ui/settings/pages/General/AppHealth";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
 import { getDebugInfo } from "@lib/api/debug";
