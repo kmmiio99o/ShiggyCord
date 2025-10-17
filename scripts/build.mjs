@@ -55,14 +55,14 @@ const config = {
   inject: ["./shims/asyncIteratorSymbol.js", "./shims/promiseAllSettled.js"],
   legalComments: "none",
   alias: {
-    "!kettu-deps-shim!": "./shims/depsModule.ts",
+    "!ShiggyCord-deps-shim!": "./shims/depsModule.ts",
     spitroast: "./node_modules/spitroast",
     "react/jsx-runtime": "./shims/jsxRuntime",
   },
   plugins: [
     globalPlugin({
       ...metroDeps.reduce((obj, key) => {
-        obj[key] = `require("!kettu-deps-shim!")[${JSON.stringify(key)}]`;
+        obj[key] = `require("!ShiggyCord-deps-shim!")[${JSON.stringify(key)}]`;
         return obj;
       }, {}),
     }),
@@ -77,7 +77,7 @@ const config = {
                 constModules: {
                   globals: {
                     "bunny-build-info": {
-                      version: `"1.1.3"`,
+                      version: `"1.1.4"`,
                     },
                   },
                 },

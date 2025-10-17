@@ -2,6 +2,8 @@ import { isSafeMode, toggleSafeMode } from "@core/debug/safeMode";
 import { Strings } from "@core/i18n";
 import { PupuIcon } from "@core/ui/settings";
 import About from "@core/ui/settings/pages/General/About";
+import AboutTeam from "@core/ui/settings/pages/General/AboutTeam";
+import AppHealth from "@core/ui/settings/pages/General/AppHealth";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
 import { getDebugInfo } from "@lib/api/debug";
@@ -18,14 +20,125 @@ import {
   TableRow,
   TableRowGroup,
   TableSwitchRow,
+  Button,
+  Text,
 } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
+
+// Fetch latest commits from GitHub for Changelog
+import React, { useState } from "react";
 
 export default function General() {
   useProxy(settings);
 
   const debugInfo = getDebugInfo();
   const navigation = NavigationNative.useNavigation();
+
+  // Remove modal state, use openAlert for both modals
+  const [loadingCommits, setLoadingCommits] = useState(false);
+  const [commits, setCommits] = useState<any[]>([]);
+  const [commitsError, setCommitsError] = useState<string | null>(null);
+
+  // Handler for Changelog
+  const handleShowChangelog = () => {
+    setLoadingCommits(true);
+    setCommitsError(null);
+    fetch(
+      "https://api.github.com/repos/kmmiio99o/ShiggyCord/commits?per_page=10",
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch commits");
+        return res.json();
+      })
+      .then((data) => {
+        setCommits(data);
+        setLoadingCommits(false);
+        openAlert(
+          "shiggycord-changelog",
+          <AlertModal
+            title="Changelog"
+            content={
+              loadingCommits ? (
+                <Text>Loading latest commits...</Text>
+              ) : commitsError ? (
+                <Text style={{ color: "red" }}>{commitsError}</Text>
+              ) : (
+                <Stack spacing={12}>
+                  {data.map((entry: any) => (
+                    <Stack key={entry.sha} spacing={2}>
+                      <Text style={{ fontWeight: "bold" }}>
+                        {new Date(
+                          entry.commit.author.date,
+                        ).toLocaleDateString()}{" "}
+                        — {entry.commit.author.name}
+                      </Text>
+                      <Text>{entry.commit.message.split("\n")[0]}</Text>
+                      <Button
+                        text="View Commit"
+                        variant="secondary"
+                        onPress={() => Linking.openURL(entry.html_url)}
+                        style={{ alignSelf: "flex-start", marginTop: 2 }}
+                      />
+                    </Stack>
+                  ))}
+                  <Button
+                    text="View All Commits on GitHub"
+                    variant="primary"
+                    onPress={() =>
+                      Linking.openURL(
+                        "https://github.com/kmmiio99o/ShiggyCord/commits/main/",
+                      )
+                    }
+                  />
+                </Stack>
+              )
+            }
+            actions={
+              <AlertActions>
+                <AlertActionButton text="Close" variant="secondary" />
+              </AlertActions>
+            }
+          />,
+        );
+      })
+      .catch((e) => {
+        setCommitsError("Could not load changelog.");
+        setLoadingCommits(false);
+        openAlert(
+          "shiggycord-changelog-error",
+          <AlertModal
+            title="Changelog"
+            content={
+              <Text style={{ color: "red" }}>Could not load changelog.</Text>
+            }
+            actions={
+              <AlertActions>
+                <AlertActionButton text="Close" variant="secondary" />
+              </AlertActions>
+            }
+          />,
+        );
+      });
+  };
+
+  // Team members array for easy editing
+  const TEAM_MEMBERS = [
+    {
+      name: "kmmiio99o",
+      role: "Lead Developer",
+      avatar: "https://avatars.githubusercontent.com/u/73043890?v=4",
+      profile: "https://github.com/kmmiio99o",
+    },
+    {
+      name: "Angelw0lf",
+      role: "Contributor",
+      avatar: "https://avatars.githubusercontent.com/u/112412567?v=4",
+      profile: "https://github.com/Angelw0lf",
+    },
+    // Add or remove members here
+  ];
+
+  // Handler for About the Team is no longer needed (navigation used instead)
 
   return (
     <ScrollView
@@ -38,18 +151,9 @@ export default function General() {
       >
         <TableRowGroup title="App Information">
           <TableRow
-            label={Strings.PUPU}
-            subLabel={`Build ${debugInfo.bunny.version.split("-")[0] || debugInfo.bunny.version}`}
+            label="ShiggyCord"
             icon={<TableRow.Icon source={{ uri: PupuIcon }} />}
-            trailing={
-              <TableRow.TrailingText
-                text={
-                  debugInfo.bunny.version.includes("-")
-                    ? `#${debugInfo.bunny.version.split("-").slice(1).join("-")}`
-                    : "ShiggyCord"
-                }
-              />
-            }
+            trailing={<TableRow.TrailingText text={debugInfo.bunny.version} />}
           />
           <TableRow
             label="Discord"
@@ -63,19 +167,11 @@ export default function General() {
           />
           <TableRow
             label="Loader"
-            subLabel="ShiggyCord loader information"
+            subLabel={`${debugInfo.bunny.loader.name} loader`}
             icon={<TableRow.Icon source={findAssetId("DownloadIcon")!} />}
             trailing={
-              <TableRow.TrailingText
-                text={`${debugInfo.bunny.loader.name} ${debugInfo.bunny.loader.version}`}
-              />
+              <TableRow.TrailingText text={debugInfo.bunny.loader.version} />
             }
-          />
-          <TableRow
-            label="Platform"
-            subLabel={`${debugInfo.device.brand} ${debugInfo.device.model}`}
-            icon={<TableRow.Icon source={findAssetId("ScreenIcon")!} />}
-            trailing={<TableRow.TrailingText text={debugInfo.os.name} />}
           />
         </TableRowGroup>
         <TableRowGroup title="Quick Actions">
@@ -114,6 +210,19 @@ export default function General() {
                 />,
               );
             }}
+          />
+        </TableRowGroup>
+        <TableRowGroup title="Project Info">
+          <TableRow
+            arrow
+            label="Changelog"
+            subLabel="See what's new and recent changes"
+            icon={
+              <TableRow.Icon
+                source={findAssetId("CircleInformationIcon-primary")!}
+              />
+            }
+            onPress={handleShowChangelog}
           />
         </TableRowGroup>
         <TableRowGroup title="Developer">
