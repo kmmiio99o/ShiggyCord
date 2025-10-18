@@ -1,8 +1,9 @@
 // @ts-nocheck
 
-const allSettledFulfill = value => ({ status: "fulfilled", value });
-const allSettledReject = reason => ({ status: "rejected", reason });
-const mapAllSettled = item => Promise.resolve(item).then(allSettledFulfill, allSettledReject);
+const allSettledFulfill = (value) => ({ status: "fulfilled", value });
+const allSettledReject = (reason) => ({ status: "rejected", reason });
+const mapAllSettled = (item) =>
+  Promise.resolve(item).then(allSettledFulfill, allSettledReject);
 
 const allSettled = Promise.allSettled ??= iterator => {
     return Promise.all(Array.from(iterator).map(mapAllSettled));
