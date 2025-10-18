@@ -1,4 +1,4 @@
-# ShiggyCord
+# ShiggyCord [![Discord](https://img.shields.io/discord/1427396621905432699?style=social&logo=discord&label=ShiggyCord)](https://discord.gg/nQykFF9Ud6)
 
 An unofficial fork of ShiggyCord, made just for fun
 Idea taken from Rosiecord

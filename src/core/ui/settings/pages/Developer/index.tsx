@@ -26,6 +26,7 @@ import {
 import { findByProps } from "@metro/wrappers";
 import { semanticColors } from "@ui/color";
 import { ErrorBoundary } from "@ui/components";
+import ErrorBoundaryScreen from "@core/ui/reporter/components/ErrorBoundaryScreen";
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { NativeModules } from "react-native";
 import { ScrollView, StyleSheet } from "react-native";
@@ -234,7 +235,13 @@ export default function Developer() {
                       label: Strings.SHIGGYCORD,
                       onPress: () =>
                         navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
-                          render: () => <undefined />,
+                          // Render ShiggyCord's ErrorBoundaryScreen directly so the custom UI is shown.
+                          render: () => (
+                            <ErrorBoundaryScreen
+                              error={new Error("ShiggyCord test crash")}
+                              rerender={() => {}}
+                            />
+                          ),
                         }),
                     },
                     {

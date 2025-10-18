@@ -367,37 +367,80 @@ export async function startPlugin(
     try {
       // jsPath should always exists when the plugin is installed, unless the storage is corrupted
       const iife = await readFile(manifest.jsPath!!);
+
+      // Set a global marker so runtime/async errors can be attributed to the plugin
+      // This is a minimal, best-effort context marker. It will be cleared immediately
+      // after the synchronous evaluation step below.
+      try {
+        (window as any).__SHIGGY_CURRENT_PLUGIN = id;
+      } catch {
+        // ignore if environment prevents writing to window
+      }
+
       var instantiator = globalEvalWithSourceUrl(
         `(bunny,definePlugin)=>{${iife};return plugin?.default ?? plugin;}`,
         `bunny-plugin/${id}-${manifest.version}`,
       ) as PluginInstantiator;
     } catch (error) {
-      throw new Error(
+      // Annotate parsing errors with plugin id to aid attribution in ErrorBoundary
+      const e = new Error(
         "An error occured while parsing plugin's code, possibly a syntax error?",
         { cause: error },
-      );
+      ) as any;
+      e.pluginId = id;
+      throw e;
+    } finally {
+      // Clear the immediate evaluation marker - instantiation happens next.
+      try {
+        (window as any).__SHIGGY_CURRENT_PLUGIN = null;
+      } catch {}
     }
 
     // Stage two, load the plugin
     try {
-      const api = createBunnyPluginApi(id);
-      pluginInstance = instantiator(api.object, (p) => {
-        return Object.assign(p, {
-          manifest,
-        }) as t.PluginInstanceInternal;
-      });
+      // During instantiation we again mark the current plugin so synchronous
+      // work performed by the plugin's top-level code is attributable.
+      try {
+        (window as any).__SHIGGY_CURRENT_PLUGIN = id;
+      } catch {}
 
-      if (!pluginInstance)
-        throw new Error(
+      const api = createBunnyPluginApi(id);
+
+      // Wrap instantiator call to annotate errors with plugin id if they escape here.
+      try {
+        pluginInstance = instantiator(api.object, (p) => {
+          return Object.assign(p, {
+            manifest,
+          }) as t.PluginInstanceInternal;
+        });
+      } catch (innerError) {
+        const e = new Error(
+          "An error occured while instantiating plugin's code",
+        ) as any;
+        e.cause = innerError;
+        e.pluginId = id;
+        throw e;
+      }
+
+      if (!pluginInstance) {
+        const e = new Error(
           `Plugin '${id}' does not export a valid plugin instance`,
-        );
+        ) as any;
+        e.pluginId = id;
+        throw e;
+      }
 
       apiObjects.set(id, api);
       pluginInstances.set(id, pluginInstance);
     } catch (error) {
-      throw new Error("An error occured while instantiating plugin's code", {
-        cause: error,
-      });
+      // propagate already-annotated error or annotate as fallback
+      if (!(error as any).pluginId) (error as any).pluginId = id;
+      throw error;
+    } finally {
+      // Always clear the global plugin marker after instantiation attempt.
+      try {
+        (window as any).__SHIGGY_CURRENT_PLUGIN = null;
+      } catch {}
     }
   } else {
     pluginInstance = corePluginInstances.get(id)!;
@@ -430,6 +473,58 @@ export function stopPlugin(id: string) {
   const obj = apiObjects.get(id);
   obj?.disposers.forEach((d: Function) => d());
   pluginInstances.delete(id);
+}
+
+/**
+ * Utility: produce a sequence of bisect batches for enabled external plugins.
+ * This returns an array of arrays where each returned array is the set of plugin
+ * ids you should disable in that bisect step (simple binary-halving strategy).
+ *
+ * The UI can use these batches to guide a manual binary-search disabling flow:
+ * - Disable all plugin ids in batches[0], reproduce crash
+ * - If crash persists, disable batches[1], otherwise re-enable batches[0] and disable complementary half, etc.
+ *
+ * This function is intentionally read-only; it only computes batches. The UI
+ * should call `disablePlugin(id)` / `enablePlugin(id, ...)` itself to toggle plugins.
+ */
+export function getBisectBatches(maxPerStep = 50): string[][] {
+  // Collect external enabled plugin ids
+  const enabled: string[] = [];
+  for (const [id, manifest] of registeredPlugins) {
+    try {
+      const isExternal = (manifest as any).parentRepository != null;
+      const enabledFlag = Boolean(pluginSettings[id]?.enabled);
+      if (!isExternal) continue;
+      if (!enabledFlag) continue;
+      enabled.push(id);
+    } catch {
+      // ignore corrupt manifests
+    }
+  }
+
+  // Limit to a reasonable number to avoid overwhelming the user
+  const ids = enabled.slice(0, maxPerStep);
+
+  if (ids.length <= 1) return ids.length === 1 ? [[ids[0]]] : [];
+
+  // Binary-halving batches:
+  // On step n, disable the first half of the current candidate set.
+  const batches: string[][] = [];
+  let candidates = ids.slice();
+  while (candidates.length > 1) {
+    const half = Math.ceil(candidates.length / 2);
+    const toDisable = candidates.slice(0, half);
+    batches.push(toDisable);
+    // For the next iteration assume we will test the complement; compute complement
+    candidates = candidates.slice(half);
+    // If complement has only one left, add it as final step
+    if (candidates.length === 1) {
+      batches.push([candidates[0]]);
+      break;
+    }
+  }
+
+  return batches;
 }
 
 export async function updateAllRepository() {

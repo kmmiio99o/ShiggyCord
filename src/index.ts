@@ -1,4 +1,4 @@
-// import patchErrorBoundary from "@core/debug/patches/patchErrorBoundary";
+import patchErrorBoundary from "@core/debug/patches/patchErrorBoundary";
 import initFixes from "@core/fixes";
 import { initFetchI18nStrings } from "@core/i18n";
 import initSettings from "@core/ui/settings";
@@ -33,6 +33,7 @@ export default async () => {
     patchLogHook(),
     patchCommands(),
     patchJsx(),
+    patchErrorBoundary(),
     initVendettaObject(),
     initFetchI18nStrings(),
     initSettings(),
