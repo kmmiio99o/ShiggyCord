@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -28,11 +29,63 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Extract bunny version
-        id: bunny_version
+      - name: Extract base version
+        id: extract
         run: |
+          # Extract the base (non-prerelease) version from the build-info module
           version=$(grep 'const version:' src/modules.d.ts | head -n1 | sed 's/[^0-9.]//g')
           echo "version=$version" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Prepare tag (detect dev branch and compute prerelease numeric suffix)
+        id: prepare
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          ref="${GITHUB_REF#refs/heads/}"
+          version="${{ steps.extract.outputs.version }}"
+
+          prerelease="false"
+          tag="$version"
+
+          if [ "$ref" = "dev" ]; then
+            prerelease="true"
+
+            # Fetch remote tags to compute the next numeric prerelease suffix
+            git fetch --tags --prune origin
+
+            # Get remote tags (both with and without leading 'v'), extract numeric suffixes for the current base version
+            max=0
+            while read -r remote_ref _; do
+              # remote_ref examples: refs/tags/1.1.4-1 or refs/tags/v1.1.4-2
+              remote_tag="${remote_ref#refs/tags/}"
+              if [[ $remote_tag =~ ^v?${version}-([0-9]+)$ ]]; then
+                num="${BASH_REMATCH[1]}"
+                if (( num > max )); then
+                  max=$num
+                fi
+              fi
+            done < <(git ls-remote --tags origin)
+
+            next=$((max + 1))
+            tag="${version}-${next}"
+          fi
+
+          # Expose outputs for downstream steps
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          echo "prerelease=$prerelease" >> $GITHUB_OUTPUT
+
+          # Create an annotated tag locally and push it if it does not already exist on the remote.
+          # Use the token-authenticated push so this runs inside the workflow.
+          if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            git tag -a "${tag}" -m "Release ${tag}"
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/${tag}"
+          else
+            echo "Tag ${tag} already exists locally."
+          fi
+        shell: bash
 
       - name: Build (if needed)
         run: bun run build
@@ -40,9 +93,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.bunny_version.outputs.version }}
-          name: Release v${{ steps.bunny_version.outputs.version }}
-          prerelease: ${{ github.ref == 'refs/heads/dev' }}
+          tag_name: ${{ steps.prepare.outputs.tag }}
+          name: Release ${{ steps.prepare.outputs.tag }}
+          # treat pushes to dev as prereleases
+          prerelease: ${{ steps.prepare.outputs.prerelease }}
           files: |
             dist/shiggycord.js
             dist/shiggycord.min.js
