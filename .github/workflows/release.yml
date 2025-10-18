@@ -78,6 +78,9 @@ jobs:
           echo "prerelease=$prerelease" >> $GITHUB_OUTPUT
 
           # Create an annotated tag locally and push it if it does not already exist on the remote.
+          # Ensure a committer identity is set (CI runners are headless), use the workflow actor
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config user.name "${GITHUB_ACTOR}"
           # Use the token-authenticated push so this runs inside the workflow.
           if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
             git tag -a "${tag}" -m "Release ${tag}"
