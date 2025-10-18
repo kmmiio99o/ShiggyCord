@@ -1,4 +1,4 @@
-import PupuIcon from "@assets/icons/shiggy.png";
+import shiggycordIcon from "@assets/icons/shiggy.png";
 import { Strings } from "@core/i18n";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
@@ -7,7 +7,7 @@ import { settings } from "@lib/api/settings";
 import { registerSection } from "@ui/settings";
 import { version } from "bunny-build-info";
 
-export { PupuIcon };
+export { shiggycordIcon };
 
 export default function initSettings() {
   registerSection({
@@ -15,8 +15,8 @@ export default function initSettings() {
     items: [
       {
         key: "SHIGGYCORD",
-        title: () => Strings.PUPU,
-        icon: { uri: PupuIcon },
+        title: () => Strings.SHIGGYCORD,
+        icon: { uri: shiggycordIcon },
         render: () => import("@core/ui/settings/pages/General"),
         useTrailing: () => `(${version})`,
       },

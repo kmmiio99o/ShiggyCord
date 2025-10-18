@@ -1,5 +1,5 @@
 import { Strings } from "@core/i18n";
-import { PupuIcon } from "@core/ui/settings";
+import { shiggycordIcon } from "@core/ui/settings";
 import Version from "@core/ui/settings/pages/General/Version";
 import { useProxy } from "@core/vendetta/storage";
 import { getDebugInfo } from "@lib/api/debug";
@@ -56,9 +56,9 @@ export default function About() {
 
   const coreVersions = [
     {
-      label: Strings.PUPU,
+      label: Strings.SHIGGYCORD,
       version: debugInfo.bunny.version,
-      icon: { uri: PupuIcon },
+      icon: { uri: shiggycordIcon },
     },
     {
       label: "Discord",
@@ -128,7 +128,7 @@ export default function About() {
       >
         <View style={{ alignItems: "center", paddingVertical: 16 }}>
           <Text variant="heading-xl/bold" style={{ textAlign: "center" }}>
-            {Strings.PUPU}
+            {Strings.SHIGGYCORD}
           </Text>
           <Text
             variant="text-md/medium"

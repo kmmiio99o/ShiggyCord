@@ -1,4 +1,4 @@
-import { PupuIcon } from "@core/ui/settings";
+import { shiggycordIcon } from "@core/ui/settings";
 import {
   disablePlugin,
   enablePlugin,
@@ -22,7 +22,7 @@ export default function unifyBunnyPlugin(
 
     getBadges() {
       return [
-        { source: { uri: PupuIcon } },
+        { source: { uri: shiggycordIcon } },
         // { source: findAssetId("CheckmarkLargeBoldIcon")! }
       ];
     },

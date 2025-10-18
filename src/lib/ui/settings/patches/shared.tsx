@@ -6,37 +6,40 @@ import { RowConfig } from "@ui/settings";
 const tabsNavigationRef = findByPropsLazy("getRootNavigationRef");
 
 export const CustomPageRenderer = React.memo(() => {
-    const navigation = NavigationNative.useNavigation();
-    const route = NavigationNative.useRoute();
+  const navigation = NavigationNative.useNavigation();
+  const route = NavigationNative.useRoute();
 
-    const { render: PageComponent, ...args } = route.params;
+  const { render: PageComponent, ...args } = route.params;
 
-    React.useEffect(() => void navigation.setOptions({ ...args }), []);
+  React.useEffect(() => void navigation.setOptions({ ...args }), []);
 
-    return <ErrorBoundary><PageComponent /></ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      <PageComponent />
+    </ErrorBoundary>
+  );
 });
 
 export function wrapOnPress(
-    onPress: (() => unknown) | undefined,
-    navigation?: any,
-    renderPromise?: RowConfig["render"],
-    screenOptions?: string | Record<string, any>,
-    props?: any,
+  onPress: (() => unknown) | undefined,
+  navigation?: any,
+  renderPromise?: RowConfig["render"],
+  screenOptions?: string | Record<string, any>,
+  props?: any,
 ) {
-    return async () => {
-        if (onPress) return void onPress();
+  return async () => {
+    if (onPress) return void onPress();
 
-        const Component = await renderPromise!!().then(m => m.default);
+    const Component = await renderPromise!!().then((m) => m.default);
 
-        if (typeof screenOptions === "string") {
-            screenOptions = { title: screenOptions };
-        }
+    if (typeof screenOptions === "string") {
+      screenOptions = { title: screenOptions };
+    }
 
-        navigation ??= tabsNavigationRef.getRootNavigationRef();
-        navigation.navigate("PUPU_CUSTOM_PAGE", {
-            ...screenOptions,
-            render: () => <Component {...props} />
-        });
-    };
+    navigation ??= tabsNavigationRef.getRootNavigationRef();
+    navigation.navigate("SHIGGYCORD_CUSTOM_PAGE", {
+      ...screenOptions,
+      render: () => <Component {...props} />,
+    });
+  };
 }
-

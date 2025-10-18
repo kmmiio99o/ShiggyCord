@@ -1,6 +1,6 @@
 import { isSafeMode, toggleSafeMode } from "@core/debug/safeMode";
 import { Strings } from "@core/i18n";
-import { PupuIcon } from "@core/ui/settings";
+import { shiggycordIcon } from "@core/ui/settings";
 import About from "@core/ui/settings/pages/General/About";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
@@ -150,7 +150,7 @@ export default function General() {
         <TableRowGroup title="App Information">
           <TableRow
             label="ShiggyCord"
-            icon={<TableRow.Icon source={{ uri: PupuIcon }} />}
+            icon={<TableRow.Icon source={{ uri: shiggycordIcon }} />}
             trailing={<TableRow.TrailingText text={debugInfo.bunny.version} />}
           />
           <TableRow
@@ -274,7 +274,7 @@ export default function General() {
               />
             }
             onPress={() =>
-              navigation.push("PUPU_CUSTOM_PAGE", {
+              navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                 title: Strings.ABOUT,
                 render: () => <About />,
               })

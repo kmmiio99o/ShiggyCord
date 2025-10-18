@@ -64,7 +64,7 @@ export function patchPanelUI(unpatches: (() => void | boolean)[]) {
           title: "ShiggyCord",
           render: () => <CustomPageRenderer />,
         },
-        PUPU_CUSTOM_PAGE: {
+        SHIGGYCORD_CUSTOM_PAGE: {
           title: "ShiggyCord",
           render: () => <CustomPageRenderer />,
         },

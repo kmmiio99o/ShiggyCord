@@ -53,11 +53,11 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
           getComponent: () => CustomPageRenderer,
         },
       },
-      PUPU_CUSTOM_PAGE: {
+      SHIGGYCORD_CUSTOM_PAGE: {
         type: "route",
         title: () => "ShiggyCord",
         screen: {
-          route: "PUPU_CUSTOM_PAGE",
+          route: "SHIGGYCORD_CUSTOM_PAGE",
           getComponent: () => CustomPageRenderer,
         },
       },

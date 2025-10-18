@@ -189,7 +189,7 @@ export default function Developer() {
                         (loaderConfig.customLoadUrl.url = v)
                       }
                       placeholder="http://localhost:4040/shiggycord.js"
-                      label={Strings.PUPU_URL}
+                      label={Strings.SHIGGYCORD_URL}
                     />
                   }
                 />
@@ -204,7 +204,7 @@ export default function Developer() {
               icon={<TableRow.Icon source={findAssetId("ic_image")} />}
               trailing={TableRow.Arrow}
               onPress={() =>
-                navigation.push("PUPU_CUSTOM_PAGE", {
+                navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                   title: Strings.ASSET_BROWSER,
                   render: AssetBrowser,
                 })
@@ -231,7 +231,7 @@ export default function Developer() {
                     // @ts-expect-error
                     // Of course, to trigger an error, we need to do something incorrectly. The below will do!
                     {
-                      label: Strings.PUPU,
+                      label: Strings.SHIGGYCORD,
                       onPress: () =>
                         navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                           render: () => <undefined />,
@@ -241,7 +241,7 @@ export default function Developer() {
                       label: "Discord",
                       isDestructive: true,
                       onPress: () =>
-                        navigation.push("PUPU_CUSTOM_PAGE", {
+                        navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                           noErrorBoundary: true,
                         }),
                     },
@@ -259,7 +259,7 @@ export default function Developer() {
               icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}
               onPress={() => {
                 openAlert(
-                  "pupu-clear-bundle-reload-confirmation",
+                  "shiggycord-clear-bundle-reload-confirmation",
                   <AlertModal
                     title={Strings.MODAL_RELOAD_REQUIRED}
                     content={Strings.MODAL_RELOAD_REQUIRED_DESC}

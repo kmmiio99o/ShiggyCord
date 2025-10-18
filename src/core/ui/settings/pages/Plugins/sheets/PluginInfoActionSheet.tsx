@@ -196,7 +196,7 @@ export default function PluginInfoActionSheet({
             disabled={!plugin.getPluginSettingsComponent()}
             icon={findAssetId("WrenchIcon")}
             onPress={() => {
-              navigation.push("PUPU_CUSTOM_PAGE", {
+              navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                 title: plugin.name,
                 render: plugin.getPluginSettingsComponent(),
               });

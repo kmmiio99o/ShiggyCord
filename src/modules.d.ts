@@ -1,5 +1,5 @@
 declare module "bunny-build-info" {
-  const version: "1.1.4-1";
+  const version: "1.1.4-2";
 }
 
 declare module "*.png" {
