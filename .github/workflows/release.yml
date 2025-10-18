@@ -28,12 +28,18 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+        shell: bash
 
       - name: Extract base version
         id: extract
         run: |
-          # Extract the base (non-prerelease) version from the build-info module
-          version=$(grep 'const version:' src/modules.d.ts | head -n1 | sed 's/[^0-9.]//g')
+          # Extract the base (non-prerelease) version from the build-info module.
+          # This expects a line like: const version: "1.1.4";
+          version=$(grep -m1 'const version:' src/modules.d.ts | sed -E 's/[^0-9.]//g')
+          if [ -z "$version" ]; then
+            echo "Failed to extract version" >&2
+            exit 1
+          fi
           echo "version=$version" >> $GITHUB_OUTPUT
         shell: bash
 
@@ -44,61 +50,92 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Derive branch and base version
           ref="${GITHUB_REF#refs/heads/}"
           version="${{ steps.extract.outputs.version }}"
 
+          echo "[debug] GITHUB_REF=$GITHUB_REF" >&2
+          echo "[debug] branch=$ref" >&2
+          echo "[debug] base version=$version" >&2
+
           prerelease="false"
-          tag="$version"
+          tag="${version}"
 
           if [ "$ref" = "dev" ]; then
             prerelease="true"
 
-            # Fetch remote tags to compute the next numeric prerelease suffix
+            # Ensure we have remote tags to inspect
             git fetch --tags --prune origin
 
-            # Get remote tags (both with and without leading 'v'), extract numeric suffixes for the current base version
+            # Collect exact-match prerelease numbers for tags that start with "<version>-"
+            # This avoids partial matches like '1.1.41' when base version is '1.1.4'
+            : > /tmp/pr_nums || true
+
+            # Use ls-remote to avoid depending on local clone tags; normalize tag names:
+            #  - strip refs/tags/
+            #  - remove annotated tag suffix ^{} if present
+            #  - remove leading v prefix
+            git ls-remote --tags origin | awk '{print $2}' \
+              | sed 's@refs/tags/@@' \
+              | sed 's/\\^{}$//' \
+              | sed 's/^v//' \
+              | while IFS= read -r tagname; do
+                  if [[ "$tagname" == "${version}-"* ]]; then
+                    num="${tagname#${version}-}"
+                    if [[ "$num" =~ ^[0-9]+$ ]]; then
+                      echo "$num" >> /tmp/pr_nums
+                    fi
+                  fi
+                done || true
+
+            echo "[debug] matching prerelease numbers:" >&2
+            cat /tmp/pr_nums 2>/dev/null || echo "(none)" >&2
+
             max=0
-            while read -r remote_ref _; do
-              # remote_ref examples: refs/tags/1.1.4-1 or refs/tags/v1.1.4-2
-              remote_tag="${remote_ref#refs/tags/}"
-              if [[ $remote_tag =~ ^v?${version}-([0-9]+)$ ]]; then
-                num="${BASH_REMATCH[1]}"
-                if (( num > max )); then
-                  max=$num
+            if [ -f /tmp/pr_nums ]; then
+              while read -r n; do
+                if [ -n "$n" ] && [[ "$n" =~ ^[0-9]+$ ]]; then
+                  if [ "$n" -gt "$max" ]; then
+                    max="$n"
+                  fi
                 fi
-              fi
-            done < <(git ls-remote --tags origin)
+              done < /tmp/pr_nums || true
+            fi
 
             next=$((max + 1))
             tag="${version}-${next}"
           fi
 
-          # Expose outputs for downstream steps
-          echo "tag=$tag" >> $GITHUB_OUTPUT
-          echo "prerelease=$prerelease" >> $GITHUB_OUTPUT
+          echo "[debug] computed tag=${tag}" >&2
 
-          # Create an annotated tag locally and push it if it does not already exist on the remote.
-          # Ensure a committer identity is set (CI runners are headless), use the workflow actor
+          # Expose outputs
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+          echo "prerelease=${prerelease}" >> $GITHUB_OUTPUT
+
+          # Ensure a committer identity is configured for tagging (CI runners don't have one by default)
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git config user.name "${GITHUB_ACTOR}"
-          # Use the token-authenticated push so this runs inside the workflow.
+
+          # Create annotated tag locally and push it if not already present on the remote.
           if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
             git tag -a "${tag}" -m "Release ${tag}"
+            # push tag via token-authenticated remote so workflow can push tags
             git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/${tag}"
           else
-            echo "Tag ${tag} already exists locally."
+            echo "Tag ${tag} already exists"
           fi
         shell: bash
 
       - name: Build (if needed)
         run: bun run build
+        shell: bash
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          # Use the computed tag (e.g. "1.1.4" or "1.1.4-1")
           tag_name: ${{ steps.prepare.outputs.tag }}
           name: Release ${{ steps.prepare.outputs.tag }}
-          # treat pushes to dev as prereleases
           prerelease: ${{ steps.prepare.outputs.prerelease }}
           files: |
             dist/shiggycord.js
