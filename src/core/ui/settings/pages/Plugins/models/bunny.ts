@@ -1,4 +1,3 @@
-import { shiggycordIcon } from "@core/ui/settings";
 import {
   disablePlugin,
   enablePlugin,
@@ -21,10 +20,7 @@ export default function unifyBunnyPlugin(
     authors: manifest.display.authors,
 
     getBadges() {
-      return [
-        { source: { uri: shiggycordIcon } },
-        // { source: findAssetId("CheckmarkLargeBoldIcon")! }
-      ];
+      return [];
     },
     isEnabled: () => isPluginEnabled(manifest.id),
     isInstalled: () => manifest.id in pluginSettings,
