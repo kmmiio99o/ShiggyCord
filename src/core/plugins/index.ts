@@ -13,7 +13,6 @@ export const getCorePlugins = (): Record<string, CorePlugin> => ({
   "bunny.messagefix": { ...require("./messagefix") },
   "bunny.messagelogger": { ...require("./messagelogger"), preenabled: true },
   "bunny.fixembed": { ...require("./fixembed"), preenabled: true },
-  "bunny.shiggyhelper": { ...require("./shiggyhelper") },
 });
 
 /**
