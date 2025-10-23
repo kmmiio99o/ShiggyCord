@@ -87,6 +87,19 @@ export default defineCorePlugin({
   SettingsComponent() {
     const { useState, useEffect } = React;
 
+    // Ensure hooks are always called at the top-level so hook order is stable.
+    // Move state/effect before any early returns or conditional logic.
+    const [verbose, setVerbose] = useState<boolean>(
+      settings.shiggyhelper?.verboseLogging ?? false,
+    );
+
+    useEffect(() => {
+      // persist and apply
+      settings.shiggyhelper = settings.shiggyhelper || {};
+      settings.shiggyhelper.verboseLogging = verbose;
+      applyVerbosePatch(Boolean(verbose));
+    }, [verbose]);
+
     // Resolve UI row components; prefer table-style rows and Stack for consistent layout.
     const { TableRow, TableRowGroup, TableSwitchRow, Stack } = findByProps(
       "TableRow",
@@ -106,17 +119,6 @@ export default defineCorePlugin({
         ),
       );
     }
-
-    const [verbose, setVerbose] = useState<boolean>(
-      settings.shiggyhelper?.verboseLogging ?? false,
-    );
-
-    useEffect(() => {
-      // persist and apply
-      settings.shiggyhelper = settings.shiggyhelper || {};
-      settings.shiggyhelper.verboseLogging = verbose;
-      applyVerbosePatch(Boolean(verbose));
-    }, [verbose]);
 
     const dumpLogs = () => {
       if (!capturedLogs.length) {
