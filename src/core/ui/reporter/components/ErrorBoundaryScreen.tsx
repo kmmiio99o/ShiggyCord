@@ -117,6 +117,7 @@ export default function ErrorBoundaryScreen(props: {
   error: Error;
   rerender: () => void;
 }) {
+  // Hooks MUST be at the top level and unconditionally called.
   const styles = useStyles();
   const debugInfo = getDebugInfo();
   const navigation = NavigationNative.useNavigation();
@@ -131,6 +132,78 @@ export default function ErrorBoundaryScreen(props: {
   // Use a safe fallback so renders don't throw if state hasn't been initialized yet
   const batches = bisectBatches ?? [];
   const currentBatch = batches[bisectIndex] ?? [];
+
+  // Move all error-analysis computations into stable hooks (useMemo). This
+  // ensures we don't conditionally call hooks later in render and keeps hook order stable.
+  const explicitPluginId = React.useMemo(() => {
+    try {
+      return (
+        (props.error as any)?.pluginId ??
+        (window as any)?.__SHIGGY_LAST_UNCAUGHT_ERROR?.pluginId ??
+        (window as any)?.__SHIGGY_CURRENT_PLUGIN
+      );
+    } catch {
+      return undefined;
+    }
+  }, [props.error]);
+
+  const parsedFrames = React.useMemo(() => {
+    try {
+      return parseErrorStack((props.error as any).stack) || [];
+    } catch {
+      return [];
+    }
+  }, [props.error]);
+
+  const suspectedPlugins = React.useMemo(() => {
+    const suspected: Array<{ id: string; name: string }> = [];
+    try {
+      if (parsedFrames && parsedFrames.length) {
+        for (const [id, manifest] of registeredPlugins) {
+          try {
+            const jsPath = (manifest as any).jsPath;
+            if (!jsPath) continue;
+            for (const f of parsedFrames) {
+              if (!f.file) continue;
+              if (
+                f.file.includes(jsPath) ||
+                f.file.includes(`/plugins/scripts/${id}`) ||
+                f.file.includes(`bunny-plugin/${id}`)
+              ) {
+                suspected.push({
+                  id,
+                  name:
+                    (manifest as any).display?.name ??
+                    (manifest as any).name ??
+                    id,
+                });
+                break;
+              }
+            }
+            if (suspected.length) break;
+          } catch {
+            // ignore per-manifest errors
+          }
+        }
+      }
+    } catch {
+      // parsing failed — keep suspected empty
+    }
+    return suspected;
+  }, [parsedFrames]);
+
+  const corePlugins = React.useMemo(() => {
+    try {
+      return getCorePlugins();
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const corePluginIds = React.useMemo(
+    () => Object.keys(corePlugins),
+    [corePlugins],
+  );
 
   return (
     <SafeAreaProvider>
@@ -149,14 +222,9 @@ export default function ErrorBoundaryScreen(props: {
         <ScrollView fadingEdgeLength={64} contentContainerStyle={{ gap: 12 }}>
           <Codeblock selectable={true}>{props.error.message}</Codeblock>
 
-          {(() => {
+          {explicitPluginId && registeredPlugins.has(explicitPluginId) ? (
             // 1) Prefer explicit annotation on the error (set by plugin loader) or current runtime marker.
-            const explicitPluginId =
-              (props.error as any)?.pluginId ??
-              (window as any)?.__SHIGGY_LAST_UNCAUGHT_ERROR?.pluginId ??
-              (window as any)?.__SHIGGY_CURRENT_PLUGIN;
-
-            if (explicitPluginId && registeredPlugins.has(explicitPluginId)) {
+            (() => {
               const manifest = registeredPlugins.get(explicitPluginId)!;
               const name =
                 manifest.display?.name ?? manifest.name ?? explicitPluginId;
@@ -206,46 +274,11 @@ export default function ErrorBoundaryScreen(props: {
                   </View>
                 </Card>
               );
-            }
-
+            })()
+          ) : suspectedPlugins.length > 0 ? (
             // 2) Fallback: heuristic based on stack frames (best-effort)
-            let suspected: Array<{ id: string; name: string }> = [];
-            try {
-              const frames = parseErrorStack((props.error as any).stack);
-              if (frames && frames.length) {
-                for (const [id, manifest] of registeredPlugins) {
-                  try {
-                    const jsPath = (manifest as any).jsPath;
-                    if (!jsPath) continue;
-                    for (const f of frames) {
-                      if (!f.file) continue;
-                      if (
-                        f.file.includes(jsPath) ||
-                        f.file.includes(`/plugins/scripts/${id}`) ||
-                        f.file.includes(`bunny-plugin/${id}`)
-                      ) {
-                        suspected.push({
-                          id,
-                          name:
-                            (manifest as any).display?.name ??
-                            (manifest as any).name ??
-                            id,
-                        });
-                        break;
-                      }
-                    }
-                    if (suspected.length) break;
-                  } catch {
-                    // ignore per-manifest errors
-                  }
-                }
-              }
-            } catch {
-              // parsing failed — continue to show suggestions
-            }
-
-            if (suspected.length > 0) {
-              const s = suspected[0];
+            (() => {
+              const s = suspectedPlugins[0];
               return (
                 <Card>
                   <View style={{ gap: 8 }}>
@@ -299,99 +332,95 @@ export default function ErrorBoundaryScreen(props: {
                   </View>
                 </Card>
               );
-            }
-
+            })()
+          ) : (
             // 3) Show only built-in (core) plugins from the bundle (no externals)
-            const corePlugins = getCorePlugins();
-            const ids = Object.keys(corePlugins);
-            return (
-              <Card>
-                <View style={{ gap: 8 }}>
-                  <Text variant="heading-md/bold">Core plugins</Text>
+            <Card>
+              <View style={{ gap: 8 }}>
+                <Text variant="heading-md/bold">Core plugins</Text>
+                <Text variant="text-sm/normal" color="text-muted">
+                  Toggle built-in plugins below. After toggling, press "Retry
+                  Render" to re-check the crash.
+                </Text>
+
+                {corePluginIds.length === 0 ? (
                   <Text variant="text-sm/normal" color="text-muted">
-                    Toggle built-in plugins below. After toggling, press "Retry
-                    Render" to re-check the crash.
+                    No core plugins found.
                   </Text>
+                ) : (
+                  <TableRowGroup title="Core plugins">
+                    {corePluginIds.map((id) => {
+                      const entry = (corePlugins as any)[id];
+                      const name =
+                        entry?.default?.manifest?.display?.name ??
+                        entry?.default?.manifest?.name ??
+                        id;
+                      let enabled = false;
+                      try {
+                        enabled = Boolean(isPluginEnabled(id));
+                      } catch {
+                        enabled = false;
+                      }
+                      // Protect specific core plugins from being toggled (same heuristic as PluginCard)
+                      const idLower = ((id || "") as string).toLowerCase();
+                      const isProtectedCore =
+                        idLower.includes("quickinstall") ||
+                        idLower === "bunny.badges";
 
-                  {ids.length === 0 ? (
-                    <Text variant="text-sm/normal" color="text-muted">
-                      No core plugins found.
-                    </Text>
-                  ) : (
-                    <TableRowGroup title="Core plugins">
-                      {ids.map((id) => {
-                        const entry = (corePlugins as any)[id];
-                        const name =
-                          entry?.default?.manifest?.display?.name ??
-                          entry?.default?.manifest?.name ??
-                          id;
-                        let enabled = false;
-                        try {
-                          enabled = Boolean(isPluginEnabled(id));
-                        } catch {
-                          enabled = false;
-                        }
-                        // Protect specific core plugins from being toggled (same heuristic as PluginCard)
-                        const idLower = ((id || "") as string).toLowerCase();
-                        const isProtectedCore =
-                          idLower.includes("quickinstall") ||
-                          idLower === "bunny.badges";
-
-                        return (
-                          <TableSwitchRow
-                            key={id}
-                            label={name}
-                            value={enabled}
-                            disabled={isProtectedCore}
-                            onValueChange={async (v: boolean) => {
-                              try {
-                                if (v) {
-                                  await enablePlugin(id, true);
-                                } else {
-                                  await disablePlugin(id);
-                                }
-                                // lightweight refresh so UI reflects the change
-                                setBisectBatches((prev) =>
-                                  prev ? [...prev] : [],
-                                );
-                                showToast(
-                                  `${v ? "Enabled" : "Disabled"} ${name}`,
-                                );
-                              } catch (e) {
-                                console.error(
-                                  "[ShiggyCord][ErrorBoundaryScreen] failed to toggle core plugin",
-                                  id,
-                                  e,
-                                );
-                                showToast(
-                                  `Failed to ${v ? "enable" : "disable"} ${name}`,
-                                );
+                      return (
+                        <TableSwitchRow
+                          key={id}
+                          label={name}
+                          value={enabled}
+                          disabled={isProtectedCore}
+                          onValueChange={async (v: boolean) => {
+                            try {
+                              if (v) {
+                                await enablePlugin(id, true);
+                              } else {
+                                await disablePlugin(id);
                               }
-                            }}
-                          />
-                        );
-                      })}
-                    </TableRowGroup>
-                  )}
+                              // lightweight refresh so UI reflects the change
+                              setBisectBatches((prev) =>
+                                prev ? [...prev] : [],
+                              );
+                              showToast(
+                                `${v ? "Enabled" : "Disabled"} ${name}`,
+                              );
+                            } catch (e) {
+                              console.error(
+                                "[ShiggyCord][ErrorBoundaryScreen] failed to toggle core plugin",
+                                id,
+                                e,
+                              );
+                              showToast(
+                                `Failed to ${v ? "enable" : "disable"} ${name}`,
+                              );
+                            }
+                          }}
+                        />
+                      );
+                    })}
+                  </TableRowGroup>
+                )}
 
-                  <View style={{ flexDirection: "row", gap: 8 }}>
-                    <Button
-                      text="Refresh list"
-                      onPress={() => {
-                        try {
-                          // Force UI refresh of core list
-                          setBisectBatches((prev) => (prev ? [...prev] : []));
-                          showToast("Core plugin list refreshed");
-                        } catch (e) {
-                          console.error(e);
-                        }
-                      }}
-                    />
-                  </View>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Button
+                    text="Refresh list"
+                    onPress={() => {
+                      try {
+                        // Force UI refresh of core list
+                        setBisectBatches((prev) => (prev ? [...prev] : []));
+                        showToast("Core plugin list refreshed");
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
+                  />
                 </View>
-              </Card>
-            );
-          })()}
+              </View>
+            </Card>
+          )}
 
           {hasStack(props.error) && <ErrorStackCard error={props.error} />}
           {isComponentStack(props.error) ? (

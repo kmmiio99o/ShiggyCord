@@ -1,3 +1,4 @@
+import React from "react";
 import ErrorBoundaryScreen from "@core/ui/reporter/components/ErrorBoundaryScreen";
 import { after } from "@lib/api/patcher";
 import { _lazyContextSymbol } from "@metro/lazy";
@@ -27,6 +28,23 @@ function getErrorBoundaryContext(): Promise<any> {
 }
 
 /**
+ * Small stable wrapper component used when mounting our UI from the patched render.
+ * Defining a top-level component ensures that hook order inside ErrorBoundaryScreen
+ * is always respected (React expects components to be declared at module scope).
+ *
+ * We avoid using any hooks here; this wrapper simply forwards props to the real screen.
+ */
+const ErrorBoundaryMount: React.FC<{
+  error: any;
+  rerender: () => void;
+}> = ({ error, rerender }) => {
+  return React.createElement(ErrorBoundaryScreen, {
+    error,
+    rerender,
+  });
+};
+
+/**
  * Patch Discord's ErrorBoundary.render to return ShiggyCord's custom screen.
  * Add defensive logging and fallback behavior so the patch won't break startup
  * if lookup fails. Also register lightweight global handlers to capture
@@ -53,29 +71,33 @@ export default function patchErrorBoundary() {
 
   const unpatch = after.await("render", ctxPromise, function (this: any) {
     try {
+      // Defensive checks: only render our screen when an error is actually present.
       if (!this || !this.state || !this.state.error) return;
+
       try {
         console.log(
           "[ShiggyCord] patchErrorBoundary: rendering custom error screen",
           this.state.error,
         );
       } catch {}
-      return (
-        <ErrorBoundaryScreen
-          error={this.state.error}
-          // try to reset state in a way that plays nicely with various ErrorBoundary shapes
-          rerender={() => {
+
+      // Return a stable component element (ErrorBoundaryMount). Using a named,
+      // module-scoped component helps React ensure hook ordering for nested components.
+      return React.createElement(ErrorBoundaryMount, {
+        error: this.state.error,
+        rerender: () => {
+          try {
+            // Attempt to reset common ErrorBoundary state shapes safely.
             try {
-              // common variant: some boundaries track `hasErr` or `error`
               this.setState?.({ info: null, error: null, hasErr: false });
             } catch {
               try {
                 this.setState?.({ error: null });
               } catch {}
             }
-          }}
-        />
-      );
+          } catch {}
+        },
+      });
     } catch (e) {
       try {
         console.error(
