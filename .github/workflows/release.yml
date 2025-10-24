@@ -33,29 +33,26 @@ jobs:
       - name: Extract base version
         id: extract
         run: |
-          # Extract base version (major.minor.patch) from src/modules.d.ts using pure shell (grep/sed)
-          # Capture the first three-part version and ignore any prerelease suffix (e.g. "-1")
-          if [ ! -f src/modules.d.ts ]; then
-            echo "src/modules.d.ts not found" >&2
+          # Extract base version (major.minor.patch) from scripts/build.mjs using pure shell (grep/sed)
+          # This locates the first quoted semver-like string in the build script (e.g. "1.1.5-4")
+          if [ ! -f scripts/build.mjs ]; then
+            echo "scripts/build.mjs not found" >&2
             exit 1
           fi
-          # Print the file for debugging in workflow logs
-          echo '--- src/modules.d.ts ---' >&2
-          sed -n '1,200p' src/modules.d.ts >&2 || true
+          # Print a snippet of the file for debugging in workflow logs
+          echo '--- scripts/build.mjs (snippet) ---' >&2
+          sed -n '1,200p' scripts/build.mjs >&2 || true
 
-          # Primary extraction: match "X.Y.Z" (three numeric components) within quotes
-          version=$(grep -m1 -oE '"[0-9]+\.[0-9]+\.[0-9]+' src/modules.d.ts | tr -d '"' | head -n1 || true)
+          # Primary extraction: find the first quoted semver (may include prerelease suffix)
+          raw=$(grep -m1 -oE '"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?"' scripts/build.mjs | tr -d '"' | head -n1 || true)
 
-          # Fallback: capture quoted version possibly with prerelease suffix and strip suffix
-          if [ -z "$version" ]; then
-            raw=$(grep -m1 -oE '"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?"' src/modules.d.ts | tr -d '"' | head -n1 || true)
-            version=$(printf '%s' "$raw" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-          fi
+          # Strip any prerelease suffix, keep only major.minor.patch
+          version=$(printf '%s' "$raw" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
 
           # Validate final result is exactly major.minor.patch
           if ! printf '%s' "$version" | grep -xE '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
-            echo "Failed to extract a valid base version from src/modules.d.ts" >&2
-            sed -n '1,200p' src/modules.d.ts >&2 || true
+            echo "Failed to extract a valid base version from scripts/build.mjs" >&2
+            sed -n '1,200p' scripts/build.mjs >&2 || true
             exit 1
           fi
 
