@@ -30,11 +30,11 @@ jobs:
         run: bun install
         shell: bash
 
-      - name: Extract base version
+      - name: Extract full version
         id: extract
         run: |
-          # Extract base version (major.minor.patch) from scripts/build.mjs using pure shell (grep/sed)
-          # This locates the first quoted semver-like string in the build script (e.g. "1.1.5-4")
+          # Extract full version (major.minor.patch.build) from scripts/build.mjs using pure shell (grep/sed)
+          # This locates the first quoted four-segment version string in the build script (e.g. "1.1.7.1")
           if [ ! -f scripts/build.mjs ]; then
             echo "scripts/build.mjs not found" >&2
             exit 1
@@ -43,15 +43,12 @@ jobs:
           echo '--- scripts/build.mjs (snippet) ---' >&2
           sed -n '1,200p' scripts/build.mjs >&2 || true
 
-          # Primary extraction: find the first quoted semver (may include prerelease suffix)
-          raw=$(grep -m1 -oE '"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?"' scripts/build.mjs | tr -d '"' | head -n1 || true)
+          # Primary extraction: find the first quoted four-segment version
+          version=$(grep -E 'version[:=]' scripts/build.mjs | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
 
-          # Strip any prerelease suffix, keep only major.minor.patch
-          version=$(printf '%s' "$raw" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-
-          # Validate final result is exactly major.minor.patch
-          if ! printf '%s' "$version" | grep -xE '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
-            echo "Failed to extract a valid base version from scripts/build.mjs" >&2
+          # Validate final result is exactly major.minor.patch.build
+          if ! printf '%s' "$version" | grep -xE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
+            echo "Failed to extract a valid four-segment version from scripts/build.mjs" >&2
             sed -n '1,200p' scripts/build.mjs >&2 || true
             exit 1
           fi
