@@ -87,8 +87,17 @@ export const pluginSettings = createStorage<t.PluginSettingsStorage>(
   "plugins/settings.json",
 );
 
-const _fetch = (repoUrl: string, path: string) =>
-  safeFetch(new URL(path, repoUrl), { cache: "no-store" });
+const _fetch = (repoUrl: string, path: string) => {
+  try {
+    const u = new URL(path, repoUrl);
+    // Append cache-busting query parameter so manual refresh triggers network requests
+    u.searchParams.set("_", String(Date.now()));
+    return safeFetch(u, { cache: "no-store" });
+  } catch (e) {
+    // Fallback to original behavior if URL construction fails for any reason
+    return safeFetch(new URL(path, repoUrl), { cache: "no-store" });
+  }
+};
 const fetchJS = (repoUrl: string, path: string) =>
   _fetch(repoUrl, path).then((r) => r.text());
 const fetchJSON = (repoUrl: string, path: string) =>
@@ -154,10 +163,30 @@ export async function updateAndWritePlugin(
   id: string,
   fetchScript: boolean,
 ) {
-  const manifest: t.BunnyPluginManifestInternal = await fetchJSON(
-    repoUrl,
+  // Try multiple manifest/script paths and provide robust logging so we can trace
+  // exactly which network requests are performed. Primary path is `builds/...`,
+  // fallback paths include `id/manifest.json` and `id/index.js` (some repos expose those).
+  const manifestCandidates = [
     `builds/${id}/manifest.json`,
-  );
+    `${id}/manifest.json`,
+  ];
+
+  let manifest: t.BunnyPluginManifestInternal | undefined;
+  let lastManifestErr: any = null;
+
+  for (const candidate of manifestCandidates) {
+    const url = new URL(candidate, repoUrl).toString();
+    try {
+      manifest = await fetchJSON(repoUrl, candidate);
+      break;
+    } catch (e) {
+      lastManifestErr = e;
+    }
+  }
+
+  if (!manifest) {
+    throw lastManifestErr ?? new Error(`Failed to fetch manifest for ${id}`);
+  }
 
   // @ts-expect-error - Setting a readonly property
   manifest.parentRepository = repoUrl;
@@ -166,11 +195,36 @@ export async function updateAndWritePlugin(
     // @ts-expect-error - Setting a readonly property
     manifest.jsPath = `plugins/scripts/${id}.js`;
 
-    const js: string = await fetchJS(repoUrl, `builds/${id}/index.js`);
-    await writeFile(manifest.jsPath, js);
+    const scriptCandidates = [`builds/${id}/index.js`, `${id}/index.js`];
+    let js: string | undefined;
+    let lastScriptErr: any = null;
+
+    for (const candidate of scriptCandidates) {
+      const url = new URL(candidate, repoUrl).toString();
+      try {
+        js = await fetchJS(repoUrl, candidate);
+        break;
+      } catch (e) {
+        lastScriptErr = e;
+      }
+    }
+
+    if (!js) {
+      throw lastScriptErr ?? new Error(`Failed to fetch script for ${id}`);
+    }
+
+    try {
+      await writeFile(manifest.jsPath, js);
+    } catch (writeErr) {
+      throw writeErr;
+    }
   }
 
-  await updateStorage(`plugins/manifests/${id}.json`, manifest);
+  try {
+    await updateStorage(`plugins/manifests/${id}.json`, manifest);
+  } catch (e) {
+    throw e;
+  }
 
   if (registeredPlugins.has(id)) {
     const existingManifest = registeredPlugins.get(id)!;
@@ -214,10 +268,54 @@ export async function refreshPlugin(id: string, repoUrl?: string) {
  * @returns Whether there was any changes made from the update
  */
 export async function updateRepository(repoUrl: string) {
-  const repo: t.PluginRepo = await fetchJSON(repoUrl, "repo.json");
-  const storedRepo = pluginRepositories[repoUrl];
+  // Attempt to fetch a repository descriptor (repo.json). If that fails,
+  // try to treat the provided URL as a single-plugin host (manifest.json at root)
+  // and synthesize a 1-entry repo mapping. This allows local/dev servers which
+  // serve a single plugin at the host root to be consumed by the updater.
+  let repo: t.PluginRepo;
+  let storedRepo = pluginRepositories[repoUrl];
 
   let updated = false;
+
+  try {
+    repo = await fetchJSON(repoUrl, "repo.json");
+  } catch (repoErr) {
+    // repo.json not found — try fallback candidate manifest at the repo root.
+    try {
+      const manifest = (await fetchJSON(repoUrl, "manifest.json")) as any;
+      // Infer plugin id:
+      // Prefer an explicit id property if present; otherwise use name; otherwise
+      // fall back to a path-derived token (path or hostname).
+      const inferredId =
+        manifest?.id ??
+        manifest?.name ??
+        (() => {
+          try {
+            const u = new URL(repoUrl);
+            const p = u.pathname.replace(/^\/|\/$/g, "");
+            return p || u.hostname;
+          } catch {
+            return "local-plugin";
+          }
+        })();
+
+      // Build a minimal repo mapping containing the single manifest entry.
+      repo = {
+        [inferredId]: manifest,
+        // Keep a $meta marker to be consistent with multi-plugin repos (optional)
+        $meta: { source: repoUrl },
+      } as any;
+
+      // Persist mapping so other code can read pluginRepositories[repoUrl]
+      pluginRepositories[repoUrl] = repo;
+      storedRepo = pluginRepositories[repoUrl];
+      updated = true;
+    } catch (manifestErr) {
+      // If both repo.json and manifest.json attempts fail, rethrow the original repo error
+      // so callers can handle/report the problem.
+      throw repoErr;
+    }
+  }
 
   // This repository never existed, update it!
   if (!storedRepo) {

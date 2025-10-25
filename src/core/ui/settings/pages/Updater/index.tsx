@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useProxy } from "@core/vendetta/storage";
 import {
+  updateRepository,
   updateAllRepository,
+  updateAndWritePlugin,
   registeredPlugins,
   pluginRepositories,
+  pluginSettings,
   isGreaterVersion,
   refreshPlugin,
 } from "@lib/addons/plugins";
 import { updaterSettings } from "@lib/api/settings";
+import { awaitStorage } from "@lib/api/storage";
 import { findAssetId } from "@lib/api/assets";
-import { getDebugInfo } from "@lib/api/debug";
+import { showToast } from "@lib/ui/toasts";
 import {
   Stack,
   TableRowGroup,
@@ -46,11 +50,9 @@ export default function Updater() {
   const [available, setAvailable] = useState<UpdateEntry[]>([]);
   const [lastError, setLastError] = useState<string | null>(null);
 
-  const fetchPluginsOnStart = updaterSettings.fetchPluginsOnStart ?? true;
+  // Merge both toggles into one: autoEnabled
   const autoEnabled = !!updaterSettings.autoUpdateEnabled;
   const lastChecked = updaterSettings.lastChecked ?? null;
-
-  const debugInfo = getDebugInfo();
 
   useEffect(() => {
     // Optionally, we could auto-refresh after app fully loads if configured,
@@ -59,9 +61,6 @@ export default function Updater() {
 
   const setAutoUpdate = (v: boolean) => {
     updaterSettings.autoUpdateEnabled = v;
-  };
-
-  const setFetchOnStart = (v: boolean) => {
     updaterSettings.fetchPluginsOnStart = v;
   };
 
@@ -69,20 +68,79 @@ export default function Updater() {
     if (checking) return;
     setChecking(true);
     setLastError(null);
-
+    // Provide immediate user feedback
     try {
-      // Update repositories (this function is aware of updaterSettings)
-      await updateAllRepository();
+      showToast("Checking for updates...");
+
+      // Ensure storages are loaded so pluginRepositories/pluginSettings are populated
+      try {
+        await awaitStorage(pluginRepositories, pluginSettings);
+      } catch (e) {
+        console.warn("Updater: awaitStorage failed", e);
+      }
+
+      // For each registered repository, attempt to refresh its metadata and then
+      // fetch each plugin's manifest+script so it becomes available in the updater
+      const repos = Object.keys(pluginRepositories || {});
+      console.debug("Updater: manual fetch for repos:", repos);
+
+      for (const repoUrl of repos) {
+        try {
+          // Attempt to refresh repo.json so we have an up-to-date list of plugins
+          try {
+            await updateRepository(repoUrl);
+          } catch (repoErr) {
+            console.warn(
+              "Updater: updateRepository failed for",
+              repoUrl,
+              repoErr,
+            );
+            // continue - we may still have entries in pluginRepositories to iterate
+          }
+
+          const repo = pluginRepositories[repoUrl];
+          if (!repo) continue;
+
+          // For each plugin declared in the repository, try to fetch its manifest and script.
+          for (const pluginId of Object.keys(repo)) {
+            if (pluginId === "$meta") continue;
+            try {
+              const manifest = await updateAndWritePlugin(
+                repoUrl,
+                pluginId,
+                true,
+              );
+              if (manifest) {
+                // Register the fetched manifest in-memory so the Updater list can use it
+                registeredPlugins.set(pluginId, manifest as any);
+                console.debug(
+                  `Updater: registered plugin ${pluginId} from ${repoUrl}`,
+                );
+              }
+            } catch (fetchErr) {
+              console.warn(
+                `Updater: failed to fetch plugin ${pluginId} from ${repoUrl}`,
+                fetchErr,
+              );
+            }
+          }
+        } catch (eRepo) {
+          console.error(
+            "Updater: unexpected error iterating repo",
+            repoUrl,
+            eRepo,
+          );
+        }
+      }
 
       // mark last checked
       updaterSettings.lastChecked = new Date().toISOString();
 
-      // Build available updates list:
-      // Iterate known repositories and compare remote versions with registered plugin versions.
+      // Build available updates list by comparing registered plugin versions to repository metadata
       const pending: UpdateEntry[] = [];
 
-      const repos = Object.keys(pluginRepositories || {});
-      for (const repoUrl of repos) {
+      const repos2 = Object.keys(pluginRepositories || {});
+      for (const repoUrl of repos2) {
         const repo = pluginRepositories[repoUrl];
         if (!repo) continue;
 
@@ -110,11 +168,101 @@ export default function Updater() {
       }
 
       setAvailable(pending);
+
+      // Inform user of result (we do not auto-install anything; we only populate the Updater)
+      if (pending.length === 0) {
+        showToast("No updates available");
+      } else {
+        showToast(
+          `Found ${pending.length} update${pending.length > 1 ? "s" : ""}`,
+        );
+      }
     } catch (e) {
       console.error("Updater refresh failed", e);
-      setLastError(String((e as Error)?.message ?? e));
+      const msg = String((e as Error)?.message ?? e);
+      setLastError(msg);
+      showToast(`Failed to check for updates: ${msg}`);
     } finally {
       setChecking(false);
+    }
+  };
+
+  const checkBundleNow = async () => {
+    try {
+      showToast("Checking bundle...");
+      const customEnabled = Boolean(loaderConfig?.customLoadUrl?.enabled);
+      const customUrl = loaderConfig?.customLoadUrl?.url ?? null;
+
+      const extractVersion = (txt: string) => {
+        const m =
+          txt.match(/\bversion\s*[:=]\s*['"`]v?([^'"`\s;]+)['"`]/i) ||
+          txt.match(/export\s+const\s+version\s*=\s*['"`]([^'"`\n]+)['"`]/i) ||
+          txt.match(/\bVERSION\b\s*[:=]\s*['"`]([^'"`\n]+)['"`]/i) ||
+          txt.match(/@version\s+v?([0-9]+\.[0-9]+\.[0-9][^\s]*)/i);
+        return m ? m[1] : null;
+      };
+
+      let latestTag: string | null = null;
+      let latestUrl: string | null = null;
+
+      if (customEnabled && customUrl) {
+        try {
+          const r = await fetch(customUrl, { cache: "no-store" });
+          if (r.ok) {
+            const txt = await r.text();
+            const v = extractVersion(txt);
+            if (v) {
+              latestTag = v;
+              latestUrl = customUrl;
+            }
+          }
+        } catch (e) {
+          console.warn("checkBundleNow custom fetch failed", e);
+        }
+      }
+
+      if (!latestTag) {
+        try {
+          const bundleDownload =
+            "https://github.com/kmmiio99o/ShiggyCord/releases/latest/download/shiggycord.js";
+          const r2 = await fetch(bundleDownload, { cache: "no-store" });
+          if (r2.ok) {
+            const txt2 = await r2.text();
+            const v2 = extractVersion(txt2);
+            if (v2) {
+              latestTag = v2;
+              latestUrl = bundleDownload;
+            }
+          }
+        } catch (e) {
+          console.warn("checkBundleNow default download failed", e);
+        }
+      }
+
+      const installed = getDebugInfo()?.bunny?.version ?? null;
+
+      updaterSettings.lastBundleChecked = new Date().toISOString();
+      updaterSettings.lastBundleVersion = latestTag;
+      updaterSettings.bundleLatestTag = latestTag;
+      updaterSettings.bundleLatestUrl = latestUrl ?? null;
+      updaterSettings.bundleAvailable =
+        latestTag != null &&
+        installed != null &&
+        String(latestTag).replace(/^v/, "") !==
+          String(installed).replace(/^v/, "");
+
+      if (latestTag) {
+        if (updaterSettings.bundleAvailable) {
+          showToast(`Bundle update available: ${latestTag}`);
+        } else {
+          showToast(`Bundle up-to-date: ${latestTag}`);
+        }
+      } else {
+        showToast("Bundle check completed: no version found");
+      }
+    } catch (e) {
+      console.error("checkBundleNow failed", e);
+      showToast("Bundle check failed");
     }
   };
 
@@ -156,19 +304,11 @@ export default function Updater() {
       >
         <TableRowGroup title="Updater">
           <TableSwitchRow
-            label="Auto Update"
-            subLabel="Automatically install updates when available"
+            label="Auto Update Plugins"
+            subLabel="Automatically check and install plugin updates at startup"
             icon={<TableRow.Icon source={findAssetId("CloudUploadIcon")!} />}
             value={autoEnabled}
             onValueChange={setAutoUpdate}
-          />
-
-          <TableSwitchRow
-            label="Fetch external plugins on startup"
-            subLabel="Reduce startup network activity when disabled"
-            icon={<TableRow.Icon source={findAssetId("CloudDownloadIcon")!} />}
-            value={fetchPluginsOnStart}
-            onValueChange={setFetchOnStart}
           />
 
           <TableRow
@@ -178,20 +318,17 @@ export default function Updater() {
             }
             icon={<TableRow.Icon source={findAssetId("ClockIcon")!} />}
           />
-
-          <TableRow
-            label="Bundle"
-            subLabel={`Version ${debugInfo.bunny.version} — Loader ${debugInfo.bunny.loader.version}`}
-            icon={
-              <TableRow.Icon
-                source={findAssetId("CircleInformationIcon-primary")!}
-              />
-            }
-            trailing={
-              <IconButton icon={findAssetId("RetryIcon")!} onPress={refresh} />
-            }
-          />
         </TableRowGroup>
+
+        <View style={{ marginTop: 4, marginBottom: 8 }}>
+          <Button
+            text="Fetch Now"
+            variant="primary"
+            onPress={refresh}
+            disabled={checking}
+            style={{ width: "100%", height: 48, fontSize: 18 }}
+          />
+        </View>
 
         <TableRowGroup title="Available Plugin Updates">
           {lastError ? (
@@ -206,7 +343,7 @@ export default function Updater() {
             </Text>
           ) : available.length === 0 ? (
             <Text variant="text-sm/medium" color="text-muted">
-              No updates available. Press the refresh icon in Bundle to check.
+              No updates available. Press the refresh icon to check.
             </Text>
           ) : (
             available.map((p) => (

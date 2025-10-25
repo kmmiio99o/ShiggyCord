@@ -73,6 +73,14 @@ export interface UpdaterSettings {
   lastBundleChecked?: string | null;
   // Last known bundle version discovered by the updater (if any)
   lastBundleVersion?: string | null;
+
+  // Latest discovered bundle tag (extracted from custom URL content or GitHub).
+  // This represents the most recent tag/identifier the updater detected.
+  bundleLatestTag?: string | null;
+  // The URL used to determine the latest bundle (download URL or release page).
+  bundleLatestUrl?: string | null;
+  // Whether a newer bundle than the installed one is available.
+  bundleAvailable?: boolean;
 }
 
 export const settings = wrapSync(
