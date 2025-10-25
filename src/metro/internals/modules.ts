@@ -122,43 +122,17 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
     patchedNativeComponentRegistry = true;
   }
 
-
-    // Hook DeveloperExperimentStore
-    if (moduleExports?.default?.constructor?.displayName === "DeveloperExperimentStore") {
-        moduleExports.default = new Proxy(moduleExports.default, {
-            get(target, property, receiver) {
-                if (property === "isDeveloper") {
-                    // Hopefully won't explode accessing it here :3
-                    const { settings } = require("@lib/api/settings");
-                    return settings.enableDiscordDeveloperSettings ?? false;
-                }
-
-                return Reflect.get(target, property, receiver);
-            }
-        });
-    }
-
-    if (!patchedImportTracker && moduleExports.fileFinishedImporting) {
-        before("fileFinishedImporting", moduleExports, ([filePath]: [string]) => {
-            if (_importingModuleId === -1 || !filePath) return;
-            metroModules[_importingModuleId]!.__filePath = filePath;
-        });
-        patchedImportTracker = true;
-    }
-
-    // Funny infinity recursion caused by a race condition
-    if (!patchedInspectSource && window["__core-js_shared__"]) {
-        const inspect = (f: unknown) => typeof f === "function" && functionToString.apply(f, []);
-        window["__core-js_shared__"].inspectSource = inspect;
-        patchedInspectSource = true;
-    }
-
-    //
-    if (moduleExports.findHostInstance_DEPRECATED) {
-        const prevExports = metroModules[id - 1]?.publicModule.exports;
-        const inc = prevExports.default?.reactProfilingEnabled ? 1 : -1;
-        if (!metroModules[id + inc]?.isInitialized) {
-            blacklistModule(id + inc);
+  // Hook DeveloperExperimentStore
+  if (
+    moduleExports?.default?.constructor?.displayName ===
+    "DeveloperExperimentStore"
+  ) {
+    moduleExports.default = new Proxy(moduleExports.default, {
+      get(target, property, receiver) {
+        if (property === "isDeveloper") {
+          // Hopefully won't explode accessing it here :3
+          const { settings } = require("@lib/api/settings");
+          return settings.enableDiscordDeveloperSettings ?? false;
         }
 
         return Reflect.get(target, property, receiver);
