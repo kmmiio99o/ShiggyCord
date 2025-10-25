@@ -1,7 +1,6 @@
 # ShiggyCord [![Discord](https://img.shields.io/discord/1427396621905432699?style=social&logo=discord&label=ShiggyCord)](https://discord.gg/nQykFF9Ud6)
 
-An unofficial fork of ShiggyCord, made just for fun
-Idea taken from Rosiecord
+Bundle based on Kettu, made just for fun
 
 ## Installing
 
@@ -9,7 +8,7 @@ Idea taken from Rosiecord
 
 - Rooted: [Shiggy Xposed](https://github.com/kmmiio99o/ShiggyXposed)
 
-- Non-Rooted: [Shiggy Manger](https://github.com/kmmiio99o/ShiggyManager)
+- Non-Rooted: [Shiggy Manager](https://github.com/kmmiio99o/ShiggyManager)
 
 ### Android/iOS
 - **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/download/<VERSION>/shiggycord.js``
