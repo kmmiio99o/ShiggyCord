@@ -14,6 +14,8 @@ import { patchJsx } from "@lib/api/react/jsx";
 import { logger } from "@lib/utils/logger";
 import { patchSettings } from "@ui/settings";
 import { InteractionManager } from "react-native";
+import { updaterSettings } from "@lib/api/settings";
+import { getDebugInfo } from "@lib/api/debug";
 
 // Debug toggle helper (temporary runtime fallback). The helper is dynamically
 // imported when needed (to avoid bundling it permanently) and removed after use.
@@ -57,43 +59,50 @@ export default async () => {
   );
 
   // Deferred work: run after interactions to avoid blocking initial paint and navigation.
-  const runDeferred = () => {
+  const runDeferred = async () => {
     // Initialize Vendetta plugins (may start many plugins) — do not block UI.
     VdPluginManager.initPlugins()
       .then((u) => lib.unload.push(u))
       .catch((e) => logger.log("Vendetta init failed:", e));
 
-    // Ensure core plugins and repository metadata are registered/updated BEFORE
-    // attempting to start ShiggyCord (Bunny) plugins. This makes corePluginInstances
-    // available to `initPlugins()` so built-in core plugins are handled correctly.
-    updatePlugins()
-      .catch((e) => logger.log("updatePlugins failed (deferred):", e))
-      .finally(async () => {
-        // Start ShiggyCord (Bunny) plugins (reads storage and may compile/instantiate plugins).
-        initPlugins();
+    // Start ShiggyCord (Bunny) plugins now without forcing repository updates.
+    // Plugin repository fetching is deferred so the app can finish launching first.
+    // Stagger plugin startup to reduce CPU/memory spikes: use smaller batches and a small interval.
+    // This keeps the UI responsive while plugins initialize in the background.
+    initPlugins({ staggerInterval: 500, batchSize: 2 });
 
-        // Attempt a lightweight recovery toggle if some core plugins failed to start.
-        try {
-          // Dynamically import the helper (if present) but suppress verbose errors.
-          const mod = await import("@core/debug/toggleCorePlugins").catch(
-            () => null,
-          );
-          if (mod?.default) {
-            // Run helper with minimal noise; ignore failures.
-            mod.default({ offDuration: 1500 }).catch(() => {});
-          }
+    // Attempt a lightweight recovery toggle if some core plugins failed to start.
+    try {
+      // Dynamically import the helper (if present) but suppress verbose errors.
+      const mod = await import("@core/debug/toggleCorePlugins").catch(
+        () => null,
+      );
+      if (mod?.default) {
+        // Run helper with minimal noise; ignore failures.
+        mod.default({ offDuration: 1500 }).catch(() => {});
+      }
 
-          // Try to remove the helper source file (best-effort, ignore failures).
-          await import("@lib/api/native/fs")
-            .then((fs) => fs.removeFile("src/core/debug/toggleCorePlugins.ts"))
-            .catch(() => {});
-        } catch {
-          // suppressed
-        }
+      // Try to remove the helper source file (best-effort, ignore failures).
+      await import("@lib/api/native/fs")
+        .then((fs) => fs.removeFile("src/core/debug/toggleCorePlugins.ts"))
+        .catch(() => {});
+    } catch {
+      // suppressed
+    }
 
-        // Update fonts in background
-        updateFonts().catch((e) => logger.log("updateFonts failed:", e));
-      });
+    // Update fonts in background
+    updateFonts().catch((e) => logger.log("updateFonts failed:", e));
+
+    // Schedule plugin repository update after a delay (5 minutes) so update work
+    // does not impact initial launch performance.
+    setTimeout(
+      () => {
+        updatePlugins().catch((e) =>
+          logger.log("updatePlugins failed (deferred 5min):", e),
+        );
+      },
+      5 * 60 * 1000,
+    );
 
     // Note: we intentionally moved the call to `updatePlugins()` above so core
     // plugins are registered prior to calling `initPlugins()`.
@@ -110,16 +119,58 @@ export default async () => {
     setTimeout(runDeferred, 200);
   }
 
-  // Additionally schedule a periodic attempt to update plugins ~3 minutes after start.
-  // This ensures plugin repositories get refreshed even if deferred tasks were delayed.
+  // Schedule a delayed plugin repository refresh (5 minutes) if the earlier deferred schedule didn't run.
+  // This ensures we refresh plugin metadata after the app is fully launched but avoid startup contention.
   setTimeout(
     () => {
       updatePlugins().catch((e) =>
-        logger.log("Scheduled updatePlugins (3min) failed:", e),
+        logger.log("Scheduled updatePlugins (5min) failed:", e),
       );
     },
-    3 * 60 * 1000,
+    5 * 60 * 1000,
   );
+
+  // Periodic bundle check: every 3 hours, check GitHub releases (ignore prereleases).
+  // We use the GitHub Releases API to find the latest non-prerelease release and compare its tag.
+  const checkBundle = async () => {
+    try {
+      const debugInfo = getDebugInfo();
+      const releasesRes = await fetch(
+        "https://api.github.com/repos/kmmiio99o/ShiggyCord/releases",
+        { cache: "no-store" },
+      );
+      if (!releasesRes.ok) return;
+      const releases = await releasesRes.json();
+      if (!Array.isArray(releases) || releases.length === 0) return;
+
+      // Find first non-prerelease, non-draft release
+      const stable = releases.find((r: any) => !r.prerelease && !r.draft);
+      if (!stable) return;
+
+      const latestTag = stable.tag_name ?? stable.name ?? null;
+      const latestUrl = stable.html_url ?? null;
+      const installed = debugInfo?.bunny?.version ?? null;
+
+      updaterSettings.lastBundleChecked = new Date().toISOString();
+      updaterSettings.lastBundleVersion = latestTag;
+      updaterSettings.bundleLatestTag = latestTag;
+      updaterSettings.bundleLatestUrl = latestUrl ?? null;
+      updaterSettings.bundleAvailable =
+        latestTag != null &&
+        installed != null &&
+        String(latestTag).replace(/^v/, "") !==
+          String(installed).replace(/^v/, "");
+    } catch (err) {
+      logger.log("Bundle check failed:", err);
+    }
+  };
+
+  // Run initial bundle check after a short delay (1 minute) to avoid doing network work
+  // during the critical UI startup path, then run every 3 hours.
+  setTimeout(() => {
+    checkBundle().catch(() => {});
+  }, 60 * 1000);
+  setInterval(checkBundle, 3 * 60 * 60 * 1000);
 
   // Final ready log for basic UI availability.
   logger.log("ShiggyCord is ready (UI available).");

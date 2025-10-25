@@ -11,6 +11,7 @@ import {
 import { safeFetch } from "@lib/utils";
 import { OFFICIAL_PLUGINS_REPO_URL } from "@lib/utils/constants";
 import { semver } from "@metro/common";
+import { updaterSettings } from "@lib/api/settings";
 
 import { createBunnyPluginApi } from "./api";
 import * as t from "./types";
@@ -528,16 +529,32 @@ export function getBisectBatches(maxPerStep = 50): string[][] {
 }
 
 export async function updateAllRepository() {
+  // Always attempt to update the official repository first
   try {
     await updateRepository(OFFICIAL_PLUGINS_REPO_URL);
   } catch (error) {
     console.error("Failed to update official plugins repository", error);
   }
 
+  // Determine global fetch-on-start behavior and per-repo overrides
+  const fetchOnStart = !!(updaterSettings.fetchPluginsOnStart ?? true);
+  const overrides = updaterSettings.repoAutoFetchOverrides ?? {};
+
+  const repos = Object.keys(pluginRepositories);
+
   await Promise.allSettled(
-    Object.keys(pluginRepositories).map(async (repo) => {
-      if (repo !== OFFICIAL_PLUGINS_REPO_URL) {
+    repos.map(async (repo) => {
+      // Skip official (already handled)
+      if (repo === OFFICIAL_PLUGINS_REPO_URL) return;
+
+      // If global fetching is disabled, only process repos explicitly overridden to true
+      const repoOverride = overrides[repo];
+      if (!fetchOnStart && repoOverride !== true) return;
+
+      try {
         await updateRepository(repo);
+      } catch (e) {
+        console.error(`Failed to update repository ${repo}`, e);
       }
     }),
   );
@@ -560,7 +577,36 @@ export async function updatePlugins() {
     corePluginInstances.set(id, instance);
   }
 
-  await updateAllRepository();
+  // Always ensure official repository metadata is at least attempted to be fetched,
+  // because core plugin registration / system behavior may depend on it.
+  try {
+    await updateRepository(OFFICIAL_PLUGINS_REPO_URL);
+  } catch (error) {
+    console.error("Failed to update official plugins repository", error);
+  }
+
+  // If fetch-on-start is enabled, update all repositories following configured policy.
+  // Otherwise, only update repositories which have per-repo overrides explicitly set to true.
+  const fetchOnStart = !!(updaterSettings.fetchPluginsOnStart ?? true);
+  const overrides = updaterSettings.repoAutoFetchOverrides ?? {};
+
+  if (fetchOnStart) {
+    await updateAllRepository();
+  } else {
+    // Only fetch explicitly opted-in repositories to avoid startup slowdowns.
+    const repos = Object.keys(pluginRepositories).filter(
+      (r) => r !== OFFICIAL_PLUGINS_REPO_URL && overrides[r] === true,
+    );
+    await Promise.allSettled(
+      repos.map(async (repo) => {
+        try {
+          await updateRepository(repo);
+        } catch (e) {
+          console.error(`Failed to update repository ${repo}`, e);
+        }
+      }),
+    );
+  }
 }
 
 /**

@@ -21,6 +21,13 @@ export default function initSettings() {
         useTrailing: () => `(${version})`,
       },
       {
+        key: "SHIGGYCORD_UPDATER",
+        title: () => "Updater",
+        icon: findAssetId("BellIcon"),
+        render: () => import("@core/ui/settings/pages/Updater"),
+      },
+
+      {
         key: "CORE_PLUGINS",
         title: () => Strings.PLUGINS,
         icon: findAssetId("ActivitiesIcon"),

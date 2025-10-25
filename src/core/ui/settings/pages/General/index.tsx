@@ -29,25 +29,6 @@ export default function General() {
   const debugInfo = getDebugInfo();
   const navigation = NavigationNative.useNavigation();
 
-  // Team members array for easy editing
-  const TEAM_MEMBERS = [
-    {
-      name: "kmmiio99o",
-      role: "Lead Developer",
-      avatar: "https://avatars.githubusercontent.com/u/73043890?v=4",
-      profile: "https://github.com/kmmiio99o",
-    },
-    {
-      name: "Angelw0lf",
-      role: "Contributor",
-      avatar: "https://avatars.githubusercontent.com/u/112412567?v=4",
-      profile: "https://github.com/Angelw0lf",
-    },
-    // Add or remove members here
-  ];
-
-  // Handler for About the Team is no longer needed (navigation used instead)
-
   return (
     <ScrollView
       style={{ flex: 1 }}
