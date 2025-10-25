@@ -18,106 +18,16 @@ import {
   TableRow,
   TableRowGroup,
   TableSwitchRow,
-  Button,
-  Text,
 } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
 
-// Fetch latest commits from GitHub for Changelog
-import React, { useState } from "react";
+import React from "react";
 
 export default function General() {
   useProxy(settings);
 
   const debugInfo = getDebugInfo();
   const navigation = NavigationNative.useNavigation();
-
-  // Remove modal state, use openAlert for both modals
-  const [loadingCommits, setLoadingCommits] = useState(false);
-  const [commits, setCommits] = useState<any[]>([]);
-  const [commitsError, setCommitsError] = useState<string | null>(null);
-
-  // Handler for Changelog
-  const handleShowChangelog = () => {
-    setLoadingCommits(true);
-    setCommitsError(null);
-    fetch(
-      "https://api.github.com/repos/kmmiio99o/ShiggyCord/commits?per_page=10",
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch commits");
-        return res.json();
-      })
-      .then((data) => {
-        setCommits(data);
-        setLoadingCommits(false);
-        openAlert(
-          "shiggycord-changelog",
-          <AlertModal
-            title="Changelog"
-            content={
-              loadingCommits ? (
-                <Text>Loading latest commits...</Text>
-              ) : commitsError ? (
-                <Text style={{ color: "red" }}>{commitsError}</Text>
-              ) : (
-                <Stack spacing={12}>
-                  {data.map((entry: any) => (
-                    <Stack key={entry.sha} spacing={2}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        {new Date(
-                          entry.commit.author.date,
-                        ).toLocaleDateString()}{" "}
-                        — {entry.commit.author.name}
-                      </Text>
-                      <Text>{entry.commit.message.split("\n")[0]}</Text>
-                      <Button
-                        text="View Commit"
-                        variant="secondary"
-                        onPress={() => Linking.openURL(entry.html_url)}
-                        style={{ alignSelf: "flex-start", marginTop: 2 }}
-                      />
-                    </Stack>
-                  ))}
-                  <Button
-                    text="View All Commits on GitHub"
-                    variant="primary"
-                    onPress={() =>
-                      Linking.openURL(
-                        "https://github.com/kmmiio99o/ShiggyCord/commits/main/",
-                      )
-                    }
-                  />
-                </Stack>
-              )
-            }
-            actions={
-              <AlertActions>
-                <AlertActionButton text="Close" variant="secondary" />
-              </AlertActions>
-            }
-          />,
-        );
-      })
-      .catch((e) => {
-        setCommitsError("Could not load changelog.");
-        setLoadingCommits(false);
-        openAlert(
-          "shiggycord-changelog-error",
-          <AlertModal
-            title="Changelog"
-            content={
-              <Text style={{ color: "red" }}>Could not load changelog.</Text>
-            }
-            actions={
-              <AlertActions>
-                <AlertActionButton text="Close" variant="secondary" />
-              </AlertActions>
-            }
-          />,
-        );
-      });
-  };
 
   // Team members array for easy editing
   const TEAM_MEMBERS = [
@@ -210,19 +120,7 @@ export default function General() {
             }}
           />
         </TableRowGroup>
-        <TableRowGroup title="Project Info">
-          <TableRow
-            arrow
-            label="Changelog"
-            subLabel="See what's new and recent changes"
-            icon={
-              <TableRow.Icon
-                source={findAssetId("CircleInformationIcon-primary")!}
-              />
-            }
-            onPress={handleShowChangelog}
-          />
-        </TableRowGroup>
+
         <TableRowGroup title="Developer">
           <TableSwitchRow
             label={Strings.DEVELOPER_SETTINGS}
