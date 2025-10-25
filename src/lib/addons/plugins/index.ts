@@ -33,6 +33,53 @@ export const apiObjects = new Map<
   ReturnType<typeof createBunnyPluginApi>
 >();
 
+/**
+ * Register core plugins into the runtime registries so they appear in the UI
+ * as soon as this module is imported. This function is intentionally synchronous
+ * and idempotent so it is safe to call at module-load time or from initialization
+ * code.
+ */
+export function registerCorePlugins() {
+  try {
+    const core = getCorePlugins();
+    for (const id in core) {
+      try {
+        const { default: instance, preenabled } = core[id];
+
+        // Ensure manifest is registered for UI listing
+        registeredPlugins.set(id, instance.manifest);
+
+        // Keep a reference to the core plugin instance so isCorePlugin checks work
+        corePluginInstances.set(id, instance);
+
+        // Ensure pluginSettings has an entry for the core plugin so the UI can
+        // reflect enabled/disabled state. Do not overwrite existing user settings.
+        try {
+          // `pluginSettings` is a storage wrapper; ensure we only set a default if absent.
+          if (pluginSettings[id] == null) {
+            pluginSettings[id] = { enabled: preenabled ?? true };
+          }
+        } catch (e) {
+          // Best-effort: if storage isn't available yet, ignore and continue.
+          console.error(
+            "Failed to set default pluginSettings for core plugin",
+            id,
+            e,
+          );
+        }
+      } catch (e) {
+        console.error("Failed to register core plugin", id, e);
+      }
+    }
+  } catch (e) {
+    console.error("registerCorePlugins: unexpected error", e);
+  }
+}
+
+// Eager core plugin registration removed to avoid circular require / timing issues.
+// Call `registerCorePlugins()` explicitly from initialization code when appropriate,
+// for example during a safe deferred startup step.
+
 export const pluginRepositories = createStorage<t.PluginRepoStorage>(
   "plugins/repositories.json",
 );
@@ -627,6 +674,16 @@ export async function initPlugins(
   options: { staggerInterval?: number; batchSize?: number } = {},
 ) {
   const { staggerInterval = 100, batchSize = 3 } = options;
+
+  // Ensure core plugins are registered prior to any plugin startup logic so
+  // settings pages and UI that read registered/core plugins show them.
+  // registerCorePlugins is synchronous and idempotent, but call it here as a
+  // safety-net in case module-load registration didn't run earlier.
+  try {
+    registerCorePlugins();
+  } catch {
+    // ignore
+  }
 
   await awaitStorage(pluginRepositories, pluginSettings);
 

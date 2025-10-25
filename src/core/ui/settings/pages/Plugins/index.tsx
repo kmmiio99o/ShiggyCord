@@ -26,7 +26,7 @@ import { findAssetId } from "@lib/api/assets";
 import { settings } from "@lib/api/settings";
 import { useObservable } from "@lib/api/storage";
 import { showToast } from "@lib/ui/toasts";
-import { BUNNY_PROXY_PREFIX, VD_PROXY_PREFIX } from "@lib/utils/constants";
+import { VD_PROXY_PREFIX } from "@lib/utils/constants";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
 import { ComponentProps } from "react";
@@ -183,39 +183,6 @@ function InstallButton({
         newSet.delete(pluginId);
         return newSet;
       });
-    }
-  };
-
-  const continueInstallation = async () => {
-    if (
-      !addon.installUrl.startsWith(VD_PROXY_PREFIX) &&
-      !addon.installUrl.startsWith(BUNNY_PROXY_PREFIX) &&
-      !settings.developerSettings
-    ) {
-      openAlert(
-        "bunny-plugin-unproxied-confirmation",
-        <AlertModalComponent
-          title="Hold On!"
-          content="You're trying to install a plugin from an unproxied external source. This means you're trusting the creator to run their code in this app without your knowledge. Are you sure you want to continue?"
-          extraContent={
-            <Card>
-              <Text variant="text-md/bold">{addon.installUrl}</Text>
-            </Card>
-          }
-          actions={
-            <AlertActionsComponent>
-              <AlertActionButton
-                text="Continue"
-                variant="primary"
-                onPress={performInstall}
-              />
-              <AlertActionButton text="Cancel" variant="secondary" />
-            </AlertActionsComponent>
-          }
-        />,
-      );
-    } else {
-      performInstall();
     }
   };
 
@@ -628,12 +595,13 @@ export default function Plugins() {
 
           // Keep core plugins registration available if needed elsewhere
           const corePlugins = [...corePluginInstances.keys()]
-            .map((id) => registeredPlugins.get(id)!)
+            .map((id) => registeredPlugins.get(id))
+            .filter((m): m is NonNullable<typeof m> => Boolean(m))
             .map(unifyBunnyPlugin);
 
           // Merge lists: show Vendetta-managed plugins first (recent first),
-          // then Bunny-installed externals (recent first).
-          return [...vdPlugins, ...bnPlugins];
+          // include core plugins, then Bunny-installed externals (recent first).
+          return [...vdPlugins, ...corePlugins, ...bnPlugins];
         }}
         ListHeaderComponent={() => null}
         installAction={{

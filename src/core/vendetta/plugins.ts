@@ -8,7 +8,7 @@ import {
 import { Author } from "@lib/addons/types";
 import { settings } from "@lib/api/settings";
 import { safeFetch } from "@lib/utils";
-import { BUNNY_PROXY_PREFIX, VD_PROXY_PREFIX } from "@lib/utils/constants";
+import { VD_PROXY_PREFIX } from "@lib/utils/constants";
 import { logger, LoggerClass } from "@lib/utils/logger";
 
 type EvaledPlugin = {
@@ -192,24 +192,65 @@ export const VdPluginManager = {
     const allIds = Object.keys(plugins);
 
     if (!settings.safeMode?.enabled) {
-      // Loop over any plugin that is enabled, update it if allowed, then start it.
-      await Promise.allSettled(
-        allIds
-          .filter((pl) => plugins[pl].enabled)
-          .map(
-            async (pl) => (
-              plugins[pl].update &&
-                (await this.fetchPlugin(pl).catch((e: Error) =>
-                  logger.error(e.message),
-                )),
-              await this.startPlugin(pl)
-            ),
-          ),
-      );
-      // Wait for the above to finish, then update all disabled plugins that are allowed to.
-      allIds
-        .filter((pl) => !plugins[pl].enabled && plugins[pl].update)
-        .forEach((pl) => this.fetchPlugin(pl));
+      // Staggered startup: start enabled plugins in small batches to avoid
+      // CPU / I/O spikes during app launch. Network fetches (which may be slow)
+      // are deferred to background so the UI can become interactive faster.
+      const enabledIds = allIds.filter((pl) => plugins[pl].enabled);
+      const batchSize = 2;
+      const staggerInterval = 500;
+
+      if (enabledIds.length > 0) {
+        const sleep = (ms: number) =>
+          new Promise<void>((res) => setTimeout(res, ms));
+
+        for (let i = 0; i < enabledIds.length; i += batchSize) {
+          const batch = enabledIds.slice(i, i + batchSize);
+
+          // Start the batch in parallel but avoid letting a single failing plugin
+          // abort the whole process.
+          await Promise.allSettled(
+            batch.map(async (id) => {
+              try {
+                if (!plugins[id]) return;
+                await this.startPlugin(id).catch((e) =>
+                  logger.error(`Vendetta plugin ${id} failed to start:`, e),
+                );
+              } catch (err) {
+                logger.error(
+                  `Unexpected error while starting vendetta plugin ${id}:`,
+                  err,
+                );
+              }
+            }),
+          );
+
+          if (i + batchSize < enabledIds.length) {
+            await sleep(staggerInterval);
+          }
+        }
+      }
+
+      // Defer network fetches to the background so startup isn't delayed.
+      // We fetch updates for plugins (both enabled and disabled) but do this
+      // asynchronously and with a small delay between requests to reduce contention.
+      (async () => {
+        const toFetch = allIds.filter((pl) => plugins[pl]?.update);
+        for (const pl of toFetch) {
+          try {
+            // Fire fetch; fetchPlugin may update plugin JS/manifest. Errors are logged.
+            await this.fetchPlugin(pl).catch((e: Error) => {
+              logger.error(e.message);
+            });
+          } catch (e) {
+            logger.error(
+              `Failed background fetch for vendetta plugin ${pl}:`,
+              e,
+            );
+          }
+          // Small pause between network requests to avoid spikes
+          await new Promise((res) => setTimeout(res, 200));
+        }
+      })();
     }
 
     return () => this.stopAllPlugins();

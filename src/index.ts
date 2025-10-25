@@ -119,17 +119,6 @@ export default async () => {
     setTimeout(runDeferred, 200);
   }
 
-  // Schedule a delayed plugin repository refresh (5 minutes) if the earlier deferred schedule didn't run.
-  // This ensures we refresh plugin metadata after the app is fully launched but avoid startup contention.
-  setTimeout(
-    () => {
-      updatePlugins().catch((e) =>
-        logger.log("Scheduled updatePlugins (5min) failed:", e),
-      );
-    },
-    5 * 60 * 1000,
-  );
-
   // Periodic bundle check: every 3 hours, check GitHub releases (ignore prereleases).
   // We use the GitHub Releases API to find the latest non-prerelease release and compare its tag.
   const checkBundle = async () => {

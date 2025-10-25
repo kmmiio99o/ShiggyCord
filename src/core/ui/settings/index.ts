@@ -21,13 +21,6 @@ export default function initSettings() {
         useTrailing: () => `(${version})`,
       },
       {
-        key: "SHIGGYCORD_UPDATER",
-        title: () => "Updater",
-        icon: findAssetId("BellIcon"),
-        render: () => import("@core/ui/settings/pages/Updater"),
-      },
-
-      {
         key: "CORE_PLUGINS",
         title: () => Strings.PLUGINS,
         icon: findAssetId("ActivitiesIcon"),
@@ -56,7 +49,12 @@ export default function initSettings() {
         render: () => import("@core/ui/settings/pages/Fonts"),
         usePredicate: () => isFontSupported(),
       },
-
+      {
+        key: "SHIGGYCORD_UPDATER",
+        title: () => "Updater",
+        icon: findAssetId("BellIcon"),
+        render: () => import("@core/ui/settings/pages/Updater"),
+      },
       {
         key: "BUNNY_DEVELOPER",
         title: () => Strings.DEVELOPER,
