@@ -103,8 +103,123 @@ function BrowserThemeCard({
       await installTheme(themeId);
       setRefreshTick((prev) => prev + 1);
       forceUpdate();
+      // Show success feedback
+      showSheet("ThemeInstalledSheet", () => (
+        <ActionSheet>
+          <BottomSheetTitleHeader title="Theme Installed" />
+          <View style={{ padding: 16, alignItems: "center", gap: 12 }}>
+            <View
+              style={{
+                backgroundColor: "rgba(67, 181, 129, 0.1)",
+                borderRadius: 50,
+                padding: 16,
+              }}
+            >
+              <Image
+                source={findAssetId("CheckmarkCircle")}
+                style={{
+                  width: 32,
+                  height: 32,
+                  tintColor: "#43b581",
+                }}
+              />
+            </View>
+            <Text variant="heading-md/bold">
+              {name} installed successfully!
+            </Text>
+            <Text
+              variant="text-md/medium"
+              color="text-muted"
+              style={{ textAlign: "center" }}
+            >
+              The theme has been added to your themes list.
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <Button
+                size="md"
+                text="Cancel"
+                variant="secondary"
+                style={{ flex: 1 }}
+                onPress={() => hideActionSheet()}
+              />
+              <Button
+                size="md"
+                text="Open Settings"
+                variant="primary"
+                icon={findAssetId("ThemeLightIcon")}
+                style={{ flex: 1 }}
+                onPress={() => hideActionSheet()}
+              />
+            </View>
+          </View>
+        </ActionSheet>
+      ));
     } catch (e) {
       console.error("Failed to install theme:", e);
+      // Show error feedback
+      showSheet("ThemeInstallFailedSheet", () => (
+        <ActionSheet>
+          <BottomSheetTitleHeader title="Installation Failed" />
+          <View style={{ padding: 16, alignItems: "center", gap: 12 }}>
+            <View
+              style={{
+                backgroundColor: "rgba(240, 71, 71, 0.1)",
+                borderRadius: 50,
+                padding: 16,
+              }}
+            >
+              <Image
+                source={findAssetId("ErrorCircle")}
+                style={{
+                  width: 32,
+                  height: 32,
+                  tintColor: "#f04747",
+                }}
+              />
+            </View>
+            <Text variant="heading-md/bold">Failed to install theme</Text>
+            <Card style={{ width: "100%" }}>
+              <Text variant="text-md/medium">
+                {e instanceof Error ? e.message : String(e)}
+              </Text>
+            </Card>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <Button
+                size="md"
+                text="Cancel"
+                variant="secondary"
+                style={{ flex: 1 }}
+                onPress={() => hideActionSheet()}
+              />
+              <Button
+                size="md"
+                text="Try Again"
+                variant="primary"
+                icon={findAssetId("RetryIcon")}
+                style={{ flex: 1 }}
+                onPress={() => {
+                  hideActionSheet();
+                  setTimeout(handleInstall, 500);
+                }}
+              />
+            </View>
+          </View>
+        </ActionSheet>
+      ));
     } finally {
       clearInterval(animationInterval);
       setRotation(0);
@@ -265,7 +380,7 @@ export default function Themes() {
   const [refreshTick, setRefreshTick] = React.useState(0);
 
   React.useEffect(() => {
-    const headerButtons = [];
+    const headerButtons: React.ReactNode[] = [];
 
     // Add mode toggle button
     headerButtons.push(
@@ -275,6 +390,12 @@ export default function Themes() {
         variant="secondary"
         text={mode === "installed" ? "Browse" : "Installed"}
         icon={findAssetId(mode === "installed" ? "LinkIcon" : "DownloadIcon")}
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
         onPress={() => setMode(mode === "installed" ? "browse" : "installed")}
       />,
     );
@@ -425,7 +546,70 @@ export default function Themes() {
         }}
         installAction={{
           label: "Install a theme",
-          fetchFn: installTheme,
+          fetchFn: async (url) => {
+            try {
+              await installTheme(url);
+              showSheet("ThemeInstalledSheet", () => (
+                <ActionSheet>
+                  <BottomSheetTitleHeader title="Theme Installed" />
+                  <View style={{ padding: 16, alignItems: "center", gap: 12 }}>
+                    <View
+                      style={{
+                        backgroundColor: "rgba(67, 181, 129, 0.1)",
+                        borderRadius: 50,
+                        padding: 16,
+                      }}
+                    >
+                      <Image
+                        source={findAssetId("CheckmarkCircle")}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          tintColor: "#43b581",
+                        }}
+                      />
+                    </View>
+                    <Text variant="heading-md/bold">
+                      Theme installed successfully!
+                    </Text>
+                    <Text
+                      variant="text-md/medium"
+                      color="text-muted"
+                      style={{ textAlign: "center" }}
+                    >
+                      The theme has been added to your themes list.
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 8,
+                        width: "100%",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Button
+                        size="md"
+                        text="Cancel"
+                        variant="secondary"
+                        style={{ flex: 1 }}
+                        onPress={() => hideActionSheet()}
+                      />
+                      <Button
+                        size="md"
+                        text="Open Settings"
+                        variant="primary"
+                        icon={findAssetId("CheckmarkIcon")}
+                        style={{ flex: 1 }}
+                        onPress={() => hideActionSheet()}
+                      />
+                    </View>
+                  </View>
+                </ActionSheet>
+              ));
+            } catch (e) {
+              throw e; // Let the original error handler deal with this
+            }
+          },
         }}
         items={Object.values(themes)}
         safeModeHint={{
@@ -452,27 +636,54 @@ export default function Themes() {
       <View
         style={{
           flex: 1,
-          paddingHorizontal: 8,
+          paddingHorizontal: 16,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <Card style={{ gap: 8 }}>
-          <Text style={{ textAlign: "center" }} variant="heading-lg/bold">
-            An error occurred while fetching the repository
-          </Text>
-          <Text
-            style={{ textAlign: "center" }}
-            variant="text-sm/medium"
-            color="text-muted"
+        <Card style={{ gap: 16, padding: 20, width: "100%", maxWidth: 400 }}>
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                backgroundColor: "rgba(240, 71, 71, 0.1)",
+                borderRadius: 50,
+                padding: 16,
+                marginBottom: 12,
+              }}
+            >
+              <Image
+                source={findAssetId("ErrorCircle")}
+                style={{ width: 32, height: 32, tintColor: "#f04747" }}
+              />
+            </View>
+            <Text style={{ textAlign: "center" }} variant="heading-lg/bold">
+              Connection Error
+            </Text>
+            <Text
+              style={{ textAlign: "center", marginTop: 8, marginBottom: 8 }}
+              variant="text-md/medium"
+              color="text-muted"
+            >
+              An error occurred while fetching the theme repository:
+            </Text>
+          </View>
+          <Card
+            style={{
+              backgroundColor: "rgba(0,0,0,0.05)",
+              padding: 12,
+              borderRadius: 8,
+            }}
           >
-            {error}
-          </Text>
+            <Text variant="text-md/semibold" color="text-danger">
+              {error}
+            </Text>
+          </Card>
           <Button
             size="lg"
-            text="Refetch"
+            text="Try Again"
             onPress={fetchThemes}
             icon={findAssetId("RetryIcon")}
+            style={{ marginTop: 8 }}
           />
         </Card>
       </View>

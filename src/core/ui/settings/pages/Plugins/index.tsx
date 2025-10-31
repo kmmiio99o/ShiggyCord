@@ -39,7 +39,10 @@ import {
   AlertActions,
   TableRow,
   TableRowGroup,
+  BottomSheetTitleHeader,
 } from "@metro/common/components";
+import { showSheet } from "@lib/ui/sheets";
+import { proxyLazy } from "@lib/utils/lazy";
 
 import { UnifiedPluginModel } from "./models";
 import unifyBunnyPlugin from "./models/bunny";
@@ -56,6 +59,8 @@ const {
 const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() =>
   findByProps("showSimpleActionSheet"),
 );
+
+const dismissAlert = proxyLazy(() => findByProps("close", "openLazy").close);
 
 interface BaseAddonData {
   name: string;
@@ -104,6 +109,10 @@ function InstallButton({
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const [rotation, setRotation] = React.useState(0);
   const [pulse, setPulse] = React.useState(1);
+
+  const continueInstallation = () => {
+    performInstall();
+  };
 
   const handleInstall = async () => {
     if (isInstalling) return;
@@ -158,20 +167,113 @@ function InstallButton({
     try {
       await VdPluginManager.installPlugin(addon.installUrl);
       setRefreshTick((prev: number) => prev + 1);
+
+      // Show success feedback
+      showSheet("PluginInstalledSheet", () => (
+        <ActionSheet>
+          <BottomSheetTitleHeader title="Plugin Installed" />
+          <View style={{ padding: 16, alignItems: "center", gap: 12 }}>
+            <View
+              style={{
+                backgroundColor: "rgba(67, 181, 129, 0.1)",
+                borderRadius: 50,
+                padding: 16,
+              }}
+            >
+              <Image
+                source={findAssetId("CheckmarkCircle")}
+                style={{
+                  width: 32,
+                  height: 32,
+                  tintColor: "#43b581",
+                }}
+              />
+            </View>
+            <Text variant="heading-md/bold">
+              {addon.name} installed successfully!
+            </Text>
+            <Text
+              variant="text-md/medium"
+              color="text-muted"
+              style={{ textAlign: "center" }}
+            >
+              The plugin has been added to your plugins list.
+            </Text>
+            <Button
+              size="md"
+              text="Open Plugin Settings"
+              variant="primary"
+              icon={findAssetId("SettingsIcon")}
+              onPress={() => hideActionSheet()}
+            />
+          </View>
+        </ActionSheet>
+      ));
     } catch (e) {
       openAlert(
         "bunny-plugin-install-failed",
         <AlertModalComponent
-          title="Install Failed"
-          content={`Unable to install plugin from '${addon.installUrl}':`}
+          title="Installation Failed"
+          content="Failed to install plugin"
           extraContent={
-            <Card>
-              <Text variant="text-md/normal">
-                {e instanceof Error ? e.message : String(e)}
-              </Text>
-            </Card>
+            <Stack spacing={16} style={{ width: "100%" }}>
+              <View style={{ alignItems: "center", marginTop: 8 }}>
+                <View
+                  style={{
+                    backgroundColor: "rgba(240, 71, 71, 0.1)",
+                    borderRadius: 50,
+                    padding: 16,
+                    marginBottom: 12,
+                  }}
+                >
+                  <Image
+                    source={findAssetId("ErrorCircle")}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      tintColor: "#f04747",
+                    }}
+                  />
+                </View>
+              </View>
+              <Card
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.05)",
+                  padding: 12,
+                  borderRadius: 8,
+                }}
+              >
+                <Text variant="text-md/semibold" color="text-danger">
+                  {e instanceof Error ? e.message : String(e)}
+                </Text>
+              </Card>
+            </Stack>
           }
-          actions={<AlertActionButton text="Okay" variant="primary" />}
+          actions={
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                gap: 8,
+              }}
+            >
+              <AlertActionButton
+                text="Cancel"
+                variant="secondary"
+                style={{ flex: 1 }}
+              />
+              <AlertActionButton
+                text="Try Again"
+                icon={findAssetId("RetryIcon")}
+                variant="primary"
+                style={{ flex: 1 }}
+                onPress={() => {
+                  dismissAlert("bunny-plugin-install-failed");
+                  setTimeout(performInstall, 500);
+                }}
+              />
+            </View>
+          }
         />,
       );
     } finally {
@@ -200,6 +302,12 @@ function InstallButton({
         icon={findAssetId("TrashIcon")}
         onPress={handleUninstall}
         disabled={isQuickInstall}
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+          elevation: 1,
+        }}
       />
     );
   }
@@ -212,6 +320,12 @@ function InstallButton({
         variant="primary"
         disabled={isInstalling}
         loading={isInstalling}
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+          elevation: 1,
+        }}
         icon={
           isInstalling ? (
             <View style={{ transform: [{ rotate: `${rotation}deg` }] }}>

@@ -69,8 +69,16 @@ function InputAlert(props: {
   const [value, setValue] = React.useState("");
   const [error, setError] = React.useState("");
   const [isFetching, setIsFetching] = React.useState(false);
+  const [validUrl, setValidUrl] = React.useState(false);
+
+  // Check URL validity whenever value changes
+  React.useEffect(() => {
+    setValidUrl(isValidHttpUrl(value));
+  }, [value]);
 
   function onConfirmWrapper() {
+    if (!value || !isValidHttpUrl(value)) return;
+
     setIsFetching(true);
 
     props
@@ -87,24 +95,37 @@ function InputAlert(props: {
       title={props.label}
       content="Type in the source URL you want to install from:"
       extraContent={
-        <Stack style={{ marginTop: -12 }}>
-          <TextInput
-            autoFocus={true}
-            isClearable={true}
-            value={value}
-            onChange={(v: string) => {
-              setValue(v);
-              if (error) setError("");
+        <Stack style={{ marginTop: -8, gap: 12 }}>
+          <View
+            style={{
+              backgroundColor: "rgba(0,0,0,0.05)",
+              borderRadius: 8,
+              padding: 4,
+              paddingHorizontal: 8,
             }}
-            returnKeyType="done"
-            onSubmitEditing={onConfirmWrapper}
-            state={error ? "error" : undefined}
-            errorMessage={error || undefined}
-          />
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            style={{ gap: 8 }}
+          >
+            <TextInput
+              autoFocus={true}
+              isClearable={true}
+              value={value}
+              onChange={(v: string) => {
+                setValue(v);
+                if (error) setError("");
+              }}
+              returnKeyType="done"
+              onSubmitEditing={onConfirmWrapper}
+              state={error ? "error" : undefined}
+              errorMessage={error || undefined}
+              style={{ fontSize: 16 }}
+            />
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
             <Button
               size="sm"
@@ -112,28 +133,38 @@ function InputAlert(props: {
               text="Import from clipboard"
               icon={findAssetId("ClipboardListIcon")}
               onPress={() =>
-                clipboard.getString().then((str: string) => setValue(str))
+                clipboard
+                  .getString()
+                  .then((str: string) => setValue(str.trim()))
               }
             />
-          </ScrollView>
+          </View>
         </Stack>
       }
       actions={
-        <Stack>
-          {/* Manual button as we don't want alert to immediately dismiss when we tap on it */}
-          <Button
-            loading={isFetching}
-            text="Install"
-            variant="primary"
-            disabled={!value || !isValidHttpUrl(value)}
-            onPress={onConfirmWrapper}
-          />
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <AlertActionButton
             disabled={isFetching}
             text="Cancel"
             variant="secondary"
+            style={{ flex: 1 }}
           />
-        </Stack>
+          <Button
+            loading={isFetching}
+            text={isFetching ? "Installing..." : "Install"}
+            variant="primary"
+            onPress={onConfirmWrapper}
+            icon={!isFetching ? findAssetId("DownloadIcon") : undefined}
+            style={{ flex: 1 }}
+          />
+        </View>
       }
     />
   );
