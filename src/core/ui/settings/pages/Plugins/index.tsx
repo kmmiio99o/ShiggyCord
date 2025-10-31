@@ -593,15 +593,12 @@ export default function Plugins() {
             .map((id) => registeredPlugins.get(id)!)
             .map(unifyBunnyPlugin);
 
-          // Keep core plugins registration available if needed elsewhere
-          const corePlugins = [...corePluginInstances.keys()]
-            .map((id) => registeredPlugins.get(id))
-            .filter((m): m is NonNullable<typeof m> => Boolean(m))
-            .map(unifyBunnyPlugin);
-
           // Merge lists: show Vendetta-managed plugins first (recent first),
-          // include core plugins, then Bunny-installed externals (recent first).
-          return [...vdPlugins, ...corePlugins, ...bnPlugins];
+          // then Bunny-installed externals (recent first).
+          const allPlugins = [...vdPlugins, ...bnPlugins];
+
+          // Filter out core plugins from the list
+          return allPlugins.filter((plugin) => !isCorePlugin(plugin.id));
         }}
         ListHeaderComponent={() => null}
         installAction={{
