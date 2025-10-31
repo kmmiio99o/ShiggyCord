@@ -50,12 +50,6 @@ export default function initSettings() {
         usePredicate: () => isFontSupported(),
       },
       {
-        key: "SHIGGYCORD_UPDATER",
-        title: () => "Updater",
-        icon: findAssetId("BellIcon"),
-        render: () => import("@core/ui/settings/pages/Updater"),
-      },
-      {
         key: "BUNNY_DEVELOPER",
         title: () => Strings.DEVELOPER,
         icon: findAssetId("WrenchIcon"),
