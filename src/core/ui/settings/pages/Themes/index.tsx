@@ -41,7 +41,10 @@ import { View, Image } from "react-native";
 
 const { useReducer } = React;
 
-const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() =>
+const { hideActionSheet } = lazyDestructure(() =>
+  findByProps("openLazy", "hideActionSheet"),
+);
+const { showSimpleActionSheet } = lazyDestructure(() =>
   findByProps("showSimpleActionSheet"),
 );
 
@@ -143,17 +146,9 @@ function BrowserThemeCard({
               }}
             >
               <Button
-                size="md"
-                text="Cancel"
-                variant="secondary"
-                style={{ flex: 1 }}
-                onPress={() => hideActionSheet()}
-              />
-              <Button
-                size="md"
-                text="Open Settings"
+                size="lg"
+                text="Close"
                 variant="primary"
-                icon={findAssetId("ThemeLightIcon")}
                 style={{ flex: 1 }}
                 onPress={() => hideActionSheet()}
               />
@@ -591,14 +586,6 @@ export default function Themes() {
                         size="md"
                         text="Cancel"
                         variant="secondary"
-                        style={{ flex: 1 }}
-                        onPress={() => hideActionSheet()}
-                      />
-                      <Button
-                        size="md"
-                        text="Open Settings"
-                        variant="primary"
-                        icon={findAssetId("CheckmarkIcon")}
                         style={{ flex: 1 }}
                         onPress={() => hideActionSheet()}
                       />

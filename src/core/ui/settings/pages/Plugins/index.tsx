@@ -56,7 +56,10 @@ const {
   AlertActions: AlertActionsComponent,
   AlertActionButton,
 } = lazyDestructure(() => findByProps("AlertModal", "AlertActions"));
-const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() =>
+const { hideActionSheet } = lazyDestructure(() =>
+  findByProps("openLazy", "hideActionSheet"),
+);
+const { showSimpleActionSheet } = lazyDestructure(() =>
   findByProps("showSimpleActionSheet"),
 );
 
@@ -200,10 +203,10 @@ function InstallButton({
               The plugin has been added to your plugins list.
             </Text>
             <Button
-              size="md"
-              text="Open Plugin Settings"
+              size="lg"
+              text="Close"
               variant="primary"
-              icon={findAssetId("SettingsIcon")}
+              style={{ width: "100%" }}
               onPress={() => hideActionSheet()}
             />
           </View>
