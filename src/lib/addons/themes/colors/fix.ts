@@ -1,4 +1,4 @@
-import { StatusBar } from "react-native";
+import { StatusBar, TextInput, Platform } from "react-native";
 import { findByStoreNameLazy } from "@metro/wrappers";
 import { _colorRef } from "./updater";
 
@@ -28,11 +28,36 @@ function getBarStyle() {
     return "dark-content";
 }
 
+
 export default function fixStatusBar() {
+    function applyStatusBar() {
+        const style = getBarStyle();
+        StatusBar.setBarStyle(style, true);
+    }
+
+    const unsubscribe = ThemeStore?.addChangeListener?.(applyStatusBar);
+
     const origSetBarStyle = StatusBar.setBarStyle;
-    StatusBar.setBarStyle = function (_style: any, ...args: any[]) {
-        return origSetBarStyle.call(this, getBarStyle(), ...args);
+    StatusBar.setBarStyle = function (_style: any, animated?: boolean) {
+        return origSetBarStyle.call(this, getBarStyle(), animated ?? true);
     };
 
-    StatusBar.setBarStyle(getBarStyle());
+    if( Platform.OS === "ios" ){
+        const origSetNativeProps = (TextInput.prototype as any).setNativeProps;
+        (TextInput.prototype as any).setNativeProps = function (props: any) {
+            const style = getBarStyle();
+            const keyboardAppearance = style === "light-content" ? "dark" : "light";
+            return origSetNativeProps?.call(this, {
+                ...props,
+                keyboardAppearance: props?.keyboardAppearance ?? keyboardAppearance
+            });
+        };
+
+        let delay = 200;
+        for (let i = 0; i < 5; i++, delay *= 2) {
+            setTimeout(applyStatusBar, delay);
+        }
+    }
+
+    return unsubscribe;
 }
