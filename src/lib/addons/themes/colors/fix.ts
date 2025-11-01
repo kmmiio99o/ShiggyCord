@@ -28,7 +28,6 @@ function getBarStyle() {
     return "dark-content";
 }
 
-
 export default function fixStatusBar() {
     function applyStatusBar() {
         const style = getBarStyle();
@@ -38,25 +37,15 @@ export default function fixStatusBar() {
     const unsubscribe = ThemeStore?.addChangeListener?.(applyStatusBar);
 
     const origSetBarStyle = StatusBar.setBarStyle;
-    StatusBar.setBarStyle = function (_style: any, animated?: boolean) {
-        return origSetBarStyle.call(this, getBarStyle(), animated ?? true);
+    StatusBar.setBarStyle = function (_style: any, ...args: any[]) {
+        return origSetBarStyle.call(this, getBarStyle(), ...args);
     };
+    
+    StatusBar.setBarStyle(getBarStyle());
 
-    if( Platform.OS === "ios" ){
-        const origSetNativeProps = (TextInput.prototype as any).setNativeProps;
-        (TextInput.prototype as any).setNativeProps = function (props: any) {
-            const style = getBarStyle();
-            const keyboardAppearance = style === "light-content" ? "dark" : "light";
-            return origSetNativeProps?.call(this, {
-                ...props,
-                keyboardAppearance: props?.keyboardAppearance ?? keyboardAppearance
-            });
-        };
-
-        let delay = 200;
-        for (let i = 0; i < 5; i++, delay *= 2) {
-            setTimeout(applyStatusBar, delay);
-        }
+    let delay = 200;
+    for (let i = 0; i < 5; i++, delay *= 2) {
+        setTimeout(applyStatusBar, delay);
     }
 
     return unsubscribe;
