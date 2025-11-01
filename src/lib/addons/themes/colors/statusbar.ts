@@ -29,24 +29,29 @@ function getBarStyle() {
 }
 
 export default function fixStatusBar() {
-    function applyStatusBar() {
-        const style = getBarStyle();
-        StatusBar.setBarStyle(style, true);
+
+    if (Platform.OS == "android") {
+        const origSetBarStyle = StatusBar.setBarStyle;
+        StatusBar.setBarStyle = function (_style: any, ...args: any[]) {
+            return origSetBarStyle.call(this, getBarStyle(), ...args);
+        };
     }
 
-    const unsubscribe = ThemeStore?.addChangeListener?.(applyStatusBar);
-
-    const origSetBarStyle = StatusBar.setBarStyle;
-    StatusBar.setBarStyle = function (_style: any, ...args: any[]) {
-        return origSetBarStyle.call(this, getBarStyle(), ...args);
-    };
+    if (Platform.OS == "ios") {
+        function applyStatusBar() {
+            const style = getBarStyle();
+            StatusBar.setBarStyle(style, true);
+        }
     
-    StatusBar.setBarStyle(getBarStyle());
-
-    let delay = 200;
-    for (let i = 0; i < 5; i++, delay *= 2) {
-        setTimeout(applyStatusBar, delay);
+        const unsubscribe = ThemeStore?.addChangeListener?.(applyStatusBar);
+        
+        StatusBar.setBarStyle(getBarStyle());
+    
+        let delay = 200;
+        for (let i = 0; i < 5; i++, delay *= 2) {
+            setTimeout(applyStatusBar, delay);
+        }
+    
+        return unsubscribe;
     }
-
-    return unsubscribe;
 }
