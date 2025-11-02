@@ -10,6 +10,7 @@ A mod for Discord on Android
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
 ### iOS
+- [KettuTweak](https://github.com/C0C0B01/KettuTweak)
 - [BTLoader](https://github.com/CloudySn0w/BTLoader)
 
 ## Building
