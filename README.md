@@ -9,9 +9,14 @@ A mod for Discord on Android
 - **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
 - **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
+If you do not know what root is, go with the manager
+
 ### iOS
-- [KettuTweak](https://github.com/C0C0B01/KettuTweak)
-- [BTLoader](https://github.com/CloudySn0w/BTLoader)
+
+- **Jailbroken** - [KettuTweak](https://github.com/C0C0B01/KettuTweak)
+- **Jailed** - [BTLoader](https://github.com/CloudySn0w/BTLoader)
+
+if you dont know the difference, go with BTLoader
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
