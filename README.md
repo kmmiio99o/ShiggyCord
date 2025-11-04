@@ -16,7 +16,7 @@ If you do not know what root is, go with the manager
 - **Jailbroken** - [KettuTweak](https://github.com/C0C0B01/KettuTweak)
 - **Jailed** - [BTLoader](https://github.com/CloudySn0w/BTLoader)
 
-if you dont know the difference, go with BTLoader
+if you dont know what jailbreak is, go with BTLoader
 
 ## Building
 1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
