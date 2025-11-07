@@ -48,14 +48,18 @@ const pluginInstance: Record<string, EvaledPlugin> = {};
 export const VdPluginManager = {
   plugins,
   async pluginFetch(url: string) {
-    if (url.startsWith(VD_PROXY_PREFIX)) {
-      url = url
-        .replace(
-          "https://bunny-mod.github.io/plugins-proxy",
-          BUNNY_PROXY_PREFIX,
-        )
-        .replace(VD_PROXY_PREFIX, BUNNY_PROXY_PREFIX);
-    }
+    // was causing problems, dumb me with redirections
+    // :3
+    // No redirection: use VD_PROXY_PREFIX as intended
+    // if (url.startsWith(VD_PROXY_PREFIX)) {
+    //   url = url
+    //     .replace(
+    //       "https://bunny-mod.github.io/plugins-proxy",
+    //       BUNNY_PROXY_PREFIX,
+    //     )
+    //     .replace(VD_PROXY_PREFIX, BUNNY_PROXY_PREFIX);
+    // }
+    // End of pluginFetch function block
 
     return await safeFetch(url, { cache: "no-store" });
   },
