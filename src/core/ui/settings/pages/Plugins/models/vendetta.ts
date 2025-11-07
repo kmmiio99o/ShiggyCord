@@ -1,5 +1,5 @@
 import { VdPluginManager, VendettaPlugin } from "@core/vendetta/plugins";
-import { useProxy } from "@core/vendetta/storage";
+import { useProxy, createProxy } from "@core/vendetta/storage";
 
 import { UnifiedPluginModel } from ".";
 
@@ -20,7 +20,8 @@ export default function unifyVdPlugin(
     isInstalled: () =>
       Boolean(vdPlugin && VdPluginManager.plugins[vdPlugin.id]),
     usePluginState() {
-      useProxy(VdPluginManager.plugins[vdPlugin.id]);
+      const dummyProxy = createProxy({}).proxy;
+      useProxy(VdPluginManager.plugins[vdPlugin.id] ?? dummyProxy);
     },
     toggle(start: boolean) {
       start
