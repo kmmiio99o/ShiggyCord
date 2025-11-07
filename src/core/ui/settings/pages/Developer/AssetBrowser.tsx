@@ -3,7 +3,7 @@ import { iterateAssets } from "@lib/api/assets";
 import { Text } from "@metro/common/components";
 import { ErrorBoundary, Search } from "@ui/components";
 import { useMemo } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, View, ScrollView } from "react-native";
 
 export default function AssetBrowser() {
     const [search, setSearch] = React.useState("");
@@ -16,15 +16,18 @@ export default function AssetBrowser() {
                     style={{ margin: 10 }}
                     onChangeText={(v: string) => setSearch(v)}
                 />
-                <View style={{ flex: 1, borderRadius: 16, paddingHorizontal: 12, overflow: 'hidden', backgroundColor: 'transparent' }}>
-                    <Text variant='text-sm/medium' color='text-danger' style={{ marginBottom: 16 }}>Some assets types cannot be displayed and will be marked in red.</Text>
-                    <FlatList
-                        data={all.filter(a => a.name.includes(search) || a.id.toString() === search)}
-                        renderItem={({ item }: any) => <AssetDisplay asset={item} />}
-                        contentContainerStyle={{ overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 16 }}
-                        keyExtractor={a => a.name}
-                    />
-                </View>
+                <ScrollView>
+                  <View style={{ flex: 1, borderRadius: 16, paddingHorizontal: 12, overflow: 'hidden', backgroundColor: 'transparent' }}>
+                      <Text variant='text-sm/medium' color='text-danger' style={{ marginBottom: 16 }}>Some assets types cannot be displayed and will be marked in red.</Text>
+                      <FlatList
+                          data={all.filter(a => a.name.includes(search) || a.id.toString() === search)}
+                          renderItem={({ item }: any) => <AssetDisplay asset={item} />}
+                          contentContainerStyle={{ overflow: 'hidden', backgroundColor: 'transparent', borderRadius: 16 }}
+                          scrollEnabled={false}
+                          keyExtractor={a => a.id.toString()}
+                      />
+                  </View>
+                </ScrollView>
             </View>
         </ErrorBoundary>
     );
