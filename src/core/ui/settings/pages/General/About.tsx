@@ -13,47 +13,6 @@ export default function About() {
   useProxy(settings);
   useProxy(loaderConfig);
 
-  function getBuildType() {
-    // If running in React Native dev mode, treat as development
-    if (__DEV__) return "Development";
-
-    try {
-      // If a custom URL is enabled, inspect it
-      if (loaderConfig?.customLoadUrl?.enabled) {
-        const url = loaderConfig.customLoadUrl.url ?? "";
-        const u = new URL(url);
-        const host = u.hostname;
-
-        // Localhost / local IP -> dev server (bun run serve)
-        if (
-          host === "localhost" ||
-          host === "127.0.0.1" ||
-          host === "0.0.0.0" ||
-          host.startsWith("192.") ||
-          host.startsWith("10.") ||
-          host.startsWith("172.")
-        )
-          return "Development";
-
-        // If the URL points to GitHub releases/raw, treat as Release
-        if (
-          url.includes("github.com") ||
-          url.includes("raw.githubusercontent.com") ||
-          url.includes("/releases/")
-        )
-          return "Release";
-
-        // Custom remote URL (not recognized as local or GitHub)
-        return "Custom";
-      }
-    } catch (e) {
-      // If URL parsing fails, fall back below
-    }
-
-    // Default: when not using a custom URL the loader fetches from GitHub releases
-    return "Release";
-  }
-
   const coreVersions = [
     {
       label: Strings.SHIGGYCORD,
@@ -180,11 +139,6 @@ export default function About() {
               />
             }
             icon={<TableRow.Icon source={findAssetId("ScreenIcon")} />}
-          />
-          <TableRow
-            label="Build Type"
-            trailing={<TableRow.TrailingText text={getBuildType()} />}
-            icon={<TableRow.Icon source={findAssetId("HammerIcon")} />}
           />
         </TableRowGroup>
       </Stack>
