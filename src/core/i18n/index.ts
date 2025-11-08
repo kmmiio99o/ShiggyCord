@@ -51,7 +51,7 @@ export function initFetchI18nStrings() {
       _loadedLocale.add(resolvedLocale);
 
       fetch(
-        `https://raw.githubusercontent.com/C0C0B01/i18n/main/resources/${resolvedLocale}/shiggycord.json`,
+        `https://raw.githubusercontent.com/kmmiio99o/i18n/main/resources/${resolvedLocale}/shiggycord.json`,
       )
         .then((r) => r.json())
         .then((strings) => (_loadedStrings[resolvedLocale] = strings))
