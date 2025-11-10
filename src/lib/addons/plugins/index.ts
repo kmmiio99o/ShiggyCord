@@ -396,7 +396,7 @@ export async function initPlugins() {
             console.log("FakeMessageComposer is broken");
             return; 
         }
-            alert(id)
+            
             startPlugin(id);
         }
     }));
