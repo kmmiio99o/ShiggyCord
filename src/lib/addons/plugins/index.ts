@@ -393,11 +393,6 @@ export async function initPlugins() {
     // Now, start all enabled plugins...
     Promise.allSettled([...registeredPlugins.keys()].map(async id => {
         if (isPluginEnabled(id)) {
-        if (id === "FakeMessageComposer") {
-            console.log("FakeMessageComposer is broken");
-            return; 
-        }
-            
             startPlugin(id);
         }
     }));
