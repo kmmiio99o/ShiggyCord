@@ -111,7 +111,7 @@ export const VdPluginManager = {
         if (!id.endsWith("/")) id += "/";
         const plugin = plugins[id];
         // this is to counter a plugin that violates TOS, a true reason will be provided as an error soon but some trolling is fun :3
-        if (plugin.id === "https://heartdevv.github.io/plugin-template/template" || plugin.id === "https://heartdevv.github.io/plugin-template/template/") {
+        if (plugin.id.includes("heartdevv") == true) {
         alert(`The plugin '${plugin.id}' is broken, please contact the developer to fix it`);
         return
     }
