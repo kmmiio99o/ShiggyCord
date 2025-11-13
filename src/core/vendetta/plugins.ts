@@ -110,11 +110,9 @@ export const VdPluginManager = {
     async startPlugin(id: string) {
         if (!id.endsWith("/")) id += "/";
         const plugin = plugins[id];
-        // this is to counter a plugin that violates TOS, a true reason will be provided as an error soon but some trolling is fun :3
-        if (plugin.id.includes("heartdevv") == true) {
-        alert(`The plugin '${plugin.id}' is broken, please contact the developer to fix it`);
-        return
-    }
+        if (plugin.id.includes("heartdevv") == true || plugin.id.includes("helloworldsmother") == true || plugin.id.includes("messaging") == true) {
+            return
+        }
         if (!plugin) throw new Error("Attempted to start non-existent plugin");
 
         try {
