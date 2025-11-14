@@ -1,15 +1,12 @@
 import { after } from "@lib/api/patcher";
-import { findInReactTree } from "@lib/utils";
 import { TableRow } from "@metro/common/components";
-import { findByNameLazy, findByPropsLazy } from "@metro/wrappers";
+import { findByPropsLazy } from "@metro/wrappers";
 import { registeredSections } from "@ui/settings";
 
 import { CustomPageRenderer, wrapOnPress } from "./shared";
-import { Strings } from "@core/i18n";
-import { TableRowIcon } from "@metro/common/components";
 
 const settingConstants = findByPropsLazy("SETTING_RENDERER_CONFIG");
-const SettingsOverviewScreen = findByNameLazy("SettingsOverviewScreen", false);
+const createListModule = findByPropsLazy("createList");
 
 function useIsFirstRender() {
     let firstRender = false;
@@ -80,9 +77,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         });
     });
 
-const createListModule = findByPropsLazy("createList");
-
-unpatches.push(after("createList", createListModule, function(args, ret) {
+    unpatches.push(after("createList", createListModule, function(args, ret) {
     const [config] = args;
     
     if (config?.sections && Array.isArray(config.sections)) {
