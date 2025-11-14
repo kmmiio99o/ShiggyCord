@@ -87,6 +87,7 @@ unpatches.push(after("createList", createListModule, function(args, ret) {
     
     if (config?.sections && Array.isArray(config.sections)) {
         const sections = config.sections;
+        // Credit to @palmdevs - https://discord.com/channels/1196075698301968455/1243605828783571024/1307940348378742816
         let index = -~sections.findIndex((i: any) => i.settings?.includes("ACCOUNT")) || 1;
         
         Object.keys(registeredSections).forEach(sect => {
