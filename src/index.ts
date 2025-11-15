@@ -3,9 +3,7 @@ import initFixes from "@core/fixes";
 import { initFetchI18nStrings } from "@core/i18n";
 import initSettings from "@core/ui/settings";
 import { initVendettaObject } from "@core/vendetta/api";
-import { VdPluginManager } from "@core/vendetta/plugins";
 import { updateFonts } from "@lib/addons/fonts";
-import { initPlugins, updatePlugins } from "@lib/addons/plugins";
 import { initThemes } from "@lib/addons/themes";
 import { patchCommands } from "@lib/api/commands";
 import { patchLogHook } from "@lib/api/debug";
@@ -40,7 +38,6 @@ export default async () => {
     initFetchI18nStrings(),
     initSettings(),
     initFixes(),
-    // Do NOT run updatePlugins here — that is deferred.
   ];
 
   // Run critical inits and collect unpatchers/cleanup handlers.
@@ -60,6 +57,9 @@ export default async () => {
 
   // Deferred work: run after interactions to avoid blocking initial paint and navigation.
   const runDeferred = async () => {
+    const { VdPluginManager } = await import("@core/vendetta/plugins");
+    const { initPlugins, updatePlugins } = await import("@lib/addons/plugins");
+
     // Initialize Vendetta plugins (may start many plugins) — do not block UI.
     VdPluginManager.initPlugins()
       .then((u) => lib.unload.push(u))

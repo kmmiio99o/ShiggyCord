@@ -18,13 +18,32 @@ export function serve(options) {
     const { pathname } = url.parse(req.url || "", true);
     if (pathname?.endsWith(".js")) {
       try {
-        const { config, context, timeTook } = await buildBundle();
-
-        printBuildSuccess(context.hash, args.production, timeTook);
+        let fileToServe;
+        if (pathname === "/shiggycord.min.js") {
+          const { config, context, timeTook } = await buildBundle({
+            minify: true,
+          });
+          printBuildSuccess(
+            context.hash,
+            args["release-branch"],
+            timeTook,
+            true,
+          );
+          fileToServe = config.outfile.replace(/\.js$/, ".min.js");
+        } else if (pathname === "/shiggycord.js") {
+          const { config, context, timeTook } = await buildBundle();
+          printBuildSuccess(context.hash, args["release-branch"], timeTook);
+          fileToServe = config.outfile;
+        } else {
+          res.writeHead(404);
+          res.end();
+          return;
+        }
 
         res.writeHead(200, { "Content-Type": "application/javascript" });
-        res.end(await readFile(config.outfile, "utf-8"));
-      } catch {
+        res.end(await readFile(fileToServe, "utf-8"));
+      } catch (error) {
+        console.error("Error serving bundle:", error);
         res.writeHead(500);
         res.end();
       }
@@ -42,8 +61,9 @@ export function serve(options) {
   for (const netinterfaces of Object.values(netInterfaces)) {
     for (const details of netinterfaces || []) {
       if (details.family !== "IPv4") continue;
-      const port = chalk.green(server.address()?.port.toString());
+      const port = chalk.green((args.port ?? 4040).toString());
       console.info(`  http://${details.address}:${port}/shiggycord.js`);
+      console.info(`  http://${details.address}:${port}/shiggycord.min.js`);
     }
   }
 

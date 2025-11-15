@@ -35,15 +35,12 @@ const config = {
   splitting: false,
   // Enable minification by default for release builds (when a release-branch is provided).
   // This keeps development builds unminified for easier debugging.
-  minify: Boolean(releaseBranch),
+  minify: true,
   external: [],
   supported: {
     // Hermes does not actually support const and let, even though it syntactically
     // accepts it, but it's treated just like 'var' and causes issues
     "const-and-let": false,
-  },
-  footer: {
-    js: "//# sourceURL=shiggycord",
   },
   loader: {
     ".png": "dataurl",
@@ -77,7 +74,7 @@ const config = {
                 constModules: {
                   globals: {
                     "bunny-build-info": {
-                      version: `"1.1.10-4"`,
+                      version: `"1.1.10-5"`,
                     },
                   },
                 },
@@ -142,12 +139,10 @@ if (isThisFileBeingRunViaCLI) {
 
   printBuildSuccess(context.hash, releaseBranch, timeTook);
 
-  if (buildMinify) {
-    const { timeTook } = await buildBundle({
-      minify: true,
-      outfile: config.outfile.replace(/\.js$/, ".min.js"),
-    });
+  const { timeTook: minifiedTimeTook } = await buildBundle({
+    minify: true,
+    outfile: config.outfile.replace(/\.js$/, ".min.js"),
+  });
 
-    printBuildSuccess(context.hash, releaseBranch, timeTook, true);
-  }
+  printBuildSuccess(context.hash, releaseBranch, minifiedTimeTook, true);
 }
