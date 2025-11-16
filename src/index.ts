@@ -119,48 +119,6 @@ export default async () => {
     setTimeout(runDeferred, 200);
   }
 
-  // Periodic bundle check: every 3 hours, check GitHub releases (ignore prereleases).
-  // We use the GitHub Releases API to find the latest non-prerelease release and compare its tag.
-  const checkBundle = async () => {
-    try {
-      const debugInfo = getDebugInfo();
-      const releasesRes = await fetch(
-        "https://api.github.com/repos/kmmiio99o/ShiggyCord/releases",
-        { cache: "no-store" },
-      );
-      if (!releasesRes.ok) return;
-      const releases = await releasesRes.json();
-      if (!Array.isArray(releases) || releases.length === 0) return;
-
-      // Find first non-prerelease, non-draft release
-      const stable = releases.find((r: any) => !r.prerelease && !r.draft);
-      if (!stable) return;
-
-      const latestTag = stable.tag_name ?? stable.name ?? null;
-      const latestUrl = stable.html_url ?? null;
-      const installed = debugInfo?.bunny?.version ?? null;
-
-      updaterSettings.lastBundleChecked = new Date().toISOString();
-      updaterSettings.lastBundleVersion = latestTag;
-      updaterSettings.bundleLatestTag = latestTag;
-      updaterSettings.bundleLatestUrl = latestUrl ?? null;
-      updaterSettings.bundleAvailable =
-        latestTag != null &&
-        installed != null &&
-        String(latestTag).replace(/^v/, "") !==
-          String(installed).replace(/^v/, "");
-    } catch (err) {
-      logger.log("Bundle check failed:", err);
-    }
-  };
-
-  // Run initial bundle check after a short delay (1 minute) to avoid doing network work
-  // during the critical UI startup path, then run every 3 hours.
-  setTimeout(() => {
-    checkBundle().catch(() => {});
-  }, 60 * 1000);
-  setInterval(checkBundle, 3 * 60 * 60 * 1000);
-
   // Final ready log for basic UI availability.
-  logger.log("ShiggyCord is ready (UI available).");
+  logger.log("ShiggyCord is ready.");
 };
