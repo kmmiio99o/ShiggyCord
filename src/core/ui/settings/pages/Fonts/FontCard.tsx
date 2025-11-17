@@ -15,15 +15,18 @@ import {
   Stack,
   Text,
 } from "@metro/common/components";
-import * as Skia from "@shopify/react-native-skia";
-import { TextStyleSheet } from "@ui/styles";
-import { useMemo } from "react";
+// import * as Skia from "@shopify/react-native-skia"; // Commented out due to preview crashes
+// import { TextStyleSheet } from "@ui/styles"; // Commented out due to preview crashes
+// import { useMemo } from "react"; // Commented out due to preview crashes
 import { View } from "react-native";
 
 import FontEditor from "./FontEditor";
 
-const { useToken } = lazyDestructure(() => findByProps("useToken"));
+const { useToken } = lazyDestructure(() => findByProps("useToken")); // Commented out due to preview crashes
 
+// FontPreview component commented out due to crashes
+// tho, who even used this? Lol
+/*
 function FontPreview({ font }: { font: FontDefinition }) {
   const TEXT_NORMAL = useToken(tokens.colors.TEXT_NORMAL);
   const { fontFamily: fontFamilyList, fontSize } =
@@ -68,6 +71,7 @@ function FontPreview({ font }: { font: FontDefinition }) {
     </View>
   );
 }
+*/
 
 export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
   useProxy(fonts);
@@ -82,7 +86,12 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
           <Text variant="heading-lg/bold" style={{ marginBottom: 2 }}>
             {font.name}
           </Text>
-          <FontPreview font={font} />
+          {/* FontPreview commented out due to crashes */}
+          <View style={{ height: 64, justifyContent: "center", alignItems: "center" }}>
+            <Text color="text-muted" variant="heading-lg/semibold">
+              Preview unavailable
+            </Text>
+          </View>
         </View>
         <View
           style={{ marginLeft: 16, flexDirection: "row", alignItems: "center" }}

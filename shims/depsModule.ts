@@ -6,6 +6,6 @@ module.exports = {
     "util": findByPropsLazy("inspect", "isNullOrUndefined"),
     "moment": findByPropsLazy("isMoment"),
     "chroma-js": findByPropsLazy("brewer"),
-    "lodash": findByPropsLazy("forEachRight"),
-    "@shopify/react-native-skia": findByPropsLazy("useFont")
+    "lodash": findByPropsLazy("forEachRight")
+//    "@shopify/react-native-skia": findByPropsLazy("useFont")
 };
