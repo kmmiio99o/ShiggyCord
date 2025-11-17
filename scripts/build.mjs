@@ -74,7 +74,7 @@ const config = {
                                 constModules: {
                                     globals: {
                                         "bunny-build-info": {
-                                            version: `"v1.4.0-alpha"`
+                                            version: `"v1.3.8"`
                                         }
                                     }
                                 },
