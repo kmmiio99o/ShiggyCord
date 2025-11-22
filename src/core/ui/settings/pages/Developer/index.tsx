@@ -30,6 +30,7 @@ import ErrorBoundaryScreen from "@core/ui/reporter/components/ErrorBoundaryScree
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { NativeModules } from "react-native";
 import { ScrollView, StyleSheet } from "react-native";
+import { showToast } from "@ui/toasts";
 
 const { hideActionSheet } = lazyDestructure(() =>
   findByProps("openLazy", "hideActionSheet"),
@@ -44,13 +45,19 @@ const { AlertModal, AlertActionButton } = lazyDestructure(() =>
   findByProps("AlertModal", "AlertActions"),
 );
 
-const RDT_EMBED_LINK = "";
+const RDT_EMBED_LINK = "https://cdn.bwlok.dev/rdt/devTools.js";
 
 const useStyles = createStyles({
   leadingText: {
     ...TextStyleSheet["heading-md/semibold"],
     color: semanticColors.TEXT_MUTED,
     marginRight: -4,
+  },
+  inputGroup: {
+    marginTop: 4,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: "hidden",
   },
 });
 
@@ -73,87 +80,80 @@ export default function Developer() {
           style={{ paddingVertical: 24, paddingHorizontal: 12 }}
           spacing={24}
         >
-          <TextInput
-            label={Strings.DEBUGGER_URL}
-            placeholder="127.0.0.1:9090"
-            size="md"
-            leadingIcon={() => (
-              <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>
-            )}
-            defaultValue={settings.debuggerUrl}
-            onChange={(v: string) => (settings.debuggerUrl = v)}
-          />
-          <TableRowGroup title="Debugging & Connection">
-            <TableRow
-              label={Strings.CONNECT_TO_DEBUG_WEBSOCKET}
-              subLabel="Connect to Chrome DevTools for debugging"
-              icon={<TableRow.Icon source={findAssetId("WrenchIcon")} />}
-              onPress={() => connectToDebugger(settings.debuggerUrl)}
+          <TableRowGroup title={Strings.DEBUGGER_URL}>
+            <TextInput
+              placeholder="127.0.0.1:9090"
+              size="md"
+              leadingIcon={() => (
+                <LegacyFormText style={styles.leadingText}>
+                  ws://
+                </LegacyFormText>
+              )}
+              defaultValue={settings.debuggerUrl}
+              onChange={(v: string) => (settings.debuggerUrl = v)}
             />
-            <TableSwitchRow
-              label={Strings.ENABLE_EVAL_COMMAND}
-              subLabel={Strings.ENABLE_EVAL_COMMAND_DESC}
-              icon={<TableRow.Icon source={findAssetId("PencilIcon")} />}
-              value={!!settings.enableEvalCommand}
-              onValueChange={(v: boolean) => {
-                settings.enableEvalCommand = v;
-              }}
-            />
+            <Stack style={styles.inputGroup}>
+              <TableRow
+                label={Strings.CONNECT_TO_DEBUG_WEBSOCKET}
+                subLabel="Connect to Chrome DevTools for debugging"
+                icon={<TableRow.Icon source={findAssetId("WrenchIcon")} />}
+                onPress={() => connectToDebugger(settings.debuggerUrl)}
+              />
+            </Stack>
           </TableRowGroup>
 
           {isReactDevToolsPreloaded() && (
             <TableRowGroup title="React Development">
-              <TableRow
-                label={Strings.CONNECT_TO_REACT_DEVTOOLS}
-                subLabel="Connect React DevTools for component debugging"
-                icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
-                onPress={() =>
-                  window[
-                    getReactDevToolsProp() || "__vendetta_rdc"
-                  ]?.connectToDevTools({
-                    host: settings.debuggerUrl.split(":")?.[0],
-                    resolveRNStyle: StyleSheet.flatten,
-                  })
-                }
+              <TextInput
+                placeholder="127.0.0.1:8097"
+                size="md"
+                leadingIcon={() => (
+                  <LegacyFormText style={styles.leadingText}>
+                    ws://
+                  </LegacyFormText>
+                )}
+                defaultValue={settings.devToolsUrl}
+                onChange={(v: string) => (settings.devToolsUrl = v)}
               />
-              <TableRow
-                label={Strings.INSTALL_REACT_DEVTOOLS}
-                subLabel={Strings.RESTART_REQUIRED_TO_TAKE_EFFECT}
-                icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
-                trailing={
-                  <Button
-                    size="sm"
-                    loading={rdtFileExists === CheckState.LOADING}
-                    disabled={rdtFileExists === CheckState.LOADING}
-                    variant={
-                      rdtFileExists === CheckState.TRUE
-                        ? "secondary"
-                        : "primary"
+              <Stack style={styles.inputGroup}>
+                <TableRow
+                  label={Strings.CONNECT_TO_REACT_DEVTOOLS}
+                  subLabel="Connect React DevTools for component debugging"
+                  icon={
+                    <TableRow.Icon source={findAssetId("ic_badge_staff")} />
+                  }
+                  onPress={async () => {
+                    if (!settings.devToolsUrl?.trim()) {
+                      showToast("Invalid devTools URL!", findAssetId("Small"));
+                      return;
                     }
-                    text={
-                      rdtFileExists === CheckState.TRUE
-                        ? Strings.UNINSTALL
-                        : Strings.INSTALL
-                    }
-                    onPress={async () => {
-                      if (rdtFileExists === CheckState.FALSE) {
-                        fs.downloadFile(
-                          RDT_EMBED_LINK,
-                          "preloads/reactDevtools.js",
+
+                    try {
+                      const devTools =
+                        window[getReactDevToolsProp() || "__vendetta_rdc"];
+
+                      if (!devTools?.connectToDevTools) {
+                        showToast(
+                          "React DevTools not available",
+                          findAssetId("Small"),
                         );
-                      } else if (rdtFileExists === CheckState.TRUE) {
-                        fs.removeFile("preloads/reactDevtools.js");
+                        return;
                       }
-                    }}
-                    icon={findAssetId(
-                      rdtFileExists === CheckState.TRUE
-                        ? "ic_message_delete"
-                        : "DownloadIcon",
-                    )}
-                    style={{ marginLeft: 8 }}
-                  />
-                }
-              />
+
+                      await devTools.connectToDevTools({
+                        host: settings.devToolsUrl.split(":")?.[0],
+                        resolveRNStyle: StyleSheet.flatten,
+                      });
+                    } catch (error) {
+                      showToast(
+                        "Failed to connect to React DevTools",
+                        findAssetId("Small"),
+                      );
+                    }
+                  }}
+                />
+              </Stack>
+
               {isLoaderConfigSupported() && isVendettaLoader() && (
                 <TableSwitchRow
                   label={Strings.LOAD_REACT_DEVTOOLS}
@@ -169,6 +169,7 @@ export default function Developer() {
               )}
             </TableRowGroup>
           )}
+
           {isLoaderConfigSupported() && (
             <TableRowGroup title="Loader Configuration">
               <TableSwitchRow
@@ -197,6 +198,7 @@ export default function Developer() {
               )}
             </TableRowGroup>
           )}
+
           <TableRowGroup title="Inspection & Testing">
             <TableRow
               arrow
@@ -209,6 +211,42 @@ export default function Developer() {
                   title: Strings.ASSET_BROWSER,
                   render: AssetBrowser,
                 })
+              }
+            />
+            <TableRow
+              label={Strings.INSTALL_REACT_DEVTOOLS}
+              subLabel={Strings.RESTART_REQUIRED_TO_TAKE_EFFECT}
+              icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
+              trailing={
+                <Button
+                  size="sm"
+                  loading={rdtFileExists === CheckState.LOADING}
+                  disabled={rdtFileExists === CheckState.LOADING}
+                  variant={
+                    rdtFileExists === CheckState.TRUE ? "secondary" : "primary"
+                  }
+                  text={
+                    rdtFileExists === CheckState.TRUE
+                      ? Strings.UNINSTALL
+                      : Strings.INSTALL
+                  }
+                  onPress={async () => {
+                    if (rdtFileExists === CheckState.FALSE) {
+                      fs.downloadFile(
+                        RDT_EMBED_LINK,
+                        "preloads/reactDevtools.js",
+                      );
+                    } else if (rdtFileExists === CheckState.TRUE) {
+                      fs.removeFile("preloads/reactDevtools.js");
+                    }
+                  }}
+                  icon={findAssetId(
+                    rdtFileExists === CheckState.TRUE
+                      ? "ic_message_delete"
+                      : "DownloadIcon",
+                  )}
+                  style={{ marginLeft: 8 }}
+                />
               }
             />
             <TableRow
@@ -229,13 +267,10 @@ export default function Developer() {
                     ),
                   },
                   options: [
-                    // @ts-expect-error
-                    // Of course, to trigger an error, we need to do something incorrectly. The below will do!
                     {
                       label: Strings.SHIGGYCORD,
                       onPress: () =>
                         navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
-                          // Render ShiggyCord's ErrorBoundaryScreen directly so the custom UI is shown.
                           render: () => (
                             <ErrorBoundaryScreen
                               error={new Error("ShiggyCord test crash")}
@@ -256,11 +291,19 @@ export default function Developer() {
                 })
               }
             />
+            <TableSwitchRow
+              label={Strings.ENABLE_EVAL_COMMAND}
+              subLabel={Strings.ENABLE_EVAL_COMMAND_DESC}
+              icon={<TableRow.Icon source={findAssetId("PencilIcon")} />}
+              value={!!settings.enableEvalCommand}
+              onValueChange={(v: boolean) => {
+                settings.enableEvalCommand = v;
+              }}
+            />
           </TableRowGroup>
 
           <TableRowGroup title="Dangerous Actions">
             <TableRow
-              // Thanks for this Revenge team!
               label={Strings.CLEAR_BUNDLE}
               subLabel="Clear cached bundle and force reload"
               icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}

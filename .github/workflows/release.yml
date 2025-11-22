@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
   workflow_dispatch:
 
 jobs:
@@ -30,11 +29,11 @@ jobs:
         run: bun install
         shell: bash
 
-      - name: Extract full version
+      - name: Extract version
         id: extract
         run: |
-          # Extract full version (major.minor.patch.build) from scripts/build.mjs using pure shell (grep/sed)
-          # This locates the first quoted four-segment version string in the build script (e.g. "1.1.7.1")
+          # Extract major.minor.patch version from scripts/build.mjs
+          # This locates the first quoted three-segment version string in the build script (e.g. "1.1.7")
           if [ ! -f scripts/build.mjs ]; then
             echo "scripts/build.mjs not found" >&2
             exit 1
@@ -43,8 +42,8 @@ jobs:
           echo '--- scripts/build.mjs (snippet) ---' >&2
           sed -n '1,200p' scripts/build.mjs >&2 || true
 
-          # Primary extraction: find the first quoted semver (may include prerelease suffix)
-          raw=$(grep -m1 -oE '"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?"' scripts/build.mjs | tr -d '"' | head -n1 || true)
+          # Primary extraction: find the first quoted semver (may include prerelease suffix, but we strip it)
+          raw=$(grep -m1 -oE '\"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\"' scripts/build.mjs | tr -d '\"' | head -n1 || true)
 
           # Strip any prerelease suffix, keep only major.minor.patch
           version=$(printf '%s' "$raw" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
@@ -59,74 +58,21 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
         shell: bash
 
-      - name: Prepare tag (detect dev branch and compute prerelease numeric suffix)
+      - name: Prepare tag
         id: prepare
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
-          # Derive branch and base version
-          ref="${GITHUB_REF#refs/heads/}"
+          # Use the extracted version directly as the tag for main branch releases
           version="${{ steps.extract.outputs.version }}"
-
-          echo "[debug] GITHUB_REF=$GITHUB_REF" >&2
-          echo "[debug] branch=$ref" >&2
-          echo "[debug] base version=$version" >&2
-
-          prerelease="false"
           tag="${version}"
-
-          if [ "$ref" = "dev" ]; then
-            prerelease="true"
-
-            # Ensure we have remote tags to inspect
-            git fetch --tags --prune origin
-
-            # Collect exact-match prerelease numbers for tags that start with "<version>-"
-            # This avoids partial matches like '1.1.41' when base version is '1.1.4'
-            : > /tmp/pr_nums || true
-
-            # Use ls-remote to avoid depending on local clone tags; normalize tag names:
-            #  - strip refs/tags/
-            #  - remove annotated tag suffix ^{} if present
-            #  - remove leading v prefix
-            git ls-remote --tags origin | awk '{print $2}' \
-              | sed 's@refs/tags/@@' \
-              | sed 's/\\^{}$//' \
-              | sed 's/^v//' \
-              | while IFS= read -r tagname; do
-                  if [[ "$tagname" == "${version}-"* ]]; then
-                    num="${tagname#${version}-}"
-                    if [[ "$num" =~ ^[0-9]+$ ]]; then
-                      echo "$num" >> /tmp/pr_nums
-                    fi
-                  fi
-                done || true
-
-            echo "[debug] matching prerelease numbers:" >&2
-            cat /tmp/pr_nums 2>/dev/null || echo "(none)" >&2
-
-            max=0
-            if [ -f /tmp/pr_nums ]; then
-              while read -r n; do
-                if [ -n "$n" ] && [[ "$n" =~ ^[0-9]+$ ]]; then
-                  if [ "$n" -gt "$max" ]; then
-                    max="$n"
-                  fi
-                fi
-              done < /tmp/pr_nums || true
-            fi
-
-            next=$((max + 1))
-            tag="${version}-${next}"
-          fi
 
           echo "[debug] computed tag=${tag}" >&2
 
           # Expose outputs
           echo "tag=${tag}" >> $GITHUB_OUTPUT
-          echo "prerelease=${prerelease}" >> $GITHUB_OUTPUT
 
           # Ensure a committer identity is configured for tagging (CI runners don't have one by default)
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
@@ -142,17 +88,15 @@ jobs:
           fi
         shell: bash
 
-      - name: Build (if needed)
+      - name: Build
         run: bun run build
         shell: bash
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          # Use the computed tag (e.g. "1.1.4" or "1.1.4-1")
           tag_name: ${{ steps.prepare.outputs.tag }}
           name: Release ${{ steps.prepare.outputs.tag }}
-          prerelease: ${{ steps.prepare.outputs.prerelease }}
           files: |
             dist/shiggycord.js
             dist/shiggycord.min.js
