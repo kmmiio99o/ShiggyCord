@@ -20,7 +20,8 @@ export function patchCommands() {
     [
         require("@core/commands/eval"),
         require("@core/commands/debug"),
-        require("@core/commands/plugins")
+        require("@core/commands/plugins"),
+        require("@core/commands/reload")
     ].forEach(r => registerCommand(r.default()));
 
     return () => {
