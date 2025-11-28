@@ -11,7 +11,10 @@ Bundle based on Kettu, made just for fun
 - Non-Rooted: [Shiggy Manager](https://github.com/kmmiio99o/ShiggyManager)
 
 ### Android/iOS
-- **Injecting bundle:** ``https://github.com/kmmiio99o/ShiggyCord/releases/download/<VERSION>/shiggycord.js``
+- **Injecting bundle:**
+  ```url
+  https://github.com/kmmiio99o/ShiggyCord/releases/latest/download/shiggycord.js
+  ```
 
 ## Building
 1. Install a ShiggyCord loader with loader config support (any mentioned in the [Installing](#installing) section).
