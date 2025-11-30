@@ -40,7 +40,7 @@ export default function General() {
       >
         <TableRowGroup title="App Information">
           <TableRow
-            label="ShiggyCord"
+            label="ShiggyCold"
             icon={<TableRow.Icon source={{ uri: shiggycordIcon }} />}
             trailing={<TableRow.TrailingText text={debugInfo.bunny.version} />}
           />

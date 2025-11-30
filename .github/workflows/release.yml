@@ -5,6 +5,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Custom Release Name (e.g., "Jolly", "Christmas")'
+        required: true
+        type: string
+      release_tag:
+        description: 'Release Tag (e.g., "v1.0.0")'
+        required: true
+        type: string
 
 jobs:
   release:
@@ -29,33 +38,38 @@ jobs:
         run: bun install
         shell: bash
 
-      - name: Extract version
-        id: extract
+      - name: Determine Release Info
+        id: release_info
         run: |
-          # Extract major.minor.patch version from scripts/build.mjs
-          # This locates the first quoted three-segment version string in the build script (e.g. "1.1.7")
-          if [ ! -f scripts/build.mjs ]; then
-            echo "scripts/build.mjs not found" >&2
-            exit 1
+          # For workflow_dispatch, use the provided inputs
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            release_name="${{ github.event.inputs.release_name }}"
+            release_tag="${{ github.event.inputs.release_tag }}"
+          else
+            # For push events, extract version and generate a name
+            if [ ! -f scripts/build.mjs ]; then
+              echo "scripts/build.mjs not found" >&2
+              exit 1
+            fi
+
+            # Extract version
+            raw=$(grep -m1 -oE '\"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\"' scripts/build.mjs | tr -d '\"' | head -n1 || true)
+            version=$(printf '%s' "$raw" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+            if ! printf '%s' "$version" | grep -xE '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
+              echo "Failed to extract a valid base version from scripts/build.mjs" >&2
+              exit 1
+            fi
+
+            # Use version-based naming for push events
+            release_name="Release v${version}"
+            release_tag="v${version}"
           fi
-          # Print a snippet of the file for debugging in workflow logs
-          echo '--- scripts/build.mjs (snippet) ---' >&2
-          sed -n '1,200p' scripts/build.mjs >&2 || true
 
-          # Primary extraction: find the first quoted semver (may include prerelease suffix, but we strip it)
-          raw=$(grep -m1 -oE '\"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\"' scripts/build.mjs | tr -d '\"' | head -n1 || true)
-
-          # Strip any prerelease suffix, keep only major.minor.patch
-          version=$(printf '%s' "$raw" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-
-          # Validate final result is exactly major.minor.patch
-          if ! printf '%s' "$version" | grep -xE '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
-            echo "Failed to extract a valid base version from scripts/build.mjs" >&2
-            sed -n '1,200p' scripts/build.mjs >&2 || true
-            exit 1
-          fi
-
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "release_name=${release_name}" >> $GITHUB_OUTPUT
+          echo "release_tag=${release_tag}" >> $GITHUB_OUTPUT
+          echo "Using release name: ${release_name}" >&2
+          echo "Using release tag: ${release_tag}" >&2
         shell: bash
 
       - name: Prepare tag
@@ -65,9 +79,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Use the extracted version directly as the tag for main branch releases
-          version="${{ steps.extract.outputs.version }}"
-          tag="${version}"
+          tag="${{ steps.release_info.outputs.release_tag }}"
 
           echo "[debug] computed tag=${tag}" >&2
 
@@ -95,8 +107,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.prepare.outputs.tag }}
-          name: Release ${{ steps.prepare.outputs.tag }}
+          tag_name: ${{ steps.release_info.outputs.release_tag }}
+          name: ${{ steps.release_info.outputs.release_name }}
           files: |
             dist/shiggycord.js
             dist/shiggycord.min.js

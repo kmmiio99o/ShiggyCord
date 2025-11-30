@@ -12,6 +12,7 @@ export const getCorePlugins = (): Record<string, CorePlugin> => ({
   "bunny.notrack": require("./notrack"),
   "bunny.messagefix": require("./messagefix"),
   "bunny.fixembed": require("./fixembed"),
+  "bunny.enhancements": require("./shiggyenhancements")
 });
 
 /**

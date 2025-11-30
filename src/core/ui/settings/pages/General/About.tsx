@@ -93,7 +93,7 @@ export default function About() {
             variant="text-md/medium"
             style={{ textAlign: "center", marginTop: 4 }}
           >
-            Shiggy your discord client!
+            Jolly your discord client!
           </Text>
         </View>
 
