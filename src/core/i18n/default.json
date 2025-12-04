@@ -78,6 +78,7 @@
     "MODAL_UNPROXIED_PLUGIN_DESC": "The plugin you are trying to install has not been proxied/verified by staff. Are you sure you want to continue?",
     "MODAL_UNPROXIED_PLUGIN_HEADER": "Unproxied Plugin",
     "MODEL": "Model",
+    "MODELID": "Model Identifier",
     "OPEN_IN_BROWSER": "Open in Browser",
     "OPERATING_SYSTEM": "Operating System",
     "OVERFLOW_PLUGIN_SETTINGS": "Plugin Settings",
