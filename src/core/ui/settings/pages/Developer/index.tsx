@@ -60,12 +60,20 @@ export default function Developer() {
                           borderTopRightRadius: 16,
                           overflow: 'hidden'
                       }}>
-                          <TableRow
-                              label={Strings.CONNECT_TO_DEBUG_WEBSOCKET}
-                              icon={<TableRow.Icon source={findAssetId("copy")} />}
-                              onPress={() => connectToDebugger(settings.debuggerUrl)}
-                          />
+                        <TableSwitchRow
+                            label={Strings.AUTO_DEBUGGER}
+                            icon={<TableRow.Icon source={findAssetId("copy")} />}
+                            value={settings.autoDebugger}
+                            onValueChange={(v: boolean) => {
+                                settings.autoDebugger = v;
+                            }}
+                        />
                       </Stack>
+                      <TableRow
+                          label={Strings.CONNECT_TO_DEBUG_WEBSOCKET}
+                          icon={<TableRow.Icon source={findAssetId("copy")} />}
+                          onPress={() => connectToDebugger(settings.debuggerUrl)}
+                      />
 
                     </TableRowGroup>
                     {isReactDevToolsPreloaded() && <>
@@ -84,14 +92,23 @@ export default function Developer() {
                           borderTopRightRadius: 16,
                           overflow: 'hidden'
                       }}>
-                        <TableRow
-                            label={Strings.CONNECT_TO_REACT_DEVTOOLS}
+                        <TableSwitchRow
+                            label={Strings.AUTO_DEVTOOLS}
                             icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
-                            onPress={async () => {
-                                if (!settings.devToolsUrl?.trim()) {
-                                    showToast("Invalid devTools URL!", findAssetId("Small"));
-                                    return;
-                                }
+                            value={settings.autoDevTools}
+                            onValueChange={(v: boolean) => {
+                                settings.autoDevTools = v;
+                            }}
+                        />
+                      </Stack>
+                      <TableRow
+                          label={Strings.CONNECT_TO_REACT_DEVTOOLS}
+                          icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                          onPress={async () => {
+                              if (!settings.devToolsUrl?.trim()) {
+                                  showToast("Invalid devTools URL!", findAssetId("Small"));
+                                  return;
+                              }
 
                                 try {
                                     const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
@@ -110,8 +127,7 @@ export default function Developer() {
                                 }
                             }}
 
-                        />
-                      </Stack>
+                      />
                       </TableRowGroup>
                     </>}
                     {isLoaderConfigSupported() && <>
