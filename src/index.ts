@@ -13,6 +13,7 @@ import { injectFluxInterceptor } from "@lib/api/flux";
 import { patchJsx } from "@lib/api/react/jsx";
 import { logger } from "@lib/utils/logger";
 import { patchSettings } from "@ui/settings";
+import { initDebugger } from "@lib/api/debug";
 
 import * as lib from "./lib";
 
@@ -39,6 +40,8 @@ export default async () => {
         // Push them all to unloader
         u => u.forEach(f => f && lib.unload.push(f))
     );
+
+    initDebugger()
 
     // Assign window object
     window.bunny = lib;
