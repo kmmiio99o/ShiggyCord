@@ -11,9 +11,9 @@ import { injectFluxInterceptor } from "@lib/api/flux";
 import { patchJsx } from "@lib/api/react/jsx";
 import { logger } from "@lib/utils/logger";
 import { patchSettings } from "@ui/settings";
-import { InteractionManager } from "react-native";
 import { updaterSettings } from "@lib/api/settings";
-import { getDebugInfo } from "@lib/api/debug";
+import { InteractionManager } from "react-native";
+import { getDebugInfo, initDebugger } from "@lib/api/debug";
 
 // Debug toggle helper (temporary runtime fallback). The helper is dynamically
 // imported when needed (to avoid bundling it permanently) and removed after use.
@@ -38,6 +38,7 @@ export default async () => {
     initFetchI18nStrings(),
     initSettings(),
     initFixes(),
+    initDebugger(),
   ];
 
   // Run critical inits and collect unpatchers/cleanup handlers.
