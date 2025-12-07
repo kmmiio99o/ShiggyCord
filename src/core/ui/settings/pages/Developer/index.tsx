@@ -280,18 +280,7 @@ export default function Developer() {
                   },
                   options: [
                     {
-                      label: Strings.SHIGGYCORD,
-                      onPress: () =>
-                        navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
-                          render: () => {
-                            // Trigger an error by accessing a property on undefined
-                            const undefinedObj: any = undefined;
-                            return undefinedObj.someProperty;
-                          },
-                        }),
-                    },
-                    {
-                      label: "Discord",
+                      label: "ShiggyCord",
                       isDestructive: true,
                       onPress: () =>
                         navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
