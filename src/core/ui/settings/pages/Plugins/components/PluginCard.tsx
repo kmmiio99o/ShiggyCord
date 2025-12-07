@@ -154,8 +154,7 @@ export default function PluginCard({
 
   // Protect specific core plugins from being toggled
   const idLower = ((plugin.id || "") as string).toLowerCase();
-  const isProtectedCore =
-    idLower.includes("quickinstall") || idLower === "bunny.badges";
+  const isProtectedCore = idLower.includes("quickinstall");
 
   return (
     <CardContext.Provider value={cardContextValue}>
