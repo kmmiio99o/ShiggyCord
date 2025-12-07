@@ -33,3 +33,10 @@ export const loaderConfig = wrapSync(createStorage<LoaderConfig>(
         }
     })
 ));
+
+export interface UpdaterSettings {
+    fetchPluginsOnStart?: boolean;
+    repoAutoFetchOverrides?: Record<string, boolean>;
+}
+
+export const updaterSettings = wrapSync(createStorage<UpdaterSettings>(createMMKVBackend("VENDETTA_UPDATER_SETTINGS")));
