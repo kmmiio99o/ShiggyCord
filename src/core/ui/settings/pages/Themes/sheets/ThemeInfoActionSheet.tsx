@@ -14,6 +14,7 @@ import {
   VdThemeInfo,
 } from "@lib/addons/themes";
 import { formatString, Strings } from "@core/i18n";
+import { semanticColors } from "@ui/color";
 
 interface ThemeInfoActionSheetProps {
   theme: VdThemeInfo;
@@ -191,8 +192,10 @@ export default function ThemeInfoActionSheet({
         <Card>
           <Text
             variant="text-md/semibold"
-            color="text-primary"
-            style={{ marginBottom: 4 }}
+            style={{
+              marginBottom: 4,
+              color: semanticColors.HEADER_PRIMARY,
+            }}
           >
             Description
           </Text>

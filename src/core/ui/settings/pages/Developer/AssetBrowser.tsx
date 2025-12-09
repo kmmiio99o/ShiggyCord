@@ -27,8 +27,10 @@ export default function AssetBrowser() {
         >
           <Text
             variant="text-sm/medium"
-            color="text-danger"
-            style={{ marginBottom: 16 }}
+            style={{
+              marginBottom: 16,
+              color: "var(--text-muted)",
+            }}
           >
             Some assets types cannot be displayed and will be marked in red.
           </Text>

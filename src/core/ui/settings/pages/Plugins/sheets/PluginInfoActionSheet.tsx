@@ -16,6 +16,7 @@ import { showToast } from "@ui/toasts";
 import { showConfirmationAlert } from "@core/vendetta/alerts";
 import { VdPluginManager } from "@core/vendetta/plugins";
 import { purgeStorage as purgeVdStorage } from "@core/vendetta/storage";
+import { semanticColors } from "@ui/color";
 
 import { PluginInfoActionSheetProps } from "./common";
 import TitleComponent from "./TitleComponent";
@@ -233,8 +234,10 @@ export default function PluginInfoActionSheet({
         <Card>
           <Text
             variant="text-md/semibold"
-            color="text-primary"
-            style={{ marginBottom: 4 }}
+            style={{
+              marginBottom: 4,
+              color: semanticColors.HEADER_PRIMARY,
+            }}
           >
             Description
           </Text>
