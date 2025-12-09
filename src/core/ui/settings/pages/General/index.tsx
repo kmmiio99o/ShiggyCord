@@ -14,12 +14,14 @@ import {
   AlertActionButton,
   AlertActions,
   AlertModal,
+  Card,
   Stack,
   TableRow,
   TableRowGroup,
   TableSwitchRow,
+  Text,
 } from "@metro/common/components";
-import { Linking, ScrollView } from "react-native";
+import { Linking, ScrollView, View, TouchableOpacity } from "react-native";
 
 import React from "react";
 
@@ -28,6 +30,77 @@ export default function General() {
 
   const debugInfo = getDebugInfo();
   const navigation = NavigationNative.useNavigation();
+
+  // Custom Community Card Button
+  const CommunityCardButton = ({ icon, label, subLabel, color, onPress }) => (
+    <TouchableOpacity style={{ flex: 1 }} onPress={onPress} activeOpacity={0.7}>
+      <Card
+        style={{
+          backgroundColor: color,
+          borderRadius: 16,
+          padding: 16,
+          height: 100, // Increased height to accommodate text
+          justifyContent: "center",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            gap: 12,
+          }}
+        >
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <TableRow.Icon
+              source={icon}
+              style={{
+                tintColor: "#FFFFFF",
+                width: 24,
+                height: 24,
+              }}
+            />
+          </View>
+          <View
+            style={{
+              flexDirection: "column",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              flex: 1,
+            }}
+          >
+            <Text
+              variant="text-md/semibold"
+              style={{
+                color: "#FFFFFF",
+                textAlign: "left",
+              }}
+            >
+              {label}
+            </Text>
+            {subLabel && (
+              <Text
+                variant="text-sm/medium"
+                style={{
+                  color: "#FFFFFFCC",
+                  textAlign: "left",
+                }}
+              >
+                {subLabel}
+              </Text>
+            )}
+          </View>
+        </View>
+      </Card>
+    </TouchableOpacity>
+  );
 
   return (
     <ScrollView
@@ -47,7 +120,7 @@ export default function General() {
           <TableRow
             label="Discord"
             subLabel={`Version ${debugInfo.discord.version}`}
-            icon={<TableRow.Icon source={findAssetId("Discord")!} />}
+            icon={<TableRow.Icon source={findAssetId("Discord")} />}
             trailing={
               <TableRow.TrailingText
                 text={`Build ${debugInfo.discord.build}`}
@@ -57,7 +130,7 @@ export default function General() {
           <TableRow
             label="Loader"
             subLabel={`${debugInfo.bunny.loader.name} loader`}
-            icon={<TableRow.Icon source={findAssetId("DownloadIcon")!} />}
+            icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
             trailing={
               <TableRow.TrailingText text={debugInfo.bunny.loader.version} />
             }
@@ -67,13 +140,13 @@ export default function General() {
           <TableRow
             label={Strings.RELOAD_DISCORD}
             subLabel="Restart the application"
-            icon={<TableRow.Icon source={findAssetId("RetryIcon")!} />}
+            icon={<TableRow.Icon source={findAssetId("RetryIcon")} />}
             onPress={() => BundleUpdaterManager.reload()}
           />
           <TableSwitchRow
             label="Safe Mode"
             subLabel="Temporarily disable all add-ons"
-            icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
+            icon={<TableRow.Icon source={findAssetId("ShieldIcon")} />}
             value={isSafeMode()}
             onValueChange={(to: boolean) => {
               toggleSafeMode({ to, reload: false });
@@ -106,7 +179,7 @@ export default function General() {
           <TableSwitchRow
             label={Strings.DEVELOPER_SETTINGS}
             subLabel="Enable developer tools and settings"
-            icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
+            icon={<TableRow.Icon source={findAssetId("WrenchIcon")} />}
             value={settings.developerSettings}
             onValueChange={(v: boolean) => {
               settings.developerSettings = v;
@@ -115,33 +188,38 @@ export default function General() {
           <TableSwitchRow
             label={Strings.SETTINGS_ACTIVATE_DISCORD_EXPERIMENTS}
             subLabel={Strings.SETTINGS_ACTIVATE_DISCORD_EXPERIMENTS_DESC}
-            icon={<TableRow.Icon source={findAssetId("FlaskIcon")!} />}
+            icon={<TableRow.Icon source={findAssetId("FlaskIcon")} />}
             value={settings.enableDiscordDeveloperSettings}
             onValueChange={(v: boolean) => {
               settings.enableDiscordDeveloperSettings = v;
             }}
           />
         </TableRowGroup>
+
         <TableRowGroup title="Community & Support">
-          <TableRow
-            arrow={true}
-            label={Strings.DISCORD_SERVER}
-            subLabel="Join our community server"
-            icon={<TableRow.Icon source={findAssetId("Discord")!} />}
-            onPress={() => Linking.openURL(DISCORD_SERVER)}
-          />
-          <TableRow
-            arrow={true}
-            label={Strings.GITHUB}
-            subLabel="Source code and issues"
-            icon={
-              <TableRow.Icon
-                source={findAssetId("img_account_sync_github_white")!}
-              />
-            }
-            onPress={() => Linking.openURL(GITHUB)}
-          />
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 12,
+            }}
+          >
+            <CommunityCardButton
+              icon={findAssetId("Discord")}
+              label="Discord"
+              subLabel="Join our support server"
+              color="#5865F2"
+              onPress={() => Linking.openURL(DISCORD_SERVER)}
+            />
+            <CommunityCardButton
+              icon={findAssetId("img_account_sync_github_white")}
+              label="GitHub"
+              subLabel="View the source code"
+              color="#24292E"
+              onPress={() => Linking.openURL(GITHUB)}
+            />
+          </View>
         </TableRowGroup>
+
         <TableRowGroup title="System Information">
           <TableRow
             arrow
@@ -149,7 +227,7 @@ export default function General() {
             subLabel="Detailed technical information"
             icon={
               <TableRow.Icon
-                source={findAssetId("CircleInformationIcon-primary")!}
+                source={findAssetId("CircleInformationIcon-primary")}
               />
             }
             onPress={() =>
