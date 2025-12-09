@@ -26,6 +26,7 @@ import {
 import { findByProps } from "@metro/wrappers";
 import { semanticColors } from "@ui/color";
 import { ErrorBoundary } from "@ui/components";
+import ErrorBoundaryScreen from "@core/ui/reporter/components/ErrorBoundaryScreen";
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { NativeModules } from "react-native";
 import { ScrollView, StyleSheet } from "react-native";
@@ -51,6 +52,12 @@ const useStyles = createStyles({
     ...TextStyleSheet["heading-md/semibold"],
     color: semanticColors.TEXT_MUTED,
     marginRight: -4,
+  },
+  inputGroup: {
+    marginTop: 4,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: "hidden",
   },
 });
 
@@ -85,209 +92,138 @@ export default function Developer() {
               defaultValue={settings.debuggerUrl}
               onChange={(v: string) => (settings.debuggerUrl = v)}
             />
-            <Stack
-              style={{
-                marginTop: 4,
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
-                overflow: "hidden",
+            <TableSwitchRow
+              label={Strings.AUTO_DEBUGGER}
+              icon={<TableRow.Icon source={findAssetId("copy")} />}
+              value={settings.autoDebugger}
+              onValueChange={(v: boolean) => {
+                settings.autoDebugger = v;
               }}
-            >
-              <TableSwitchRow
-                label={Strings.AUTO_DEBUGGER}
-                icon={<TableRow.Icon source={findAssetId("copy")} />}
-                value={settings.autoDebugger}
-                onValueChange={(v: boolean) => {
-                  settings.autoDebugger = v;
-                }}
-              />
-            </Stack>
+            />
             <TableRow
               label={Strings.CONNECT_TO_DEBUG_WEBSOCKET}
-              icon={<TableRow.Icon source={findAssetId("copy")} />}
+              subLabel="Connect to Chrome DevTools for debugging"
+              icon={<TableRow.Icon source={findAssetId("WrenchIcon")} />}
               onPress={() => connectToDebugger(settings.debuggerUrl)}
             />
           </TableRowGroup>
+
           {isReactDevToolsPreloaded() && (
-            <>
-              <TableRowGroup title={Strings.DEVTOOLS_URL}>
-                <TextInput
-                  placeholder="127.0.0.1:8097"
-                  size="md"
-                  leadingIcon={() => (
-                    <LegacyFormText style={styles.leadingText}>
-                      ws://
-                    </LegacyFormText>
-                  )}
-                  defaultValue={settings.devToolsUrl}
-                  onChange={(v: string) => (settings.devToolsUrl = v)}
-                />
-                <Stack
-                  style={{
-                    marginTop: 4,
-                    borderTopLeftRadius: 16,
-                    borderTopRightRadius: 16,
-                    overflow: "hidden",
-                  }}
-                >
-                  <TableSwitchRow
-                    label={Strings.AUTO_DEVTOOLS}
-                    icon={
-                      <TableRow.Icon source={findAssetId("ic_badge_staff")} />
-                    }
-                    value={settings.autoDevTools}
-                    onValueChange={(v: boolean) => {
-                      settings.autoDevTools = v;
-                    }}
-                  />
-                </Stack>
-                <TableRow
-                  label={Strings.CONNECT_TO_REACT_DEVTOOLS}
-                  icon={
-                    <TableRow.Icon source={findAssetId("ic_badge_staff")} />
+            <TableRowGroup title="React Development">
+              <TextInput
+                placeholder="127.0.0.1:8097"
+                size="md"
+                leadingIcon={() => (
+                  <LegacyFormText style={styles.leadingText}>
+                    ws://
+                  </LegacyFormText>
+                )}
+                defaultValue={settings.devToolsUrl}
+                onChange={(v: string) => (settings.devToolsUrl = v)}
+              />
+              <TableSwitchRow
+                label={Strings.AUTO_DEVTOOLS}
+                icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                value={settings.autoDevTools}
+                onValueChange={(v: boolean) => {
+                  settings.autoDevTools = v;
+                }}
+              />
+              <TableRow
+                label={Strings.CONNECT_TO_REACT_DEVTOOLS}
+                subLabel="Connect React DevTools for component debugging"
+                icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                onPress={async () => {
+                  if (!settings.devToolsUrl?.trim()) {
+                    showToast("Invalid devTools URL!", findAssetId("Small"));
+                    return;
                   }
-                  onPress={async () => {
-                    if (!settings.devToolsUrl?.trim()) {
-                      showToast("Invalid devTools URL!", findAssetId("Small"));
+
+                  try {
+                    const devTools =
+                      window[getReactDevToolsProp() || "__vendetta_rdc"];
+
+                    if (!devTools?.connectToDevTools) {
+                      showToast(
+                        "React DevTools not available",
+                        findAssetId("Small"),
+                      );
                       return;
                     }
 
-                    try {
-                      const devTools =
-                        window[getReactDevToolsProp() || "__vendetta_rdc"];
+                    await devTools.connectToDevTools({
+                      host: settings.devToolsUrl.split(":")?.[0],
+                      resolveRNStyle: StyleSheet.flatten,
+                    });
+                    showToast(
+                      "Connected to React DevTools!",
+                      findAssetId("Check"),
+                    );
+                  } catch (error) {
+                    showToast(
+                      "Failed to connect to React DevTools",
+                      findAssetId("Small"),
+                    );
+                  }
+                }}
+              />
 
-                      if (!devTools?.connectToDevTools) {
-                        showToast(
-                          "Invalid devTools URL!",
-                          findAssetId("Small"),
-                        );
-                        return;
-                      }
-
-                      await devTools.connectToDevTools({
-                        host: settings.devToolsUrl.split(":")?.[0],
-                        resolveRNStyle: StyleSheet.flatten,
-                      });
-                    } catch (error) {
-                      showToast("Invalid devTools URL!", findAssetId("Small"));
-                    }
-                  }}
-                />
-              </TableRowGroup>
-            </>
-          )}
-          {isLoaderConfigSupported() && (
-            <>
-              <TableRowGroup title="Loader config">
+              {isLoaderConfigSupported() && isVendettaLoader() && (
                 <TableSwitchRow
-                  label={Strings.LOAD_FROM_CUSTOM_URL}
-                  subLabel={Strings.LOAD_FROM_CUSTOM_URL_DEC}
-                  icon={<TableRow.Icon source={findAssetId("copy")} />}
-                  value={loaderConfig.customLoadUrl.enabled}
+                  label={Strings.LOAD_REACT_DEVTOOLS}
+                  subLabel={`${Strings.VERSION}: ${getReactDevToolsVersion()}`}
+                  icon={
+                    <TableRow.Icon source={findAssetId("ic_badge_staff")} />
+                  }
+                  value={loaderConfig.loadReactDevTools}
                   onValueChange={(v: boolean) => {
-                    loaderConfig.customLoadUrl.enabled = v;
+                    loaderConfig.loadReactDevTools = v;
                   }}
                 />
-                {loaderConfig.customLoadUrl.enabled && (
-                  <TableRow
-                    label={
-                      <TextInput
-                        defaultValue={loaderConfig.customLoadUrl.url}
-                        size="md"
-                        onChange={(v: string) =>
-                          (loaderConfig.customLoadUrl.url = v)
-                        }
-                        placeholder="http://localhost:4040/kettu.js"
-                        label={Strings.SHIGGY_URL}
-                      />
-                    }
-                  />
-                )}
-                {isReactDevToolsPreloaded() && isVendettaLoader() && (
-                  <TableSwitchRow
-                    label={Strings.LOAD_REACT_DEVTOOLS}
-                    subLabel={`${Strings.VERSION}: ${getReactDevToolsVersion()}`}
-                    icon={
-                      <TableRow.Icon source={findAssetId("ic_badge_staff")} />
-                    }
-                    value={loaderConfig.loadReactDevTools}
-                    onValueChange={(v: boolean) => {
-                      loaderConfig.loadReactDevTools = v;
-                    }}
-                  />
-                )}
-              </TableRowGroup>
-            </>
+              )}
+            </TableRowGroup>
           )}
-          <TableRowGroup title="Other">
-            <TableRow
-              // Thanks for this Revenge team!
-              label={Strings.CLEAR_BUNDLE}
-              icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}
-              onPress={() => {
-                openAlert(
-                  "pupu-clear-bundle-reload-confirmation",
-                  <AlertModal
-                    title={Strings.MODAL_RELOAD_REQUIRED}
-                    content={Strings.MODAL_RELOAD_REQUIRED_DESC}
-                    actions={
-                      <Stack>
-                        <AlertActionButton
-                          text={Strings.RELOAD}
-                          variant="destructive"
-                          onPress={() =>
-                            NativeModules.BundleUpdaterManager.reload()
-                          }
-                        />
-                        <AlertActionButton
-                          text={Strings.CANCEL}
-                          variant="secondary"
-                        />
-                      </Stack>
-                    }
-                  />,
-                );
-              }}
-            />
+
+          {isLoaderConfigSupported() && (
+            <TableRowGroup title="Loader Configuration">
+              <TableSwitchRow
+                label={Strings.LOAD_FROM_CUSTOM_URL}
+                subLabel={Strings.LOAD_FROM_CUSTOM_URL_DEC}
+                icon={<TableRow.Icon source={findAssetId("LinkIcon")} />}
+                value={loaderConfig.customLoadUrl.enabled}
+                onValueChange={(v: boolean) => {
+                  loaderConfig.customLoadUrl.enabled = v;
+                }}
+              />
+              {loaderConfig.customLoadUrl.enabled && (
+                <TableRow
+                  label={
+                    <TextInput
+                      defaultValue={loaderConfig.customLoadUrl.url}
+                      size="md"
+                      onChange={(v: string) =>
+                        (loaderConfig.customLoadUrl.url = v)
+                      }
+                      placeholder="http://localhost:4040/shiggycord.js"
+                      label={Strings.SHIGGYCORD_URL}
+                    />
+                  }
+                />
+              )}
+            </TableRowGroup>
+          )}
+
+          <TableRowGroup title="Inspection & Testing">
             <TableRow
               arrow
               label={Strings.ASSET_BROWSER}
+              subLabel="Browse and inspect Discord's assets"
               icon={<TableRow.Icon source={findAssetId("ic_image")} />}
               trailing={TableRow.Arrow}
               onPress={() =>
-                navigation.push("PUPU_CUSTOM_PAGE", {
+                navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                   title: Strings.ASSET_BROWSER,
                   render: AssetBrowser,
-                })
-              }
-            />
-            <TableRow
-              arrow
-              label={Strings.ERROR_BOUNDARY_TOOLS_LABEL}
-              icon={<TableRow.Icon source={findAssetId("ic_warning_24px")} />}
-              onPress={() =>
-                showSimpleActionSheet({
-                  key: "ErrorBoundaryTools",
-                  header: {
-                    title: "Which ErrorBoundary do you want to trip?",
-                    icon: (
-                      <TableRow.Icon
-                        style={{ marginRight: 8 }}
-                        source={findAssetId("ic_warning_24px")}
-                      />
-                    ),
-                    onClose: () => hideActionSheet(),
-                  },
-                  options: [
-                    {
-                      label: "ShiggyCord",
-                      isDestructive: true,
-                      onPress: () =>
-                        navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
-                          noErrorBoundary: true,
-                        }),
-                    },
-                  ],
                 })
               }
             />
@@ -327,6 +263,48 @@ export default function Developer() {
                 />
               }
             />
+            <TableRow
+              arrow
+              label={Strings.ERROR_BOUNDARY_TOOLS_LABEL}
+              subLabel="Test error boundaries and crash handling"
+              icon={<TableRow.Icon source={findAssetId("ic_warning_24px")} />}
+              onPress={() =>
+                showSimpleActionSheet({
+                  key: "ErrorBoundaryTools",
+                  header: {
+                    title: "Which ErrorBoundary do you want to trip?",
+                    icon: (
+                      <TableRow.Icon
+                        style={{ marginRight: 8 }}
+                        source={findAssetId("ic_warning_24px")}
+                      />
+                    ),
+                  },
+                  options: [
+                    {
+                      label: Strings.SHIGGYCORD,
+                      onPress: () =>
+                        navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
+                          render: () => (
+                            <ErrorBoundaryScreen
+                              error={new Error("ShiggyCord test crash")}
+                              rerender={() => {}}
+                            />
+                          ),
+                        }),
+                    },
+                    {
+                      label: "Discord",
+                      isDestructive: true,
+                      onPress: () =>
+                        navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
+                          noErrorBoundary: true,
+                        }),
+                    },
+                  ],
+                })
+              }
+            />
             <TableSwitchRow
               label={Strings.ENABLE_EVAL_COMMAND}
               subLabel={Strings.ENABLE_EVAL_COMMAND_DESC}
@@ -334,6 +312,38 @@ export default function Developer() {
               value={!!settings.enableEvalCommand}
               onValueChange={(v: boolean) => {
                 settings.enableEvalCommand = v;
+              }}
+            />
+          </TableRowGroup>
+
+          <TableRowGroup title="Dangerous Actions">
+            <TableRow
+              label={Strings.CLEAR_BUNDLE}
+              subLabel="Clear cached bundle and force reload"
+              icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}
+              onPress={() => {
+                openAlert(
+                  "shiggycord-clear-bundle-reload-confirmation",
+                  <AlertModal
+                    title={Strings.MODAL_RELOAD_REQUIRED}
+                    content={Strings.MODAL_RELOAD_REQUIRED_DESC}
+                    actions={
+                      <Stack>
+                        <AlertActionButton
+                          text={Strings.RELOAD}
+                          variant="destructive"
+                          onPress={() =>
+                            NativeModules.BundleUpdaterManager.reload()
+                          }
+                        />
+                        <AlertActionButton
+                          text={Strings.CANCEL}
+                          variant="secondary"
+                        />
+                      </Stack>
+                    }
+                  />,
+                );
               }}
             />
           </TableRowGroup>
