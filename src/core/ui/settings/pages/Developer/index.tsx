@@ -45,7 +45,8 @@ const { AlertModal, AlertActionButton } = lazyDestructure(() =>
   findByProps("AlertModal", "AlertActions"),
 );
 
-const RDT_EMBED_LINK = "https://cdn.bwlok.dev/rdt/devTools.js";
+// todo: This link isnt minified, but it probably should be
+const RDT_EMBED_LINK = "https://codeberg.org/raincord/Devtools/raw/branch/main/reactDevtools.js";
 
 const useStyles = createStyles({
   leadingText: {
