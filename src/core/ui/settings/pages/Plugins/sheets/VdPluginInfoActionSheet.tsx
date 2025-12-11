@@ -43,7 +43,7 @@ export default function PluginInfoActionSheet({
                 size="md"
                 text="Configure"
                 variant="secondary"
-                icon={findAssetId("WrenchIcon")}
+                icon={findAssetId("SettingsIcon")}
                 onPress={() => {
                   hideSheet("PluginInfoActionSheet");
                   navigation.push("SHIGGYCORD_CUSTOM_PAGE", {

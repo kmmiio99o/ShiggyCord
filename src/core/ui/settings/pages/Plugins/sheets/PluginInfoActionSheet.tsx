@@ -195,7 +195,7 @@ export default function PluginInfoActionSheet({
             label="Configure"
             variant="secondary"
             disabled={!plugin.getPluginSettingsComponent()}
-            icon={findAssetId("WrenchIcon")}
+            icon={findAssetId("SettingsIcon")}
             onPress={() => {
               navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
                 title: plugin.name,

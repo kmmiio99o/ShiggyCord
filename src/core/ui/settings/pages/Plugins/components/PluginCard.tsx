@@ -115,7 +115,7 @@ const Actions = () => {
       <IconButton
         size="sm"
         variant="secondary"
-        icon={findAssetId("WrenchIcon")}
+        icon={findAssetId("SettingsIcon")}
         disabled={!plugin.getPluginSettingsComponent()}
         onPress={() =>
           navigation.push("SHIGGYCORD_CUSTOM_PAGE", {
