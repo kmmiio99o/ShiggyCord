@@ -44,7 +44,7 @@ const useStyles = createStyles({
   },
   headerLabel: {
     ...TextStyleSheet["heading-md/semibold"],
-    color: semanticColors.HEADER_PRIMARY,
+    color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
   },
   headerSubtitle: {
     ...TextStyleSheet["text-md/semibold"],

@@ -194,7 +194,7 @@ export default function ThemeInfoActionSheet({
             variant="text-md/semibold"
             style={{
               marginBottom: 4,
-              color: semanticColors.HEADER_PRIMARY,
+              color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
             }}
           >
             Description
