@@ -15,7 +15,8 @@ import { ActionSheet, AlertModal, AlertActions, TableRow, TableRowGroup } from "
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
 
-const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
+const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
+const { hideActionSheet } = findByProps("hideActionSheet")
 
 interface BaseAddonData {
     name: string;
