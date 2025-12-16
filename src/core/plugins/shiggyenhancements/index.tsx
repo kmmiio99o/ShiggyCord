@@ -240,7 +240,7 @@ export default defineCorePlugin({
 
     // Initialize sound settings
     settings.startupSound = settings.startupSound || {
-      enabled: true,
+      enabled: false,
       probability: 2,
     };
 
