@@ -79,7 +79,7 @@ export default function General() {
             <Text
               variant="text-md/semibold"
               style={{
-                color: "#FFFFFF",
+                color: "text-default",
                 textAlign: "left",
               }}
             >

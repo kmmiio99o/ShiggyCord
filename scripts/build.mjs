@@ -44,6 +44,7 @@ const config = {
   },
   loader: {
     ".png": "dataurl",
+    ".html": "text",
   },
   define: {
     window: "globalThis",
