@@ -332,7 +332,7 @@ export default function FontEditor(props: {
 
                     return <TableRow
                         label={name}
-                        subLabel={error ? <Text variant='text-xs/medium' color='text-danger'>{error.message}</Text> : url}
+                        subLabel={error ? <Text variant='text-xs/medium' color='text-feedback-critical'>{error.message}</Text> : url}
                         trailing={<Stack spacing={8} direction="horizontal">
                             <IconButton
                                 size="sm"

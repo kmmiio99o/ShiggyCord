@@ -236,7 +236,7 @@ export default function PluginInfoActionSheet({
             variant="text-md/semibold"
             style={{
               marginBottom: 4,
-              color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
+              color: "text-strong",
             }}
           >
             Description
