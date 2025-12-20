@@ -363,7 +363,7 @@ export default function FontEditor(props: {
                 })}
                 <TableRow label={<NewEntryRow fontName={props.name} fontEntry={fontEntries} />} />
             </TableRowGroup>
-            {errors && <Text variant='text-sm/medium' color='text-danger'>Some font entries cannot be imported. Please modify the entries and try again.</Text>}
+            {errors && <Text variant='text-sm/medium' color='text-feedback-critical'>Some font entries cannot be imported. Please modify the entries and try again.</Text>}
             <View style={{ flexDirection: "row", justifyContent: "flex-end", bottom: 0, left: 0 }}>
                 <Button
                     size="lg"
