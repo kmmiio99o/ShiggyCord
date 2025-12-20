@@ -151,7 +151,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         return <View style={{ gap: 32, flexGrow: 1, justifyContent: "center", alignItems: "center" }}>
             <View style={{ gap: 8, alignItems: "center" }}>
                 <Image source={findAssetId("empty_quick_switcher")!} />
-                <Text variant="text-lg/semibold" color="text-normal">
+                <Text variant="text-lg/semibold" color="text-default">
                     Oops! Nothing to see here… yet!
                 </Text>
             </View>
@@ -175,7 +175,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             <View style={{ flexDirection: "row", gap: 8 }}>
                 <Search style={{ flexGrow: 1 }} isRound={!!props.sortOptions} onChangeText={v => setSearch(v)} />
                 {props.sortOptions && <IconButton
-                    icon={findAssetId("ArrowsUpDownIcon")}
+                    icon={findAssetId("MoreVerticalIcon")}
                     variant="tertiary"
                     disabled={!!search}
                     onPress={() => showSimpleActionSheet({
@@ -204,7 +204,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 ListHeaderComponent={headerElement}
                 ListEmptyComponent={() => <View style={{ gap: 12, padding: 12, alignItems: "center" }}>
                     <Image source={findAssetId("devices_not_found")!} />
-                    <Text variant="text-lg/semibold" color="text-normal">
+                    <Text variant="text-lg/semibold" color="text-default">
                         Hmmm... could not find that!
                     </Text>
                 </View>}
