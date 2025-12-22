@@ -125,7 +125,7 @@ export function wrap<T extends (...a: any[]) => any>(name: string, fn: T): T {
       return res;
     } finally {
       // for synchronous returns, ensure timing recorded in finally above won't double-record.
-      if (!(fn as any).constructor.name === "AsyncFunction") {
+      if ((fn as any).constructor?.name !== "AsyncFunction") {
         const duration = Math.max(0, now() - t0);
         record(name, duration);
       }
