@@ -22,13 +22,14 @@ import {
 } from "@metro/common/components";
 import { ErrorBoundary, Search } from "@ui/components";
 import { isNotNil } from "es-toolkit";
-import fuzzysort from "fuzzysort";
 import {
   ComponentType,
   ReactNode,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import { Image, ScrollView, View } from "react-native";
 
@@ -198,6 +199,27 @@ export default function AddonPage<T extends object>({
     }
   }, [navigation]);
 
+  const fuzzysortRef = useRef<any>(null);
+  const [fuzzLoaded, setFuzzLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!fuzzysortRef.current) {
+      import("fuzzysort")
+        .then((m) => {
+          if (cancelled) return;
+          fuzzysortRef.current = m.default || m;
+          setFuzzLoaded(true);
+        })
+        .catch(() => {
+          // ignore dynamic import failures; we'll fallback to simple filtering
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const results = useMemo(() => {
     let values = props.items;
     if (props.resolveItem)
@@ -205,11 +227,84 @@ export default function AddonPage<T extends object>({
     const items = values.filter((i) => isNotNil(i) && typeof i === "object");
     if (!search && sortFn) items.sort(sortFn);
 
-    return fuzzysort.go(search, items, {
-      keys: props.searchKeywords,
-      all: true,
+    // Prefer fuzzysort when loaded and a search query exists
+    if (fuzzysortRef.current && search) {
+      try {
+        return fuzzysortRef.current.go(search, items, {
+          keys: props.searchKeywords,
+          all: true,
+        });
+      } catch {
+        // If fuzzysort throws for some reason, fall back to the simple filter below
+      }
+    }
+
+    // If there is no search query, return items shaped similarly to fuzzysort results
+    const makeFallbackResult = (obj: any, keys: any[]) => {
+      const r: any = { obj };
+      // current search query in the outer scope; only highlight when there's an active query
+      const q = String(search ?? "")
+        .toLowerCase()
+        .trim();
+      for (let k = 0; k < keys.length; k++) {
+        const key = keys[k];
+        let text = "";
+        try {
+          text =
+            typeof key === "string" ? String(obj[key] ?? "") : String(key(obj));
+        } catch {
+          text = "";
+        }
+        r[k] = {
+          target: text,
+          highlight: (cb: any) => {
+            // Do not highlight anything when there is no active search.
+            if (!q) return [];
+            const lower = text.toLowerCase();
+            const idx = lower.indexOf(q);
+            if (idx === -1) return [];
+            // Split into before/match/after and invoke the callback for each segment so
+            // consumers can render matched substring(s) with highlight styling while
+            // preserving surrounding context.
+            const parts: any[] = [];
+            let i = 0;
+            const before = text.slice(0, idx);
+            const match = text.slice(idx, idx + q.length);
+            const after = text.slice(idx + q.length);
+            if (before) parts.push(cb(before, i++));
+            parts.push(cb(match, i++));
+            if (after) parts.push(cb(after, i++));
+            return parts;
+          },
+        };
+      }
+      return r;
+    };
+    if (!search) {
+      return items.map((obj: any) =>
+        makeFallbackResult(obj, props.searchKeywords),
+      );
+    }
+
+    // Basic fallback: case-insensitive substring match across configured keys
+    const q = String(search).toLowerCase();
+    const filtered = items.filter((it: any) => {
+      for (const key of props.searchKeywords) {
+        try {
+          const text =
+            typeof key === "string" ? String(it[key] ?? "") : String(key(it));
+          if (text.toLowerCase().includes(q)) return true;
+        } catch {
+          // ignore any accessor errors and continue
+        }
+      }
+      return false;
     });
-  }, [props.items, sortFn, search]);
+
+    return filtered.map((obj: any) =>
+      makeFallbackResult(obj, props.searchKeywords),
+    );
+  }, [props.items, sortFn, search, fuzzLoaded]);
 
   const onInstallPress = useCallback(() => {
     if (!props.installAction) return () => {};
