@@ -140,10 +140,21 @@ export const initVendettaObject = (): any => {
         FluxDispatcher: common.FluxDispatcher,
         React: common.React,
         ReactNative: common.ReactNative,
-        moment: require("moment"),
-        chroma: require("chroma-js"),
-        lodash: require("lodash"),
-        util: require("util"),
+        get moment() {
+          // Lazy-require heavy libs to avoid pulling them into the startup bundle.
+          // Consumers access `window.vendetta.common.moment` and this getter will
+          // require the module on first access.
+          return require("moment");
+        },
+        get chroma() {
+          return require("chroma-js");
+        },
+        get lodash() {
+          return require("lodash");
+        },
+        get util() {
+          return require("util");
+        },
       },
     },
     constants: {
