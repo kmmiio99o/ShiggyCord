@@ -1,7 +1,17 @@
 import { Emitter } from "@core/vendetta/Emitter";
-import { Observable, ObserverOptions } from "@gullerya/object-observer";
+import type { Observable as ObservableType, ObserverOptions } from "@gullerya/object-observer";
 import { fileExists, readFile, removeFile, writeFile } from "@lib/api/native/fs";
 import { debounce } from "es-toolkit";
+
+let _ObservableRuntime: any = null;
+function getObservableRuntime() {
+    if (_ObservableRuntime) return _ObservableRuntime;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require("@gullerya/object-observer");
+    // the module may export named members or the Observable directly
+    _ObservableRuntime = mod.Observable ?? mod;
+    return _ObservableRuntime;
+}
 
 const storageInitErrorSymbol = Symbol.for("bunny.storage.initError");
 const storagePromiseSymbol = Symbol.for("bunny.storage.promise");
@@ -34,12 +44,12 @@ function createFileBackend<T extends object>(filePath: string) {
     };
 }
 
-export function useObservable(observables: Observable[], opts?: ObserverOptions) {
+export function useObservable(observables: ObservableType[], opts?: ObserverOptions) {
     if (observables.some((o: any) => o?.[storageInitErrorSymbol])) throw new Error(
         "An error occured while initializing the storage",
     );
 
-    if (observables.some(o => !Observable.isObservable(o))) {
+    if (observables.some(o => !getObservableRuntime().isObservable(o))) {
         throw new Error("Argument passed isn't an Observable");
     }
 
@@ -48,10 +58,10 @@ export function useObservable(observables: Observable[], opts?: ObserverOptions)
     React.useEffect(() => {
         const listener = () => forceUpdate();
 
-        observables.forEach(o => Observable.observe(o, listener, opts));
+        observables.forEach(o => getObservableRuntime().observe(o, listener, opts));
 
         return () => {
-            observables.forEach(o => Observable.unobserve(o, listener));
+            observables.forEach(o => getObservableRuntime().unobserve(o, listener));
         };
     }, []);
 }
@@ -72,13 +82,13 @@ export function createStorageAndCallback<T extends object = {}>(
     let emitter: Emitter;
 
     const callback = (data: any) => {
-        const proxy = new Proxy(Observable.from(data), {
+        const proxy = new Proxy(getObservableRuntime().from(data), {
             get(target, prop, receiver) {
                 if (prop === Symbol.for("vendetta.storage.emitter")) {
                     if (emitter) return emitter;
                     emitter = new Emitter();
 
-                    Observable.observe(target, changes => {
+                    getObservableRuntime().observe(target, changes => {
                         for (const change of changes) {
                             emitter.emit(change.type !== "delete" ? "SET" : "DEL", {
                                 path: change.path,
@@ -95,7 +105,7 @@ export function createStorageAndCallback<T extends object = {}>(
         });
 
         const handler = () => backend.set(proxy);
-        Observable.observe(proxy, handler);
+        getObservableRuntime().observe(proxy, handler);
 
         cb(proxy);
     };

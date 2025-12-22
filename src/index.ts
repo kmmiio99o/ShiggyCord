@@ -19,30 +19,35 @@ import { getDebugInfo, initDebugger } from "@lib/api/debug";
 // imported when needed (to avoid bundling it permanently) and removed after use.
 
 import * as lib from "./lib";
+import { timings } from "@lib/utils/timings";
 
 /**
  * Start sequence split into critical (UI) and deferred (network/plugin) work.
  * The goal is to get the UI ready quickly and run heavy tasks after interactions.
  */
 export default async () => {
-  // Critical initializers that are required for the app's UI and basic features.
-  const criticalInits = [
-    initThemes(),
-    injectFluxInterceptor(),
-    patchSettings(),
-    patchLogHook(),
-    patchCommands(),
-    patchJsx(),
-    patchErrorBoundary(),
-    initVendettaObject(),
-    initFetchI18nStrings(),
-    initSettings(),
-    initFixes(),
-    initDebugger(),
+  // Wrap critical initializers as named functions so we can instrument each.
+  const criticalInitFns: Array<[string, () => Promise<any>]> = [
+    ["initThemes", () => initThemes()],
+    ["injectFluxInterceptor", () => injectFluxInterceptor()],
+    ["patchSettings", () => patchSettings()],
+    ["patchLogHook", () => patchLogHook()],
+    ["patchCommands", () => patchCommands()],
+    ["patchJsx", () => patchJsx()],
+    ["patchErrorBoundary", () => patchErrorBoundary()],
+    ["initVendettaObject", () => initVendettaObject()],
+    ["initFetchI18nStrings", () => initFetchI18nStrings()],
+    ["initSettings", () => initSettings()],
+    ["initFixes", () => initFixes()],
+    ["initDebugger", () => initDebugger()],
   ];
 
-  // Run critical inits and collect unpatchers/cleanup handlers.
-  await Promise.all(criticalInits)
+  // Run critical inits with timing instrumentation and collect unpatchers/cleanup handlers.
+  await Promise.all(
+    criticalInitFns.map(([name, fn]) =>
+      timings.measureAsync(`critical:${name}`, async () => fn()),
+    ),
+  )
     .then((u) => u.forEach((f) => f && lib.unload.push(f)))
     .catch((e) => {
       // Log but don't abort — critical inits failing should be visible in logs.

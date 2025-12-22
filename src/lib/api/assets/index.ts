@@ -14,18 +14,49 @@ export interface Asset {
 // Cache common usage
 const _nameToAssetCache = {} as Record<string, Asset>;
 
+// Simple cached asset list with TTL to avoid iterating the flagsIndex too often.
+// This is a small in-memory cache to improve repeated asset lookups during UI rendering.
+let _cachedAssetList: Asset[] | null = null;
+let _cachedAssetListTs = 0;
+const ASSET_CACHE_TTL = 2500; // milliseconds
+
+/**
+ * Invalidate the internal asset caches so the next iterateAssets() call will
+ * re-run through the metro flags index and refresh the cache.
+ */
+export function invalidateAssetCache() {
+    _cachedAssetList = null;
+    _cachedAssetListTs = 0;
+    for (const k in _nameToAssetCache) delete _nameToAssetCache[k];
+}
+
 export function* iterateAssets() {
+    // Return cached list when fresh
+    const now = Date.now();
+    if (_cachedAssetList && now - _cachedAssetListTs < ASSET_CACHE_TTL) {
+        for (const asset of _cachedAssetList) yield asset;
+        return;
+    }
+
     const { flagsIndex } = getMetroCache();
     const yielded = new Set<number>();
+    const list: Asset[] = [];
 
     for (const id in flagsIndex) {
         if (flagsIndex[id] & ModuleFlags.ASSET) {
             const assetId = requireModule(Number(id));
             if (typeof assetId !== "number" || yielded.has(assetId)) continue;
-            yield getAssetById(assetId);
+            const asset = getAssetById(assetId);
+            if (!asset) continue;
+            list.push(asset);
             yielded.add(assetId);
+            yield asset;
         }
     }
+
+    // Update cache
+    _cachedAssetList = list;
+    _cachedAssetListTs = now;
 }
 
 // Apply additional properties for convenience
