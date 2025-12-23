@@ -3,8 +3,18 @@ import { CheckState, useFileExists } from "@core/ui/hooks/useFS";
 import AssetBrowser from "@core/ui/settings/pages/Developer/AssetBrowser";
 import { useProxy } from "@core/vendetta/storage";
 import { findAssetId } from "@lib/api/assets";
-import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@lib/api/debug";
-import { getReactDevToolsProp, getReactDevToolsVersion, isLoaderConfigSupported, isReactDevToolsPreloaded, isVendettaLoader } from "@lib/api/native/loader";
+import {
+  connectToDebugger,
+  disconnectFromDebugger,
+  isConnectedToDebugger,
+} from "@lib/api/debug";
+import {
+  getReactDevToolsProp,
+  getReactDevToolsVersion,
+  isLoaderConfigSupported,
+  isReactDevToolsPreloaded,
+  isVendettaLoader,
+} from "@lib/api/native/loader";
 import { loaderConfig, settings } from "@lib/api/settings";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { NavigationNative } from "@metro/common";
@@ -40,7 +50,8 @@ const { AlertModal, AlertActionButton } = lazyDestructure(() =>
   findByProps("AlertModal", "AlertActions"),
 );
 
-const RDT_EMBED_LINK = "https://codeberg.org/raincord/raindevtools/raw/branch/dev/dist/index.bundle";
+const RDT_EMBED_LINK =
+  "https://codeberg.org/raincord/raindevtools/raw/branch/dev/dist/index.bundle";
 
 const useStyles = createStyles({
   leadingText: {
@@ -57,14 +68,33 @@ const useStyles = createStyles({
 });
 
 export default function Developer() {
-    const [rdtFileExists, fs] = useFileExists("preloads/reactDevtools.js");
-    const [isDebuggerConnected, setIsDebuggerConnected] = useState(isConnectedToDebugger());
+  const [rdtFileExists, fs] = useFileExists("preloads/reactDevtools.js");
+  const [isDebuggerConnected, setIsDebuggerConnected] = useState(
+    isConnectedToDebugger(),
+  );
 
   const styles = useStyles();
   const navigation = NavigationNative.useNavigation();
 
   useProxy(settings);
   useProxy(loaderConfig);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsDebuggerConnected(isConnectedToDebugger());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDebuggerConnect = () => {
+    if (isDebuggerConnected) {
+      disconnectFromDebugger();
+      setIsDebuggerConnected(false);
+    } else {
+      connectToDebugger(settings.debuggerUrl);
+      setTimeout(() => setIsDebuggerConnected(isConnectedToDebugger()), 100);
+    }
+  };
 
   return (
     <ErrorBoundary>
@@ -245,6 +275,11 @@ export default function Developer() {
                       fs.downloadFile(
                         RDT_EMBED_LINK,
                         "preloads/reactDevtools.js",
+                      ).then(() =>
+                        showToast(
+                          "Successfully installed! A reload is required",
+                          findAssetId("DownloadIcon"),
+                        ),
                       );
                     } else if (rdtFileExists === CheckState.TRUE) {
                       fs.removeFile("preloads/reactDevtools.js");
@@ -252,7 +287,7 @@ export default function Developer() {
                   }}
                   icon={findAssetId(
                     rdtFileExists === CheckState.TRUE
-                      ? "ic_message_delete"
+                      ? "TrashIcon"
                       : "DownloadIcon",
                   )}
                   style={{ marginLeft: 8 }}
