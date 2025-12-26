@@ -49,6 +49,7 @@
     "react-devtools": "^7.0.1",
     "react-native": "0.83.1",
     "react-native-reanimated": "^4.2.1",
+    "react-native-webview": "^13.16.0",
     "spitroast": "^2.1.6",
     "type-fest": "^5.3.1"
   },

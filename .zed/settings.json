@@ -1,7 +1,3 @@
 {
-  "languages": {
-    "TypeScript": {
-      "format_on_save": "off"
-    }
-  }
+  "format_on_save": "off",
 }

@@ -16,8 +16,9 @@ import {
   Text,
 } from "@metro/common/components";
 import { findByProps } from "@metro";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { PixelRatio, View } from "react-native";
+import { WebView } from "react-native-webview";
 import previewHtml from "./preview.html";
 
 import FontEditor from "./FontEditor";
@@ -35,7 +36,6 @@ const useStyles = createStyles({
 
 function FontPreview({ font }: { font: FontDefinition }) {
   const [loaded, setLoaded] = useState(false);
-  const [WebViewComponent, setWebViewComponent] = useState<any>(null);
   const styles = useStyles();
 
   const TEXT_DEFAULT = useToken(tokens.colors.TEXT_DEFAULT);
@@ -53,61 +53,25 @@ function FontPreview({ font }: { font: FontDefinition }) {
     [font.main, fontFamily, fontSize, TEXT_DEFAULT],
   );
 
-  // Memoize generated HTML to avoid string replacement on every render
-  const html = useMemo(
-    () => previewHtml.replace("$$props", JSON.stringify(props)),
-    [props],
-  );
-
-  // Lazy-load the WebView implementation so it's not included in the main bundle
-  useEffect(() => {
-    let cancelled = false;
-    import("react-native-webview")
-      .then((m) => {
-        if (cancelled) return;
-        // support both default export and named WebView export
-        setWebViewComponent(m.WebView || m.default || m);
-      })
-      .catch(() => {
-        // ignore dynamic import failures; component will show placeholder
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   return (
     <View style={{ width: "100%", height: 64 }}>
-      {WebViewComponent ? (
-        <>
-          <WebViewComponent
-            onMessage={() => setLoaded(true)}
-            source={{ html }}
-            javaScriptEnabled
-            scrollEnabled={false}
-            overScrollMode="never"
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            pointerEvents="none"
-            style={[
-              styles.full,
-              { backgroundColor: "transparent", opacity: Number(loaded) },
-            ]}
-          />
-          {!loaded && (
-            <View
-              style={[
-                styles.full,
-                { justifyContent: "center", alignItems: "center" },
-              ]}
-            >
-              <Text color="text-muted" variant="heading-lg/semibold">
-                Loading...
-              </Text>
-            </View>
-          )}
-        </>
-      ) : (
+      <WebView
+        onMessage={() => setLoaded(true)}
+        source={{
+          html: previewHtml.replace("$$props", JSON.stringify(props)),
+        }}
+        javaScriptEnabled
+        scrollEnabled={false}
+        overScrollMode="never"
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        pointerEvents="none"
+        style={[
+          styles.full,
+          { backgroundColor: "transparent", opacity: Number(loaded) },
+        ]}
+      />
+      {!loaded && (
         <View
           style={[
             styles.full,
