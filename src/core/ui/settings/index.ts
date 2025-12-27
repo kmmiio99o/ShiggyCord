@@ -21,18 +21,9 @@ export default function initSettings() {
         useTrailing: () => `(${version})`,
       },
       {
-        key: "CORE_PLUGINS",
+        key: "BUNNY_PLUGINS",
         title: () => Strings.PLUGINS,
         icon: findAssetId("ActivitiesIcon"),
-        render: () => import("@core/ui/settings/pages/Plugins/CorePlugins"),
-      },
-      {
-        key: "BUNNY_PLUGINS",
-        title: () => "External Plugins",
-        icon:
-          findAssetId("DownloadIcon") ??
-          findAssetId("LinkIcon") ??
-          findAssetId("ActivitiesIcon"),
         render: () => import("@core/ui/settings/pages/Plugins"),
       },
       {
