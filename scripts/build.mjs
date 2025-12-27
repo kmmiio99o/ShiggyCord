@@ -50,7 +50,7 @@ const config = {
     window: "globalThis",
     __DEV__: JSON.stringify(releaseBranch !== "main"),
   },
-  inject: ["./shims/asyncIteratorSymbol.js", "./shims/promiseAllSettled.js"],
+  inject: ["./shims/asyncIteratorSymbol.js", "./shims/promiseAllSettled.js", "./shims/weakref.js"],
   legalComments: "none",
   alias: {
     "!ShiggyCord-deps-shim!": "./shims/depsModule.ts",
