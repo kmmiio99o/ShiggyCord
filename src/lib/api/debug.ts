@@ -43,7 +43,6 @@ export async function toggleSafeMode() {
     setTimeout(BundleUpdaterManager.reload, 400);
 }
 
-// --- Debugger State & Logic ---
 let socket: WebSocket | undefined;
 let originalConsoleLog: any;
 let originalConsoleError: any;
@@ -254,7 +253,6 @@ export function isConnectedToDebugger(): boolean {
     return socket?.readyState === WebSocket.OPEN;
 }
 
-// --- React DevTools (RDT) Logic ---
 const rdtPort = 8097;
 export let rdtClient: WebSocket | null = null;
 export let rdtConnected = false;
@@ -317,8 +315,6 @@ export function useIsRdtConnected() {
 
     return connected;
 }
-
-// --- Core Utils ---
 
 /**
  * @internal

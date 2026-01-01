@@ -6,6 +6,7 @@ import { findInReactTree } from "@lib/utils";
 import { findByFilePathLazy } from "@metro";
 import chroma from "chroma-js";
 import { ImageBackground, StyleSheet } from "react-native";
+import { logger } from "@lib/utils/logger";
 
 const Messages = findByFilePathLazy("modules/messages/native/Messages.tsx", true);
 
