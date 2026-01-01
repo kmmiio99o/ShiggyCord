@@ -29,13 +29,11 @@ export default () =>
         `> Device: ${info.device.model}`,
       ].join("\n");
 
-      if (ephemeral?.value) {
-        messageUtil.sendBotMessage(ctx.channel.id, content);
-      } else {
-        const fixNonce = Date.now().toString();
-        messageUtil.sendMessage(ctx.channel.id, { content }, void 0, {
-          nonce: fixNonce,
-        });
-      }
-    },
-  };
+        if (ephemeral?.value) {
+            messageUtil.sendBotMessage(ctx.channel.id, content);
+        } else {
+            const fixNonce = (BigInt(Date.now() - 1420070400000) << 22n).toString();
+            messageUtil.sendMessage(ctx.channel.id, { content }, void 0, {nonce:fixNonce});
+        }
+    }
+};
