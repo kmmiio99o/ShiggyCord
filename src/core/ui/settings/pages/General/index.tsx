@@ -32,7 +32,19 @@ export default function General() {
   const navigation = NavigationNative.useNavigation();
 
   // Custom Community Card Button
-  const CommunityCardButton = ({ icon, label, subLabel, color, onPress }) => (
+  const CommunityCardButton = ({
+    icon,
+    label,
+    subLabel,
+    color,
+    onPress,
+  }: {
+    icon?: number | { uri: string };
+    label: string;
+    subLabel?: string | null;
+    color?: string;
+    onPress?: () => void;
+  }) => (
     <TouchableOpacity style={{ flex: 1 }} onPress={onPress} activeOpacity={0.7}>
       <Card
         style={{
@@ -60,7 +72,7 @@ export default function General() {
             }}
           >
             <TableRow.Icon
-              source={icon}
+              source={icon as any}
               style={{
                 tintColor: "#FFFFFF",
                 width: 24,
@@ -114,7 +126,7 @@ export default function General() {
         <TableRowGroup title="App Information">
           <TableRow
             label="ShiggyCold"
-            icon={<TableRow.Icon source={{ uri: shiggycordIcon }} />}
+            icon={<TableRow.Icon source={{ uri: shiggycordIcon ?? "" }} />}
             trailing={<TableRow.TrailingText text={debugInfo.bunny.version} />}
           />
           <TableRow
