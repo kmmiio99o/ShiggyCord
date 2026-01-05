@@ -33,7 +33,7 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
             } else if (typeof semanticColorValue === "string") {
                 if (semanticColorValue.startsWith("#")) {
                     semanticColorDefinitions[semanticColorKey] = {
-                        value: chroma.hex(semanticColorValue).hex(),
+                        value: chroma(semanticColorValue).hex(),
                         opacity: 1,
                     };
                 } else {
