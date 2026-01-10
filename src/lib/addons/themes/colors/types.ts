@@ -37,6 +37,19 @@ export interface VendettaThemeManifest {
     };
 }
 
+// enmity themes
+export interface EnmityColorManifest {
+    spec?: 1;
+    name?: string;
+    description?: string;
+    authors?: Author[];
+    theme_color_map?: Record<string, string[]>;
+    colours?: Record<string, string>;
+    colors?: Record<string, string>;
+    unsafe_colors?: Record<string, string>;
+    background?: BackgroundDefinition;
+}
+
 /** @internal */
 export interface InternalColorDefinition {
     spec: 1 | 2 | 3;
@@ -49,4 +62,4 @@ export interface InternalColorDefinition {
     background?: BackgroundDefinition;
 }
 
-export type ColorManifest = BunnyColorManifest | VendettaThemeManifest;
+export type ColorManifest = BunnyColorManifest | VendettaThemeManifest | EnmityColorManifest;

@@ -4,7 +4,7 @@ import { readFile } from "fs/promises";
 import http from "http";
 import os from "os";
 import readline from "readline";
-import url from "url";
+import { URL } from "url";
 import yargs from "yargs-parser";
 
 import { buildBundle } from "./build.mjs";
@@ -15,7 +15,7 @@ const args = yargs(process.argv.slice(2));
 export function serve(options) {
   // @ts-ignore
   const server = http.createServer(async (req, res) => {
-    const { pathname } = url.parse(req.url || "", true);
+    const { pathname } = new URL(req.url || "", `http://localhost:${args.port ?? 4040}`);
     if (pathname?.endsWith(".js")) {
       try {
         let fileToServe;
