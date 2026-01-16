@@ -1,4 +1,3 @@
-import { Strings } from "@core/i18n";
 import AddonCard, { CardWrapper } from "@core/ui/components/AddonCard";
 import { VdThemeInfo, themes, selectTheme } from "@lib/addons/themes";
 import { findAssetId } from "@lib/api/assets";
@@ -36,8 +35,6 @@ export default function ThemeCard({ item: theme }: CardWrapper<VdThemeInfo>) {
         {
           icon: "CircleInformationIcon-primary",
           onPress: () => {
-            // Using dynamic import directly (without wrapping in function)
-            // This returns a Promise that resolves to the module
             const importPromise = import("./sheets/ThemeInfoActionSheet");
             showSheet("ThemeInfoActionSheet", importPromise, {
               theme,

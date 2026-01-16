@@ -7,12 +7,7 @@ import React, { ComponentProps, useEffect, useState } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 import { showToast } from "@ui/toasts";
 import { showConfirmationAlert } from "@core/vendetta/alerts";
-import {
-  fetchTheme,
-  removeTheme,
-  selectTheme,
-  VdThemeInfo,
-} from "@lib/addons/themes";
+import { fetchTheme, removeTheme, selectTheme, VdThemeInfo, } from "@lib/addons/themes";
 import { formatString, Strings } from "@core/i18n";
 import { semanticColors } from "@ui/color";
 
@@ -31,7 +26,7 @@ function ThemeInfoIconButton(props: ComponentProps<typeof IconButton>) {
   return <IconButton {...props} label={props.label} />;
 }
 
-// Theme title component for header
+// theme title component for header
 function TitleComponent({ theme }: { theme: VdThemeInfo }) {
   const { authors } = theme.data;
 
@@ -68,11 +63,11 @@ export default function ThemeInfoActionSheet({
   theme,
   navigation,
 }: ThemeInfoActionSheetProps) {
-  // Use component state to track theme data
+  // use component state to track theme data
   const [themeState, setThemeState] = useState({ ...theme });
   const [loading, setLoading] = useState(false);
 
-  // Periodic refresh to detect external changes to theme state
+  // periodic refresh to detect external changes to theme state
   useEffect(() => {
     const interval = setInterval(() => {
       setThemeState({ ...theme });
@@ -159,31 +154,25 @@ export default function ThemeInfoActionSheet({
             justifyContent: "center",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: 16,
-            paddingHorizontal: 4,
+            gap: 65,
+            paddingHorizontal: 8,
           }}
         >
           <ThemeInfoIconButton
-            label="Apply"
-            variant="secondary"
-            icon={findAssetId("CheckmarkLargeIcon")}
-            onPress={applyTheme}
-          />
-          <ThemeInfoIconButton
-            label="Refetch"
+            label={Strings.REFETCH}
             variant="secondary"
             icon={findAssetId("RetryIcon")}
             onPress={refetchTheme}
             disabled={loading}
           />
           <ThemeInfoIconButton
-            label="Copy URL"
+            label={Strings.COPY_URL}
             variant="secondary"
             icon={findAssetId("LinkIcon")}
             onPress={copyThemeUrl}
           />
           <ThemeInfoIconButton
-            label="Uninstall"
+            label={Strings.UNINSTALL}
             variant="secondary"
             icon={findAssetId("TrashIcon")}
             onPress={removeThemeHandler}

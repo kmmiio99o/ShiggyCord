@@ -30,7 +30,7 @@ import {
   IconButton,
   Stack,
   TableRowGroup,
-  TableSwitchRow,
+  TableCheckboxRow,
   TableRowIcon,
   Text,
   AlertModal,
@@ -677,12 +677,67 @@ export default function Themes() {
     );
   }
 
-  return (
-    <BrowseThemePage
-      themes={themesList}
-      installing={installing}
-      setInstalling={setInstalling}
-      setRefreshTick={setRefreshTick}
+        return (
+          <ActionSheet>
+            <BottomSheetTitleHeader title="Options" />
+            <View style={{ paddingVertical: 20, gap: 12 }}>
+              {/* Changed from TableRadioGroup to individual TableSwitchRow components
+                  for better UX - users can now toggle options individually */}
+              <TableRowGroup title="Override Theme Type">
+                <TableCheckboxRow
+                  label="Auto"
+                  icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
+                  checked={!colorsPref.type}
+                  onPress={() => {
+                    if (!colorsPref.type) {
+                      colorsPref.type = "dark";
+                    }
+                    getCurrentTheme()?.data &&
+                      updateBunnyColor(getCurrentTheme()!.data!, {
+                        update: true,
+                      });
+                  }}
+                />
+                <TableCheckboxRow
+                  label="Dark"
+                  icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
+                  checked={colorsPref.type === "dark"}
+                  onPress={() => {
+                    colorsPref.type = colorsPref.type === "dark" ? undefined : "dark";
+                    getCurrentTheme()?.data &&
+                      updateBunnyColor(getCurrentTheme()!.data!, {
+                        update: true,
+                      });
+                  }}
+                />
+                <TableCheckboxRow
+                  label="Light"
+                  icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
+                  checked={colorsPref.type === "light"}
+                  onPress={() => {
+                    colorsPref.type = colorsPref.type === "light" ? undefined : "light";
+                    getCurrentTheme()?.data &&
+                      updateBunnyColor(getCurrentTheme()!.data!, {
+                        update: true,
+                      });
+                  }}
+                />
+              </TableRowGroup>
+              <TableRowGroup title="Chat Background">
+                <TableCheckboxRow
+                  label="Show Background"
+                  subLabel="Enable or disable themes background on chat"
+                  icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
+                  checked={!colorsPref.customBackground}
+                  onPress={() => {
+                    colorsPref.customBackground = !colorsPref.customBackground ? "hidden" : null;
+                  }}
+                />
+              </TableRowGroup>
+            </View>
+          </ActionSheet>
+        );
+      }}
     />
   );
 }
