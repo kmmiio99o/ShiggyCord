@@ -3,6 +3,7 @@ import patchDefinitionAndResolver from "./patches/resolver";
 import patchStorage from "./patches/storage";
 import { ColorManifest } from "./types";
 import { updateBunnyColor } from "./updater";
+import fixStatusBar from "./statusbar";
 
 /** @internal */
 export default function initColors(manifest: ColorManifest | null) {
@@ -11,8 +12,9 @@ export default function initColors(manifest: ColorManifest | null) {
     const patches = [
         patchStorage(),
         patchDefinitionAndResolver(),
-        patchChatBackground()
+        patchChatBackground(),
+        fixStatusBar()
     ];
 
-    return () => patches.forEach(p => p());
+    return () => patches.forEach(p => p && (typeof p === "function" ? p() : null));
 }
