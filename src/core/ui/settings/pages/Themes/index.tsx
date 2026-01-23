@@ -33,6 +33,8 @@ import {
   Text,
 } from "@metro/common/components";
 import { View, Image } from "react-native";
+import { showConfirmationAlert } from "@core/vendetta/alerts";
+import { BundleUpdaterManager } from "@lib/api/native/modules";
 
 const { useReducer } = React;
 
@@ -361,6 +363,47 @@ export default function Themes() {
   const navigation = NavigationNative.useNavigation();
 
   const [mode, setMode] = React.useState<"installed" | "browse">("installed");
+
+  // Track the theme that was active when the user entered the Themes page.
+  // If it changes while the user stays on this page, we'll prompt to reload when they leave.
+  const initialThemeIdRef = React.useRef<string | null>(getCurrentTheme()?.id ?? null);
+
+  React.useEffect(() => {
+    const beforeRemoveHandler = (e: any) => {
+      try {
+        const currentId = getCurrentTheme()?.id ?? null;
+        if (currentId !== initialThemeIdRef.current) {
+          // Notify the user that a reload is required for full application of theme changes
+          showConfirmationAlert({
+            title: Strings.MODAL_RELOAD_THEME_CHANGE,
+            content: Strings.MODAL_THEME_REFETCHED_DESC,
+            confirmText: Strings.RELOAD,
+            cancelText: Strings.CANCEL,
+            confirmColor: "red",
+            onConfirm: () => {
+              try {
+                BundleUpdaterManager.reload();
+              } catch (err) {
+                try {
+                  (global as any).NativeModules?.BundleUpdaterManager?.reload?.();
+                } catch (_) {}
+              }
+            },
+          });
+        }
+      } catch (_) {
+        // swallow any unexpected errors — we don't want to block navigation
+      }
+    };
+
+    const unsub = navigation?.addListener ? navigation.addListener("beforeRemove", beforeRemoveHandler) : undefined;
+    return () => {
+      try {
+        if (unsub && typeof unsub === "function") unsub();
+        else if (unsub && typeof unsub.remove === "function") unsub.remove();
+      } catch (_) {}
+    };
+  }, [navigation]);
   const [themesList, setThemesList] = React.useState<ThemeData[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

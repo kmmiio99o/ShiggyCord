@@ -75,6 +75,7 @@
   "MANUFACTURER": "Manufacturer",
   "MESSAGE": "Message",
   "MISCELLANEOUS": "Miscellaneous",
+  "MODAL_RELOAD_THEME_CHANGE": "Reload the app to apply the theme change?",
   "MODAL_RELOAD_REQUIRED": "Reload app?",
   "MODAL_RELOAD_REQUIRED_DESC": "A reload is required to see the changes. Do you want to reload now?",
   "MODAL_THEME_REFETCHED": "Theme refetched",
