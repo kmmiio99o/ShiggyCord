@@ -25,7 +25,10 @@ const SEMANTIC_FALLBACK_MAP: Record<string, string> = {
 const origRawColor = { ...tokenReference.RawColor };
 
 export default function patchDefinitionAndResolver() {
-    const callback = ([theme]: any[]) => theme === _colorRef.key ? [_colorRef.current!.reference] : void 0;
+    const callback = ([theme]: any[]) => {
+        if (!_colorRef.current) return void 0;
+        return theme === _colorRef.key ? [_colorRef.current.reference] : void 0;
+    };
 
     Object.keys(tokenReference.RawColor).forEach(key => {
         Object.defineProperty(tokenReference.RawColor, key, {
@@ -34,7 +37,7 @@ export default function patchDefinitionAndResolver() {
             get: () => {
                 const ret = _colorRef.current?.raw[key];
                 if (ret) return ret;
-                
+
                 return origRawColor[key];
             }
         });
@@ -46,15 +49,20 @@ export default function patchDefinitionAndResolver() {
         before("updateTheme", NativeThemeModule, callback),
         instead("resolveSemanticColor", tokenReference.default.meta ?? tokenReference.default.internal, (args: any[], orig: any) => {
             if (!_colorRef.current) return orig(...args);
+            const currentRef = _colorRef.current;
             if (args[0] !== _colorRef.key) return orig(...args);
 
-            args[0] = _colorRef.current.reference;
+            // Use the captured reference value
+            args[0] = currentRef.reference;
 
-            const [name, colorDef] = extractInfo(_colorRef.current!.reference, args[1]);
+            const [name, colorDef] = extractInfo(currentRef.reference, args[1]);
 
-            let semanticDef = _colorRef.current.semantic[name];
-            if (!semanticDef && _colorRef.current.spec === 2 && name in SEMANTIC_FALLBACK_MAP) {
-                semanticDef = _colorRef.current.semantic[SEMANTIC_FALLBACK_MAP[name]];
+            // If extractInfo couldn't resolve a color definition, fall back to the original resolver
+            if (!name || !colorDef) return orig(...args);
+
+            let semanticDef = currentRef.semantic[name];
+            if (!semanticDef && currentRef.spec === 2 && name in SEMANTIC_FALLBACK_MAP) {
+                semanticDef = currentRef.semantic[SEMANTIC_FALLBACK_MAP[name]];
             }
 
             if (semanticDef?.value) {
@@ -62,10 +70,11 @@ export default function patchDefinitionAndResolver() {
                 return chroma(semanticDef.value).alpha(semanticDef.opacity).hex();
             }
 
-            const rawValue = _colorRef.current.raw[colorDef.raw];
+            const rawKey = colorDef.raw;
+            const rawValue = rawKey ? currentRef.raw[rawKey] : undefined;
             if (rawValue) {
                 // Set opacity if needed
-                return colorDef.opacity === 1 ? rawValue : chroma(rawValue).alpha(colorDef.opacity).hex();
+                return (colorDef.opacity === 1) ? rawValue : chroma(rawValue).alpha(colorDef.opacity).hex();
             }
 
             // Fallback to default
@@ -86,7 +95,13 @@ export default function patchDefinitionAndResolver() {
 function extractInfo(themeName: string, colorObj: any): [name: string, colorDef: any] {
     // @ts-ignore - assigning to extractInfo._sym
     const propName = colorObj[extractInfo._sym ??= Object.getOwnPropertySymbols(colorObj)[0]];
-    const colorDef = tokenReference.SemanticColor[propName];
+    const entry = tokenReference.SemanticColor[propName];
 
-    return [propName, colorDef[themeName]];
+    if (!entry || typeof entry !== "object") {
+        return [propName, undefined];
+    }
+
+    const colorDef = Object.prototype.hasOwnProperty.call(entry, themeName) ? entry[themeName] : undefined;
+
+    return [propName, colorDef];
 }

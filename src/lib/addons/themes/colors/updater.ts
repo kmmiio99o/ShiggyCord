@@ -9,7 +9,6 @@ const origRawColor = { ...tokenRef.RawColor };
 const AppearanceManager = findByPropsLazy("updateTheme");
 const ThemeStore = findByStoreNameLazy("ThemeStore");
 const FormDivider = findByPropsLazy("DIVIDER_COLORS");
-import { colorsPref } from "./preferences";
 
 let _inc = 1;
 
@@ -25,32 +24,28 @@ export const _colorRef: InternalColorRef = {
     current: null,
     key: `bn-theme-${_inc}`,
     origRaw: origRawColor,
-    lastSetDiscordTheme: "darker"
+    lastSetDiscordTheme: "dark"
 };
 
 export function updateBunnyColor(colorManifest: ColorManifest | null, { update = true } ) {
     if (settings.safeMode?.enabled) return;
 
-    const resolveType = (type = "dark") => (colorsPref.type ?? type) === "dark" ? "darker" : "light";
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
 
-        if (resolveType() == "light" || update) {
-            var ref = Object.assign(_colorRef, {
-                current: internalDef,
-                key: `bn-theme-${++_inc}`,
-                lastSetDiscordTheme: !ThemeStore.theme.startsWith("bn-theme-") || !ThemeStore.theme.startsWith("darker")
-                    ? ThemeStore.theme
-                    : _colorRef.lastSetDiscordTheme
-            });
-        } else {
-            var ref = Object.assign(_colorRef, {
-                current: internalDef,
-                key: `dark`,
-                lastSetDiscordTheme: !ThemeStore.theme.startsWith("bn-theme-") || !ThemeStore.theme.startsWith("darker")
-                    ? ThemeStore.theme
-                    : _colorRef.lastSetDiscordTheme
-            });
-        }
+        const keyName = internalDef && internalDef.reference === "light" ? `bn-theme-${++_inc}` : `dark`;
+
+        const tsTheme = typeof ThemeStore.theme === "string" ? ThemeStore.theme : undefined;
+        const currentDiscordTheme = tsTheme === "darker" ? "dark" : (tsTheme ?? "");
+
+        const lastSet = (currentDiscordTheme && !currentDiscordTheme.startsWith("bn-theme-") && currentDiscordTheme !== keyName)
+            ? currentDiscordTheme
+            : _colorRef.lastSetDiscordTheme;
+
+        var ref = Object.assign(_colorRef, {
+            current: internalDef,
+            key: keyName,
+            lastSetDiscordTheme: lastSet
+        });
 
         if (internalDef != null) {
             tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
@@ -66,7 +61,9 @@ export function updateBunnyColor(colorManifest: ColorManifest | null, { update =
 
     if (update) {
         AppearanceManager.setShouldSyncAppearanceSettings(false);
-        AppearanceManager.updateTheme(internalDef != null ? ref.key : "darker");
+        const fallback = (_colorRef.lastSetDiscordTheme && !_colorRef.lastSetDiscordTheme.startsWith("bn-theme-"))
+            ? _colorRef.lastSetDiscordTheme
+            : "dark";
+        AppearanceManager.updateTheme(internalDef != null ? ref.key : fallback);
     }
 }
-
