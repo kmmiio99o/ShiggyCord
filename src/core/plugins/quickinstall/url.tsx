@@ -5,7 +5,7 @@ import { installTheme } from "@lib/addons/themes";
 import { findAssetId } from "@lib/api/assets";
 import { isThemeSupported } from "@lib/api/native/loader";
 import { after, instead } from "@lib/api/patcher";
-import { VD_PROXY_PREFIX, VD_THEMES_CHANNEL_ID } from "@lib/utils/constants";
+import { VD_PROXY_PREFIX, VD_THEMES_CHANNEL_ID, KETTU_THEMES_CHANNEL_ID } from "@lib/utils/constants";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { channels } from "@metro/common";
 import { byMutableProp } from "@metro/filters";
@@ -72,7 +72,8 @@ export default () => {
       // Make clicking on theme links only work in #themes, should there be a theme proxy in the future, this can be removed.
       if (
         urlType === "theme" &&
-        getChannel(getChannelId())?.parent_id !== VD_THEMES_CHANNEL_ID
+        getChannel(getChannelId())?.parent_id !== VD_THEMES_CHANNEL_ID &&
+        getChannel(getChannelId())?.parent_id !== KETTU_THEMES_CHANNEL_ID
       )
         return orig.apply(this, args);
 
