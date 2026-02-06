@@ -9,21 +9,33 @@ import { useProxy, createProxy } from "@core/vendetta/storage";
 import { useState, useMemo, useCallback } from "react";
 import { FlatList, View } from "react-native";
 
-// Asset type categories
-const DISPLAYABLE_IMAGE_TYPES = new Set(["png", "jpg", "jpeg", "svg", "gif"]);
-const DISPLAYABLE_TEXT_TYPES = new Set(["jsona", "json", "lottie"]);
-
-// Define all available filters with their display names
-const FILTER_OPTIONS = [
-  { id: "images", label: "Images (PNG, JPG, SVG, GIF)", types: DISPLAYABLE_IMAGE_TYPES, defaultEnabled: true },
-  { id: "text", label: "Text Types (JSON, JSONA, Lottie)", types: DISPLAYABLE_TEXT_TYPES, defaultEnabled: false },
+const IMAGE_FILES = [
+  { id: "png", label: "PNG", defaultEnabled: true },
+  { id: "jpg", label: "JPG", defaultEnabled: true },
+  { id: "jpeg", label: "JPEG", defaultEnabled: true },
+  { id: "svg", label: "SVG", defaultEnabled: true },
+  { id: "gif", label: "GIF", defaultEnabled: true },
 ];
 
+const TEXT_FILES = [
+  { id: "jsona", label: "JSONA", defaultEnabled: false },
+  { id: "json", label: "JSON", defaultEnabled: false },
+  { id: "lottie", label: "Lottie", defaultEnabled: false },
+];
+
+const ALL_FILE_TYPES = [...IMAGE_FILES, ...TEXT_FILES];
+
+// Create initial enabled filters state
+const createInitialFilters = () => {
+  const filters: Record<string, boolean> = {};
+  ALL_FILE_TYPES.forEach(type => {
+    filters[type.id] = type.defaultEnabled;
+  });
+  return filters;
+};
+
 const { proxy: assetBrowserStorage } = createProxy({
-  enabledFilters: {
-    images: true,
-    text: false,
-  }
+  enabledFilters: createInitialFilters()
 });
 
 export default function AssetBrowser() {
@@ -36,21 +48,14 @@ export default function AssetBrowser() {
   const getFilteredAssets = useCallback(() => {
     return Array.from(iterateAssets()).filter((asset) => {
       const type = String(asset.type ?? "").toLowerCase();
-
-      // Check if this asset type is enabled in any filter
-      for (const filter of FILTER_OPTIONS) {
-        if (assetBrowserStorage.enabledFilters[filter.id as keyof typeof assetBrowserStorage.enabledFilters] && filter.types.has(type)) {
-          return true;
-        }
-      }
-      return false;
+      return assetBrowserStorage.enabledFilters[type] === true;
     });
   }, [updateTick]);
 
   const all = useMemo(() => getFilteredAssets(), [getFilteredAssets]);
 
   const toggleFilter = (filterId: string) => {
-    assetBrowserStorage.enabledFilters[filterId as keyof typeof assetBrowserStorage.enabledFilters] = !assetBrowserStorage.enabledFilters[filterId as keyof typeof assetBrowserStorage.enabledFilters];
+    assetBrowserStorage.enabledFilters[filterId] = !assetBrowserStorage.enabledFilters[filterId];
     setUpdateTick(prev => prev + 1);
   };
 
@@ -61,18 +66,26 @@ export default function AssetBrowser() {
       return (
         <ActionSheet>
           <BottomSheetTitleHeader title={Strings.ASSET_TYPES} />
-          <View style={{ paddingVertical: 12, paddingHorizontal: 8 }}>
-            <TableRowGroup title="">
-              {FILTER_OPTIONS.map(filter => (
+            <TableRowGroup title={Strings.IMAGE_FILES}>
+              {IMAGE_FILES.map(fileType => (
                 <TableCheckboxRow
-                  key={filter.id}
-                  label={filter.label}
-                  checked={assetBrowserStorage.enabledFilters[filter.id as keyof typeof assetBrowserStorage.enabledFilters]}
-                  onPress={() => toggleFilter(filter.id)}
+                  key={fileType.id}
+                  label={fileType.label}
+                  checked={assetBrowserStorage.enabledFilters[fileType.id] === true}
+                  onPress={() => toggleFilter(fileType.id)}
                 />
               ))}
             </TableRowGroup>
-          </View>
+            <TableRowGroup title={Strings.TEXT_FILES}>
+              {TEXT_FILES.map(fileType => (
+                <TableCheckboxRow
+                  key={fileType.id}
+                  label={fileType.label}
+                  checked={assetBrowserStorage.enabledFilters[fileType.id] === true}
+                  onPress={() => toggleFilter(fileType.id)}
+                />
+              ))}
+            </TableRowGroup>
         </ActionSheet>
       );
     });
