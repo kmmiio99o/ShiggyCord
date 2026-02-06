@@ -211,7 +211,7 @@ interface TableRowIconProps {
 export type TableRowIcon = React.FC<TableRowIconProps>;
 
 interface TableRowGroupProps {
-    title: string;
+    title?: string;
     children: ReactNode;
 }
 
