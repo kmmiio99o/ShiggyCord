@@ -7,6 +7,9 @@ import {
   connectToDebugger,
   disconnectFromDebugger,
   isConnectedToDebugger,
+  connectRdt,
+  disconnectRdt,
+  useIsRdtConnected,
 } from "@lib/api/debug";
 import {
   getReactDevToolsProp,
@@ -33,7 +36,7 @@ import { ErrorBoundary } from "@ui/components";
 import ErrorBoundaryScreen from "@core/ui/reporter/components/ErrorBoundaryScreen";
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { NativeModules } from "react-native";
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView } from "react-native";
 import { showToast } from "@ui/toasts";
 import { useState, useEffect } from "react";
 
@@ -72,6 +75,7 @@ export default function Developer() {
   const [isDebuggerConnected, setIsDebuggerConnected] = useState(
     isConnectedToDebugger(),
   );
+  const isRdtConnected = useIsRdtConnected();
 
   const styles = useStyles();
   const navigation = NavigationNative.useNavigation();
@@ -93,6 +97,18 @@ export default function Developer() {
     } else {
       connectToDebugger(settings.debuggerUrl);
       setTimeout(() => setIsDebuggerConnected(isConnectedToDebugger()), 100);
+    }
+  };
+
+  const handleReactDevToolsConnect = () => {
+    if (isRdtConnected) {
+      disconnectRdt();
+    } else {
+      if (!settings.devToolsUrl?.trim()) {
+        showToast("Invalid devTools URL!", findAssetId("Small"));
+        return;
+      }
+      connectRdt(settings.devToolsUrl);
     }
   };
 
@@ -130,7 +146,7 @@ export default function Developer() {
               label={Strings.CONNECT_TO_DEBUG_WEBSOCKET}
               subLabel="Connect to Chrome DevTools for debugging"
               icon={<TableRow.Icon source={findAssetId("WrenchIcon")} />}
-              onPress={() => connectToDebugger(settings.debuggerUrl)}
+              onPress={handleDebuggerConnect}
             />
           </TableRowGroup>
 
@@ -159,39 +175,7 @@ export default function Developer() {
                 label={Strings.CONNECT_TO_REACT_DEVTOOLS}
                 subLabel="Connect React DevTools for component debugging"
                 icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
-                onPress={async () => {
-                  if (!settings.devToolsUrl?.trim()) {
-                    showToast("Invalid devTools URL!", findAssetId("Small"));
-                    return;
-                  }
-
-                  try {
-                    const devTools =
-                      window[getReactDevToolsProp() || "__vendetta_rdc"];
-
-                    if (!devTools?.connectToDevTools) {
-                      showToast(
-                        "React DevTools not available",
-                        findAssetId("Small"),
-                      );
-                      return;
-                    }
-
-                    await devTools.connectToDevTools({
-                      host: settings.devToolsUrl.split(":")?.[0],
-                      resolveRNStyle: StyleSheet.flatten,
-                    });
-                    showToast(
-                      "Connected to React DevTools!",
-                      findAssetId("Check"),
-                    );
-                  } catch (error) {
-                    showToast(
-                      "Failed to connect to React DevTools",
-                      findAssetId("Small"),
-                    );
-                  }
-                }}
+                onPress={handleReactDevToolsConnect}
               />
 
               {isLoaderConfigSupported() && isVendettaLoader() && (
