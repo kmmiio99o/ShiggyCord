@@ -224,13 +224,14 @@ export function connectToDebugger(url: string) {
             }
         });
 
-        socket.addEventListener("close", () => {
-            showToast("Disconnected from debugger.", findAssetId("Small"));
+        socket.addEventListener("close", (e: any) => {
+            logger.error(`Debugger disconnected. (${e?.code}, ${e?.reason || "no reason specified"})`);
             unpatchConsoleAndLogger();
         });
 
-        socket.addEventListener("error", (err: any) => {
-            console.log(`Debugger error: ${err.message}`);
+        socket.addEventListener("error", (e: any) => {
+            const err = e?.message || e?.error?.message || "WebSocket Connection Errored";
+            logger.error('Debugger error:', err);
             showToast("An error occurred with the debugger connection!", findAssetId("Small"));
             unpatchConsoleAndLogger();
         });
@@ -281,13 +282,14 @@ export function connectRdt(url: string, quiet?: boolean) {
         bump();
     });
 
-    ws.addEventListener('close', () => {
+    ws.addEventListener('close', (e: any) => {
+        logger.error(`React DevTools disconnected. (${e?.code}, ${e?.reason || "no reason specified"})`);
         cleanupRdt();
     });
 
     ws.addEventListener('error', (e: any) => {
         cleanupRdt();
-        const err = e?.message ?? e?.stack ?? String(e);
+        const err = e?.message || e?.error?.message || "WebSocket Connection Errored";
         logger.error('React DevTools error:', err);
         if (!quiet) showToast(err, findAssetId("CircleXIcon-primary"));
     });
