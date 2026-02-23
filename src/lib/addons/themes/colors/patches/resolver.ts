@@ -4,7 +4,7 @@ import { before, instead } from "@lib/api/patcher";
 import { findByProps } from "@metro";
 import { byMutableProp } from "@metro/filters";
 import { createLazyModule } from "@metro/lazy";
-import chroma from "chroma-js";
+const getChroma = () => require("chroma-js") as typeof import("chroma-js").default;
 
 const tokenReference = findByProps("SemanticColor");
 const isThemeModule = createLazyModule(byMutableProp("isThemeDark"));
@@ -67,14 +67,14 @@ export default function patchDefinitionAndResolver() {
 
             if (semanticDef?.value) {
                 if (semanticDef.opacity === 1) return semanticDef.value;
-                return chroma(semanticDef.value).alpha(semanticDef.opacity).hex();
+                return getChroma()(semanticDef.value).alpha(semanticDef.opacity).hex();
             }
 
             const rawKey = colorDef.raw;
             const rawValue = rawKey ? currentRef.raw[rawKey] : undefined;
             if (rawValue) {
                 // Set opacity if needed
-                return (colorDef.opacity === 1) ? rawValue : chroma(rawValue).alpha(colorDef.opacity).hex();
+                return (colorDef.opacity === 1) ? rawValue : getChroma()(rawValue).alpha(colorDef.opacity).hex();
             }
 
             // Fallback to default

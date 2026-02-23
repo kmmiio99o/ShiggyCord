@@ -11,9 +11,10 @@ import {
   Text,
 } from "@metro/common/components";
 import { showSheet } from "@ui/sheets";
-import chroma from "chroma-js";
 import { createContext, useContext, useMemo } from "react";
 import { Image, View } from "react-native";
+
+const getChroma = () => require("chroma-js") as typeof import("chroma-js").default;
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;
@@ -22,7 +23,7 @@ const CardContext = createContext<{
 const useCardContext = () => useContext(CardContext);
 
 function getHighlightColor(): import("react-native").ColorValue {
-  return chroma(tokens.unsafe_rawColors.YELLOW_300).alpha(0.3).hex();
+  return getChroma()(tokens.unsafe_rawColors.YELLOW_300).alpha(0.3).hex();
 }
 
 function Title() {

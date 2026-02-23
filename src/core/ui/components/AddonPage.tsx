@@ -22,7 +22,6 @@ import {
 } from "@metro/common/components";
 import { ErrorBoundary, Search } from "@ui/components";
 import { isNotNil } from "es-toolkit";
-import fuzzysort from "fuzzysort";
 import {
   ComponentType,
   ReactNode,
@@ -181,6 +180,27 @@ export default function AddonPage<T extends object>({
   const { bottom: bottomInset } = useSafeAreaInsets();
   const navigation = NavigationNative.useNavigation();
 
+  // Lazy-load fuzzysort to reduce initial bundle size
+  const fuzzysortRef = React.useRef<any>(null);
+  const [fuzzysortReady, setFuzzysortReady] = React.useState(false);
+  React.useEffect(() => {
+    let mounted = true;
+    import("fuzzysort")
+      .then((mod) => {
+        const f = (mod as any).default ?? mod;
+        if (mounted) {
+          fuzzysortRef.current = f;
+          setFuzzysortReady(true);
+        }
+      })
+      .catch(() => {
+        // ignore load errors
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (props.OptionsActionSheetComponent) {
       navigation.setOptions({
@@ -205,11 +225,13 @@ export default function AddonPage<T extends object>({
     const items = values.filter((i) => isNotNil(i) && typeof i === "object");
     if (!search && sortFn) items.sort(sortFn);
 
-    return fuzzysort.go(search, items, {
+    if (!fuzzysortReady || !fuzzysortRef.current) return [] as any[];
+
+    return fuzzysortRef.current.go(search, items, {
       keys: props.searchKeywords,
       all: true,
     });
-  }, [props.items, sortFn, search]);
+  }, [props.items, sortFn, search, fuzzysortReady]);
 
   const onInstallPress = useCallback(() => {
     if (!props.installAction) return () => {};

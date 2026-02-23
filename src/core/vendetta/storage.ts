@@ -153,6 +153,8 @@ export interface StorageBackend {
 }
 
 const ILLEGAL_CHARS_REGEX = /[<>:"/\\|?*]/g;
+// Debouncer map for per-store writes to disk
+const _writeDebouncers = new Map<string, any>();
 
 const filePathFixer = (file: string): string => Platform.select({
     default: file,
@@ -215,6 +217,71 @@ export const createMMKVBackend = (store: string, defaultData = {}) => {
     })());
 };
 
+// Lightweight in-memory backend to accelerate startup and avoid blocking IO
+// while still providing eventual persistence to the native storage.
+export const createMemoryBackend = (
+  store: string,
+  defaultData: any = {},
+) => {
+  const mmkvPath = getMMKVPath(store);
+  const defaultStr = JSON.stringify(defaultData);
+
+  // In-memory backing object used by the proxy immediately
+  const memory: any = { ...defaultData };
+
+  // Load persisted data in background without blocking startup
+  (async () => {
+    try {
+      const cached = await NativeCacheModule.getItem(store);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        Object.assign(memory, parsed);
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const path = `${NativeFileModule.getConstants().DocumentsDirPath}/${mmkvPath}`;
+      if (await NativeFileModule.fileExists(path)) {
+        const content = await NativeFileModule.readFile(path, "utf8");
+        const data = JSON.parse(content);
+        Object.assign(memory, data);
+      }
+    } catch {
+      // ignore
+    }
+  })();
+
+  // Hydration is intentionally omitted for stability in this rewrite
+
+  // Local path helper (inlined to avoid hoisting concerns)
+  const fixPath = (file: string) =>
+    Platform.select({ default: file, ios: NativeFileModule.saveFileToGallery ? file : `Documents/${file}` });
+
+  return {
+    get: async () => memory,
+    set: async (data: any) => {
+      Object.assign(memory, data);
+      // Debounced persistence to disk to avoid IO storms
+      try {
+        const existing = _writeDebouncers.get(store);
+        if (existing) clearTimeout(existing);
+        const timeout = setTimeout(async () => {
+          try {
+            await NativeFileModule.writeFile("documents", fixPath(mmkvPath), JSON.stringify(memory), "utf8");
+          } catch {
+            // ignore persistence errors to keep startup fast
+          }
+        }, 120);
+        _writeDebouncers.set(store, timeout);
+      } catch {
+        // ignore
+      }
+    },
+  } as unknown as StorageBackend;
+};
+
 export const createFileBackend = (file: string, defaultData = {}, migratePromise?: Promise<void>): StorageBackend => {
     return {
         get: async () => {
@@ -239,4 +306,3 @@ export const createFileBackend = (file: string, defaultData = {}, migratePromise
         }
     };
 };
-

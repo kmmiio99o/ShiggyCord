@@ -1,7 +1,8 @@
 import { findByProps } from "@metro";
-import chroma from "chroma-js";
 import { omit } from "es-toolkit";
 import { Platform, processColor } from "react-native";
+
+const getChroma = () => require("chroma-js") as typeof import("chroma-js").default;
 
 import { colorsPref } from "./preferences";
 import { ColorManifest, InternalColorDefinition } from "./types";
@@ -33,7 +34,7 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
             } else if (typeof semanticColorValue === "string") {
                 if (semanticColorValue.startsWith("#")) {
                     semanticColorDefinitions[semanticColorKey] = {
-                        value: chroma(semanticColorValue).hex(),
+                        value: getChroma()(semanticColorValue).hex(),
                         opacity: 1,
                     };
                 } else {
@@ -208,7 +209,7 @@ export function applyAndroidAlphaKeys(rawColors?: Record<string, string>) {
     for (const key in alphaMap) {
         const [colorKey, alpha] = alphaMap[key];
         if (!rawColors[colorKey]) continue;
-        rawColors[key] = chroma(rawColors[colorKey]).alpha(alpha).hex();
+        rawColors[key] = getChroma()(rawColors[colorKey]).alpha(alpha).hex();
     }
 
     return rawColors;
@@ -221,11 +222,11 @@ export function normalizeToHex(colorString: string | undefined): string | undefi
         return "#00000000";
     }
 
-    if (chroma.valid(colorString)) return chroma(colorString).hex();
+    if (getChroma().valid(colorString)) return getChroma()(colorString).hex();
 
     const color = Number(processColor(colorString));
 
-    return chroma.rgb(
+    return getChroma().rgb(
         color >> 16 & 0xff, // red
         color >> 8 & 0xff, // green
         color & 0xff, // blue

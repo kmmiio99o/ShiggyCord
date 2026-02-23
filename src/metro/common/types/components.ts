@@ -1,6 +1,6 @@
 import { Nullish } from "@lib/utils/types";
 import { TextStyles, ThemeColors } from "@ui/types";
-import { Falsey } from "lodash";
+import type { Falsey } from "lodash";
 import { FC, MutableRefObject, PropsWithoutRef, ReactNode, RefObject } from "react";
 import type * as RN from "react-native";
 import { ImageSourcePropType, PressableProps } from "react-native";

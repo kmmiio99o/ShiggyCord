@@ -36,7 +36,6 @@ export const getCorePlugins = (): CorePluginRecord => ({
   "bunny.notrack": makeLazyPlugin(() => require("./notrack")),
   "bunny.messagefix": makeLazyPlugin(() => require("./messagefix")),
   "bunny.fixembed": makeLazyPlugin(() => require("./fixembed")),
-  "bunny.enhancements": makeLazyPlugin(() => require("./shiggyenhancements")),
 });
 
 /**

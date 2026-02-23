@@ -147,7 +147,12 @@ export const initVendettaObject = (): any => {
           return require("moment");
         },
         get chroma() {
-          return require("chroma-js");
+          // Lazy-load chroma-js to reduce startup cost
+          const cached = (this as any)._chroma;
+          if (cached) return cached;
+          const loaded = require("chroma-js");
+          (this as any)._chroma = loaded;
+          return loaded;
         },
         get lodash() {
           return require("lodash");

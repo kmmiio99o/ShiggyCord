@@ -4,7 +4,7 @@ import { after } from "@lib/api/patcher";
 import { useObservable } from "@lib/api/storage";
 import { findInReactTree } from "@lib/utils";
 import { findByFilePathLazy } from "@metro";
-import chroma from "chroma-js";
+const getChroma = () => require("chroma-js") as typeof import("chroma-js").default;
 import { ImageBackground, StyleSheet } from "react-native";
 import { logger } from "@lib/utils/logger";
 
@@ -43,7 +43,7 @@ export default function patchChatBackground() {
 
         if (messagesComponent) {
           const flattened = StyleSheet.flatten(messagesComponent.props.style);
-          const backgroundColor = chroma(
+          const backgroundColor = getChroma()(
             flattened.backgroundColor || "black"
           ).alpha(
             1 - (_colorRef.current.background?.opacity ?? 1)
