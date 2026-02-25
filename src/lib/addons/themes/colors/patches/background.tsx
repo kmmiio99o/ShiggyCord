@@ -13,28 +13,38 @@ const Messages = findByFilePathLazy("modules/messages/native/Messages.tsx", true
 function ThemeBackground({ children }: { children: React.ReactNode; }) {
     useObservable([colorsPref]);
 
-    if (!_colorRef.current
-        || colorsPref.customBackground === "hidden"
-        || !_colorRef.current.background?.url
-        || _colorRef.current.background?.blur && (typeof _colorRef.current.background?.blur !== "number")
+    const background = _colorRef.current?.background;
+    const url = background?.url;
+    const blur = background?.blur;
+
+    if (
+        !_colorRef.current ||
+        colorsPref.customBackground === "hidden" ||
+        !url
     ) {
         return children;
     }
 
-    return <ImageBackground
-        style={{ flex: 1, height: "100%" }}
-        source={{ uri: _colorRef.current.background?.url }}
-        blurRadius={_colorRef.current.background?.blur}
-    >
-        {children}
-    </ImageBackground>;
+    if (blur !== undefined && typeof blur !== "number") {
+        return children;
+    }
+
+    return (
+        <ImageBackground
+            style={{ flex: 1, height: "100%" }}
+            source={{ uri: url }}
+            blurRadius={typeof blur === "number" ? blur : 0}
+        >
+            {children}
+        </ImageBackground>
+    );
 }
 
 export default function patchChatBackground() {
   try {
     const patches = [
       after("render", Messages, (_, ret) => {
-        if (!_colorRef.current || !_colorRef.current.background?.url) return;
+        if (!_colorRef.current || !_colorRef.current.background?.url) return ret;
 
         const messagesComponent = findInReactTree(
           ret,
@@ -42,17 +52,20 @@ export default function patchChatBackground() {
         );
 
         if (messagesComponent) {
-          const flattened = StyleSheet.flatten(messagesComponent.props.style);
-          const backgroundColor = getChroma()(
-            flattened.backgroundColor || "black"
-          ).alpha(
-            1 - (_colorRef.current.background?.opacity ?? 1)
-          ).hex();
+          try {
+            const flattened = StyleSheet.flatten(messagesComponent.props.style);
+            const backgroundColor = getChroma()(
+              flattened.backgroundColor || "black"
+            ).alpha(
+              1 - (_colorRef.current.background?.opacity ?? 1)
+            ).hex();
 
-          messagesComponent.props.style = StyleSheet.flatten([
-            messagesComponent.props.style,
-            { backgroundColor }
-          ]);
+            messagesComponent.props.style = StyleSheet.flatten([
+              messagesComponent.props.style,
+              { backgroundColor }
+            ]);
+          } catch (e) {
+          }
         }
 
         return <ThemeBackground>{ret}</ThemeBackground>;
