@@ -42,37 +42,48 @@ function ThemeBackground({ children }: { children: React.ReactNode; }) {
 
 export default function patchChatBackground() {
   try {
+    if (!Messages) return;
+
     const patches = [
       after("render", Messages, (_, ret) => {
-        if (!_colorRef.current || !_colorRef.current.background?.url) return ret;
+        if (!ret) return ret;
 
-        const messagesComponent = findInReactTree(
-          ret,
-          x => x && "HACK_fixModalInteraction" in x.props && x?.props?.style
-        );
+        try {
+          if (!_colorRef.current || !_colorRef.current.background?.url) return ret;
 
-        if (messagesComponent) {
-          try {
-            const flattened = StyleSheet.flatten(messagesComponent.props.style);
-            const backgroundColor = getChroma()(
-              flattened.backgroundColor || "black"
-            ).alpha(
-              1 - (_colorRef.current.background?.opacity ?? 1)
-            ).hex();
+          const messagesComponent = findInReactTree(
+            ret,
+            x => x && "HACK_fixModalInteraction" in (x.props ?? {}) && x?.props?.style
+          );
 
-            messagesComponent.props.style = StyleSheet.flatten([
-              messagesComponent.props.style,
-              { backgroundColor }
-            ]);
-          } catch (e) {
+          if (messagesComponent) {
+            try {
+              const flattened = StyleSheet.flatten(messagesComponent.props.style);
+              const backgroundColor = getChroma()(
+                flattened.backgroundColor || "black"
+              ).alpha(
+                1 - (_colorRef.current.background?.opacity ?? 1)
+              ).hex();
+
+              messagesComponent.props.style = StyleSheet.flatten([
+                messagesComponent.props.style,
+                { backgroundColor }
+              ]);
+            } catch (e) {
+              logger.warn("Background patch: failed to modify style", e);
+            }
           }
+        } catch (e) {
+          logger.warn("Background patch: render error", e);
+          return ret;
         }
 
         return <ThemeBackground>{ret}</ThemeBackground>;
       })
     ];
 
-    return () => patches.forEach(x => x());
+    return () => patches.forEach(x => x?.());
   } catch (e) {
+    logger.error("Background patch: failed to initialize", e);
   }
 }
