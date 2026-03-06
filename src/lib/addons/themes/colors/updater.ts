@@ -24,46 +24,35 @@ export const _colorRef: InternalColorRef = {
     current: null,
     key: `bn-theme-${_inc}`,
     origRaw: origRawColor,
-    lastSetDiscordTheme: "dark"
+    lastSetDiscordTheme: "darker"
 };
 
-export function updateBunnyColor(colorManifest: ColorManifest | null, { update = true } ) {
+export function updateBunnyColor(colorManifest: ColorManifest | null, { update = true }) {
     if (settings.safeMode?.enabled) return;
 
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
+    const ref = Object.assign(_colorRef, {
+        current: internalDef,
+        key: `bn-theme-${++_inc}`,
+        lastSetDiscordTheme: !ThemeStore.theme.startsWith("bn-theme-")
+            ? ThemeStore.theme
+            : _colorRef.lastSetDiscordTheme
+    });
 
-        const keyName = internalDef && internalDef.reference === "light" ? `bn-theme-${++_inc}` : `dark`;
+    if (internalDef != null) {
+        tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
+        FormDivider.DIVIDER_COLORS[ref.key] = FormDivider.DIVIDER_COLORS[ref.current!.reference];
 
-        const tsTheme = typeof ThemeStore.theme === "string" ? ThemeStore.theme : undefined;
-        const currentDiscordTheme = tsTheme === "darker" ? "dark" : (tsTheme ?? "");
-
-        const lastSet = (currentDiscordTheme && !currentDiscordTheme.startsWith("bn-theme-") && currentDiscordTheme !== keyName)
-            ? currentDiscordTheme
-            : _colorRef.lastSetDiscordTheme;
-
-        var ref = Object.assign(_colorRef, {
-            current: internalDef,
-            key: keyName,
-            lastSetDiscordTheme: lastSet
+        Object.keys(tokenRef.Shadow).forEach(k => tokenRef.Shadow[k][ref.key] = tokenRef.Shadow[k][ref.current!.reference]);
+        Object.keys(tokenRef.SemanticColor).forEach(k => {
+            tokenRef.SemanticColor[k][ref.key] = {
+                ...tokenRef.SemanticColor[k][ref.current!.reference]
+            };
         });
-
-        if (internalDef != null) {
-            tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
-            FormDivider.DIVIDER_COLORS[ref.key] = FormDivider.DIVIDER_COLORS[ref.current!.reference];
-
-            Object.keys(tokenRef.Shadow).forEach(k => tokenRef.Shadow[k][ref.key] = tokenRef.Shadow[k][ref.current!.reference]);
-            Object.keys(tokenRef.SemanticColor).forEach(k => {
-                tokenRef.SemanticColor[k][ref.key] = {
-                    ...tokenRef.SemanticColor[k][ref.current!.reference]
-                };
-            });
-        }
+    }
 
     if (update) {
         AppearanceManager.setShouldSyncAppearanceSettings(false);
-        const fallback = (_colorRef.lastSetDiscordTheme && !_colorRef.lastSetDiscordTheme.startsWith("bn-theme-"))
-            ? _colorRef.lastSetDiscordTheme
-            : "dark";
-        AppearanceManager.updateTheme(internalDef != null ? ref.key : fallback);
+        AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
     }
 }
