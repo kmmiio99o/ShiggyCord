@@ -27,10 +27,13 @@ function treeSearch(tree: SearchTree, filter: SearchFilter, opts: Required<FindI
             } catch { }
         }
     } else if (typeof tree === "object") {
-        for (const key of Object.keys(tree)) {
+        const walkableLen = opts.walkable.length;
+        const ignoreLen = opts.ignore.length;
+        for (const key in tree) {
+            if (Object.prototype.hasOwnProperty.call(tree, key) === false) continue;
             if (typeof tree[key] !== "object" || tree[key] === null) continue;
-            if (opts.walkable.length && !opts.walkable.includes(key)) continue;
-            if (opts.ignore.includes(key)) continue;
+            if (walkableLen && !opts.walkable.includes(key)) continue;
+            if (ignoreLen && opts.ignore.includes(key)) continue;
 
             try {
                 const found = treeSearch(tree[key], filter, opts, depth + 1);

@@ -16,22 +16,17 @@ let _metroCache = null as unknown as ReturnType<typeof buildInitCache>;
 export const getMetroCache = () => _metroCache;
 
 function buildInitCache() {
+    let modulesCount = 0;
+    for (const _ in window.modules) modulesCount++;
+
     const cache = {
         _v: CACHE_VERSION,
         _buildNumber: NativeClientInfoModule.getConstants().Build,
-        _modulesCount: Object.keys(window.modules).length,
+        _modulesCount: modulesCount,
         flagsIndex: {} as Record<string, number>,
         findIndex: {} as Record<string, ModulesMap | undefined>,
         polyfillIndex: {} as Record<string, ModulesMap | undefined>
     } as const;
-
-    // Force load all modules so useful modules are pre-cached. Add a minor
-    // delay so the cache is initialized before the modules are loaded.
-    setTimeout(() => {
-        for (const id in window.modules) {
-            require("./modules").requireModule(id);
-        }
-    }, 100);
 
     _metroCache = cache;
     return cache;
@@ -52,7 +47,9 @@ export async function initMetroCache() {
             _metroCache = null!;
             throw "cache invalidated; version mismatch";
         }
-        if (_metroCache._modulesCount !== Object.keys(window.modules).length) {
+        let currentCount = 0;
+        for (const _ in window.modules) currentCount++;
+        if (_metroCache._modulesCount !== currentCount) {
             _metroCache = null!;
             throw "cache invalidated; modules count mismatch";
         }
