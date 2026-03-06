@@ -28,84 +28,84 @@ let context = null;
 
 /** @type {import("esbuild").BuildOptions} */
 const config = {
-    entryPoints: ["src/entry.ts"],
-    bundle: true,
-    outfile: "dist/kettu.js",
-    format: "iife",
-    splitting: false,
-    external: [],
-    supported: {
-        // Hermes does not actually support const and let, even though it syntactically
-        // accepts it, but it's treated just like 'var' and causes issues
-        "const-and-let": false
-    },
-    footer: {
-        js: "//# sourceURL=kettu"
-    },
-    loader: {
-        ".png": "dataurl",
-        ".html": "text"
-    },
-    define: {
-        window: "globalThis",
-        __DEV__: JSON.stringify(releaseBranch !== "main")
-    },
-    inject: ["./shims/asyncIteratorSymbol.js", "./shims/promiseAllSettled.js"],
-    legalComments: "none",
-    alias: {
-        "!kettu-deps-shim!": "./shims/depsModule.ts",
-        "spitroast": "./node_modules/spitroast",
-        "react/jsx-runtime": "./shims/jsxRuntime"
-    },
-    plugins: [
-        globalPlugin({
-            ...metroDeps.reduce((obj, key) => {
-                obj[key] = `require("!kettu-deps-shim!")[${JSON.stringify(key)}]`;
-                return obj;
-            }, {})
-        }),
-        {
-            name: "swc",
-            setup(build) {
-                build.onLoad({ filter: /\.[cm]?[jt]sx?$/ }, async args => {
-                    const result = await swc.transformFile(args.path, {
-                        jsc: {
-                            externalHelpers: true,
-                            transform: {
-                                constModules: {
-                                    globals: {
-                                        "bunny-build-info": {
-                                            version: `"v1.4.2"`
-                                        }
-                                    }
-                                },
-                                react: {
-                                    runtime: "automatic"
-                                }
-                            },
-                        },
-                        // https://github.com/facebook/hermes/blob/3815fec63d1a6667ca3195160d6e12fee6a0d8d5/doc/Features.md
-                        // https://github.com/facebook/hermes/issues/696#issuecomment-1396235791
-                        env: {
-                            targets: "fully supports es6",
-                            include: [
-                                "transform-block-scoping",
-                                "transform-classes",
-                                "transform-async-to-generator",
-                                "transform-async-generator-functions"
-                            ],
-                            exclude: [
-                                "transform-parameters",
-                                "transform-template-literals",
-                                "transform-exponentiation-operator",
-                                "transform-named-capturing-groups-regex",
-                                "transform-nullish-coalescing-operator",
-                                "transform-object-rest-spread",
-                                "transform-optional-chaining",
-                                "transform-logical-assignment-operators"
-                            ]
-                        },
-                    });
+  entryPoints: ["src/entry.ts"],
+  bundle: true,
+  outfile: "dist/shiggycord.js",
+  format: "iife",
+  splitting: false,
+  // Enable minification by default for release builds (when a release-branch is provided).
+  // This keeps development builds unminified for easier debugging.
+  minify: true,
+  external: [],
+  supported: {
+    // Hermes does not actually support const and let, even though it syntactically
+    // accepts it, but it's treated just like 'var' and causes issues
+    "const-and-let": false,
+  },
+  loader: {
+    ".png": "dataurl",
+    ".html": "text",
+  },
+  define: {
+    window: "globalThis",
+    __DEV__: JSON.stringify(releaseBranch !== "main"),
+  },
+  inject: ["./shims/asyncIteratorSymbol.js", "./shims/promiseAllSettled.js", "./shims/weakref.js"],
+  legalComments: "none",
+  alias: {
+    "!ShiggyCord-deps-shim!": "./shims/depsModule.ts",
+    spitroast: "./node_modules/spitroast",
+    "react/jsx-runtime": "./shims/jsxRuntime",
+  },
+  plugins: [
+    globalPlugin({
+      ...metroDeps.reduce((obj, key) => {
+        obj[key] = `require("!ShiggyCord-deps-shim!")[${JSON.stringify(key)}]`;
+        return obj;
+      }, {}),
+    }),
+    {
+      name: "swc",
+      setup(build) {
+        build.onLoad({ filter: /\.[cm]?[jt]sx?$/ }, async (args) => {
+          const result = await swc.transformFile(args.path, {
+            jsc: {
+              externalHelpers: true,
+              transform: {
+                constModules: {
+                  globals: {
+                    "bunny-build-info": {
+                      version: `"1.4.1.2"`,
+                    },
+                  },
+                },
+                react: {
+                  runtime: "automatic",
+                },
+              },
+            },
+            // https://github.com/facebook/hermes/blob/3815fec63d1a6667ca3195160d6e12fee6a0d8d5/doc/Features.md
+            // https://github.com/facebook/hermes/issues/696#issuecomment-1396235791
+            env: {
+              targets: "fully supports es6",
+              include: [
+                "transform-block-scoping",
+                "transform-classes",
+                "transform-async-to-generator",
+                "transform-async-generator-functions",
+              ],
+              exclude: [
+                "transform-parameters",
+                "transform-template-literals",
+                "transform-exponentiation-operator",
+                "transform-named-capturing-groups-regex",
+                "transform-nullish-coalescing-operator",
+                "transform-object-rest-spread",
+                "transform-optional-chaining",
+                "transform-logical-assignment-operators",
+              ],
+            },
+          });
 
           return { contents: result.code };
         });
