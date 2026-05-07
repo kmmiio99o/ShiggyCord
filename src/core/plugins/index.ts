@@ -34,7 +34,6 @@ export const getCorePlugins = (): CorePluginRecord => ({
   "bunny.quickinstall": makeLazyPlugin(() => require("./quickinstall"), true),
   "bunny.badges": makeLazyPlugin(() => require("./badges")),
   "bunny.notrack": makeLazyPlugin(() => require("./notrack")),
-  "bunny.messagefix": makeLazyPlugin(() => require("./messagefix")),
   "bunny.fixembed": makeLazyPlugin(() => require("./fixembed")),
 });
 
