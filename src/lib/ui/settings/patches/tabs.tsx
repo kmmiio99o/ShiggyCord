@@ -30,8 +30,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             usePredicate: row.usePredicate,
             useTrailing: row.useTrailing,
             useTitle: row.title,
-            useBadge: () => undefined,
-            useIcon: () => row.icon,
             onPress: wrapOnPress(row.onPress, null, row.render, row.title()),
             withArrow: true,
             ...row.rawTabsConfig,
@@ -52,9 +50,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         type: "route",
         title: () => "ShiggyCord",
         useTitle: () => "ShiggyCord",
-        useIcon: () => undefined,
-        useBadge: () => undefined,
-        IconComponent: () => undefined,
         screen: {
           route: "VendettaCustomPage",
           getComponent: () => CustomPageRenderer,
@@ -64,9 +59,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         type: "route",
         title: () => "ShiggyCord",
         useTitle: () => "ShiggyCord",
-        useIcon: () => undefined,
-        useBadge: () => undefined,
-        IconComponent: () => undefined,
         screen: {
           route: "SHIGGYCORD_CUSTOM_PAGE",
           getComponent: () => CustomPageRenderer,
@@ -76,9 +68,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         type: "route",
         title: () => "ShiggyCord",
         useTitle: () => "ShiggyCord",
-        useIcon: () => undefined,
-        useBadge: () => undefined,
-        IconComponent: () => undefined,
         screen: {
           route: "BUNNY_CUSTOM_PAGE",
           getComponent: () => CustomPageRenderer,
