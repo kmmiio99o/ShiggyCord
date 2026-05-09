@@ -21,7 +21,9 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         .flatMap(sect => sect.map(row => ({
             [row.key]: {
                 type: "pressable",
+                // title was renamed to useTitle, both are here for compatibility (thanks kmiioo) https://codeberg.org/raincord/rain/pulls/52
                 title: row.title,
+                useTitle: row.title,
                 icon: row.icon,
                 IconComponent: () => <TableRow.Icon source={row.icon} />,
                 usePredicate: row.usePredicate,
@@ -44,6 +46,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             VendettaCustomPage: {
                 type: "route",
                 title: () => "Kettu",
+                useTitle: () => "Kettu",
                 screen: {
                     route: "VendettaCustomPage",
                     getComponent: () => CustomPageRenderer
@@ -52,6 +55,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             PUPU_CUSTOM_PAGE: {
                 type: "route",
                 title: () => "Kettu",
+                useTitle: () => "Kettu",
                 screen: {
                     route: "PUPU_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
@@ -60,6 +64,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             BUNNY_CUSTOM_PAGE: {
                 type: "route",
                 title: () => "Kettu",
+                useTitle: () => "Kettu",
                 screen: {
                     route: "BUNNY_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
