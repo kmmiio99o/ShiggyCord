@@ -5,15 +5,14 @@ import type { ImageURISource } from "react-native";
 import { patchTabsUI } from "./patches/tabs";
 
 export interface RowConfig {
-  key: string;
-  title: () => string;
-  onPress?: () => any;
-  render?: Parameters<typeof lazy>[0];
-  icon?: ImageURISource | number;
-  IconComponent?: React.ReactNode;
-  usePredicate?: () => boolean;
-  useTrailing?: () => string | JSX.Element;
-  rawTabsConfig?: Record<string, any>;
+    key: string;
+    title: () => string;
+    onPress?: () => any;
+    render?: Parameters<typeof lazy>[0];
+    icon?: ImageURISource | number;
+    IconComponent?: React.ReactNode,
+    usePredicate?: () => boolean,
+    useTrailing?: () => string | JSX.Element
 }
 
 export const registeredSections = {} as {

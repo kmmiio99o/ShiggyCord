@@ -2,7 +2,6 @@ import { after } from "@lib/api/patcher";
 import { TableRow } from "@metro/common/components";
 import { findByNameLazy, findByPropsLazy } from "@metro/wrappers";
 import { registeredSections } from "@ui/settings";
-import { Strings } from "@core/i18n";
 
 import { CustomPageRenderer, wrapOnPress } from "./shared";
 import { findInReactTree } from "@lib/utils";
@@ -32,7 +31,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             useTitle: row.title,
             onPress: wrapOnPress(row.onPress, null, row.render, row.title()),
             withArrow: true,
-            ...row.rawTabsConfig,
           },
         })),
       )
