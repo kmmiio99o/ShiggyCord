@@ -34,6 +34,7 @@ const useStyles = createStyles({
   headerLeading: {
     flexDirection: "column",
     justifyContent: "center",
+    flexShrink: 1,
     scale: 1.2,
   },
   headerTrailing: {
@@ -108,9 +109,9 @@ export default function AddonCard(props: CardProps) {
       <Stack spacing={16}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={styles.headerLeading}>
-            <Text style={styles.headerLabel}>{props.headerLabel}</Text>
+            <Text numberOfLines={1} ellipsizeMode="tail" style={styles.headerLabel}>{props.headerLabel}</Text>
             {props.headerSublabel && (
-              <Text style={styles.headerSubtitle}>{props.headerSublabel}</Text>
+              <Text numberOfLines={1} ellipsizeMode="tail" style={styles.headerSubtitle}>{props.headerSublabel}</Text>
             )}
           </View>
           <View style={[styles.headerTrailing, { marginLeft: "auto" }]}>
