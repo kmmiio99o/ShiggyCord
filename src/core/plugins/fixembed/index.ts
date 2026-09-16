@@ -42,7 +42,7 @@ function transformLinks(content: string, config: FixEmbedSettings): string {
   if (config.instagram) {
     result = result.replace(
       /https?:\/\/(?:www\.)?instagram\.com(\/[^\s]+)/gi,
-      "https://uuinstagram.com$1",
+      "https://oginstagram.com$1",
     );
   }
   // TikTok: Replace domain, keep path
@@ -61,7 +61,7 @@ function transformLinks(content: string, config: FixEmbedSettings): string {
   if (config.reddit) {
     result = result.replace(
       /https?:\/\/(?:www\.)?reddit\.com(\/[^\s]+)/gi,
-      "https://rxddit.com$1",
+      "https://vxreddit.com$1",
     );
   }
   return result;

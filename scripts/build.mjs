@@ -56,6 +56,8 @@ const config = {
     "!ShiggyCord-deps-shim!": "./shims/depsModule.ts",
     spitroast: "./node_modules/spitroast",
     "react/jsx-runtime": "./shims/jsxRuntime",
+    "@gullerya/object-observer":
+      path.resolve("./node_modules/@gullerya/object-observer/dist/object-observer.min.js"),
   },
   plugins: [
     globalPlugin({
@@ -75,7 +77,7 @@ const config = {
                 constModules: {
                   globals: {
                     "bunny-build-info": {
-                      version: `"1.4.1.7"`,
+                      version: `"1.4.1.8"`,
                     },
                   },
                 },
