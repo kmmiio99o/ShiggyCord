@@ -4,6 +4,7 @@ import { Platform, processColor } from "react-native";
 
 const getChroma = () => require("chroma-js") as typeof import("chroma-js").default;
 
+import { deriveNeutralRaw } from "./neutral";
 import { colorsPref } from "./preferences";
 import { ColorManifest, InternalColorDefinition } from "./types";
 
@@ -49,12 +50,14 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
         }
 
         if (Platform.OS === "android") applyAndroidAlphaKeys(manifest.main.raw);
+        const raw3 = { ...manifest.main.raw };
+        deriveNeutralRaw(raw3, semanticColorDefinitions);
 
         return {
             spec: 3,
             reference: resolveType(manifest.type),
             semantic: semanticColorDefinitions,
-            raw: manifest.main.raw ?? {},
+            raw: raw3,
             background: manifest.main.background,
         };
     }
@@ -91,11 +94,14 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
             manifest.rawColors = draft;
         }
 
+        const raw2 = { ...manifest.rawColors };
+        deriveNeutralRaw(raw2, semanticDefinitions);
+
         return {
             spec: 2,
             reference: resolveType(),
             semantic: semanticDefinitions,
-            raw: manifest.rawColors ?? {},
+            raw: raw2,
             background
         };
     }
@@ -160,6 +166,7 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
         }
 
         if (Platform.OS === "android") applyAndroidAlphaKeys(rawDefinitions);
+        deriveNeutralRaw(rawDefinitions, semanticDefinitions); // rawDefinitions is built fresh above
 
         return {
             spec: 2,
