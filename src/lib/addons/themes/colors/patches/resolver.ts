@@ -24,6 +24,23 @@ const SEMANTIC_FALLBACK_MAP: Record<string, string> = {
     "BG_SURFACE_RAISED": "BACKGROUND_MOBILE_PRIMARY"
 };
 
+/**
+ * Whether Discord is resolving colors for an appearance the current theme should color.
+ *
+ * Normally Discord's appearance is switched to the theme's key, but on newer Discord versions
+ * (e.g. 349) it can stay on a built-in appearance such as "darker". Then only raw colors were
+ * themed and semantic colors (backgrounds, text) kept Discord's defaults, so also accept any
+ * built-in appearance of the theme's type: "light" for light themes, any other for dark ones.
+ */
+function isThemedAppearance(theme: unknown): boolean {
+    if (!_colorRef.current) return false;
+    if (typeof theme !== "string") return false;
+    // The current key, or one left over from an earlier session: both are ShiggyCord's.
+    if (theme === _colorRef.key || theme.startsWith("bn-theme-")) return true;
+
+    return _colorRef.current.reference === "light" ? theme === "light" : theme !== "light";
+}
+
 export default function patchDefinitionAndResolver() {
     const callback = ([theme]: any[]) => theme === _colorRef.key ? [_colorRef.current!.reference] : void 0;
 
@@ -53,10 +70,9 @@ export default function patchDefinitionAndResolver() {
     const unpatches = [
         before("updateTheme", NativeThemeModule, callback),
         instead("resolveSemanticColor", tokenReference.default.meta ?? tokenReference.default.internal, (args: any[], orig: any) => {
-            if (!_colorRef.current) return orig(...args);
-            if (args[0] !== _colorRef.key) return orig(...args);
+            if (!isThemedAppearance(args[0])) return orig(...args);
 
-            args[0] = _colorRef.current.reference;
+            args[0] = _colorRef.current!.reference;
 
             const [name, colorDef] = extractInfo(_colorRef.current!.reference, args[1]);
 
