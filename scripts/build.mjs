@@ -52,7 +52,7 @@ async function transformWithSwc(filePath) {
         constModules: {
           globals: {
             "bunny-build-info": {
-              version: `"1.4.1.8"`,
+              version: `"1.4.1.9"`,
             },
           },
         },
