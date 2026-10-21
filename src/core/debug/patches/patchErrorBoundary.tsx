@@ -16,7 +16,7 @@ function getErrorBoundaryContext(): Promise<any> {
       findByNameLazy("ErrorBoundary")[_lazyContextSymbol];
     if (ctxt) {
       return new Promise((resolve) =>
-        ctxt.getExports((exp: any) => resolve(exp.prototype)),
+        ctxt.getExports((exp: any) => resolve(exp?.prototype)),
       );
     }
   } catch (e) {
@@ -58,16 +58,24 @@ export default function patchErrorBoundary() {
   // Attempt to attach after the ErrorBoundary render. If the context lookup
   // fails, the promise will reject and the patcher will not install the patch,
   // which is preferable to throwing during startup.
-  const ctxPromise = getErrorBoundaryContext().catch((err) => {
-    try {
-      console.warn(
-        "[ShiggyCord] patchErrorBoundary: context lookup failed",
-        err,
-      );
-    } catch {}
-    // Return null so after.await receives a thenable; the patcher wrapper will handle it.
-    return null;
-  });
+  const ctxPromise = getErrorBoundaryContext()
+    .catch((err) => {
+      try {
+        console.warn(
+          "[ShiggyCord] patchErrorBoundary: context lookup failed",
+          err,
+        );
+      } catch {}
+      return null;
+    })
+    .then((proto: any) => {
+      // spitroast throws ("render is not a function in …") when the resolved
+      // target has no own render. On builds where ErrorBoundary is a function
+      // component that throw would escape as an unhandled rejection, so patch a
+      // harmless throwaway target instead of exploding.
+      if (proto && typeof proto.render === "function") return proto;
+      return { render() { return undefined; } };
+    });
 
   const unpatch = after.await("render", ctxPromise, function (this: any) {
     try {
@@ -109,6 +117,12 @@ export default function patchErrorBoundary() {
       return;
     }
   });
+
+  // "after.await" resolve-time patching may throw (e.g. Discord switched the
+  // ErrorBoundary to a function component / the resolved target has no own
+  // render. Swallow it here instead of aborting the whole init sequence.
+  const safeUnpatch =
+    typeof unpatch === "function" ? unpatch : () => undefined;
 
   // Best-effort: install global handlers to capture uncaught errors / promise rejections.
   // These handlers do not attempt to mount UI directly (that can be fragile), but they
@@ -156,5 +170,5 @@ export default function patchErrorBoundary() {
     }
   } catch {}
 
-  return unpatch;
+  return safeUnpatch;
 }
