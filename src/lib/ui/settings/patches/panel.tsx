@@ -75,59 +75,45 @@ export function patchPanelUI(unpatches: (() => void | boolean)[]) {
       "default",
       findByNameLazy("UserSettingsOverviewWrapper", false),
       (_a, ret) => {
-        // Never let a failed lookup crash the settings screen: on newer Discord
-        // builds the overview may be function-based and "type.prototype" may be
-        // undefined, which makes "after(...)" throw inside the patched render.
-        try {
-          const UserSettingsOverview = findInReactTree(
-            ret?.props?.children,
-            (n) => n?.type?.name === "UserSettingsOverview",
-          );
+        const UserSettingsOverview = findInReactTree(
+          ret.props.children,
+          (n) => n.type?.name === "UserSettingsOverview",
+        );
 
-          const proto = UserSettingsOverview?.type?.prototype;
-          if (!proto) return;
+        unpatches.push(
+          after(
+            "renderSupportAndAcknowledgements",
+            UserSettingsOverview.type.prototype,
+            (_args, { props: { children } }) => {
+              const index = children.findIndex(
+                (c: any) => c?.type?.name === "UploadLogsButton",
+              );
+              if (index !== -1) children.splice(index, 1);
+            },
+          ),
+        );
 
-          if (typeof proto.renderSupportAndAcknowledgements === "function") {
-            unpatches.push(
-              after(
-                "renderSupportAndAcknowledgements",
-                proto,
-                (_args, { props: { children } }: any) => {
-                  const index = children.findIndex(
-                    (c: any) => c?.type?.name === "UploadLogsButton",
-                  );
-                  if (index !== -1) children.splice(index, 1);
-                },
-              ),
-            );
-          }
+        unpatches.push(
+          after("render", UserSettingsOverview.type.prototype, (_args, res) => {
+            const titles = [
+              i18n.Messages.BILLING_SETTINGS,
+              i18n.Messages.PREMIUM_SETTINGS,
+            ];
 
-          if (typeof proto.render !== "function") return;
+            const sections =
+              findInReactTree(
+                res.props.children,
+                (n) => n?.children?.[1]?.type === LegacyFormSection,
+              )?.children || res.props.children;
 
-          unpatches.push(
-            after("render", proto, (_args, res) => {
-              try {
-                const titles = [
-                  i18n.Messages.BILLING_SETTINGS,
-                  i18n.Messages.PREMIUM_SETTINGS,
-                ];
-
-                const sections =
-                  findInReactTree(
-                    res.props.children,
-                    (n) => n?.children?.[1]?.type === LegacyFormSection,
-                  )?.children || res.props.children;
-
-                if (sections) {
-                  const index = sections.findIndex((c: any) =>
-                    titles.includes(c?.props.label),
-                  );
-                  sections.splice(-~index || 4, 0, <SettingsSection />);
-                }
-              } catch {}
-            }),
-          );
-        } catch {}
+            if (sections) {
+              const index = sections.findIndex((c: any) =>
+                titles.includes(c?.props.label),
+              );
+              sections.splice(-~index || 4, 0, <SettingsSection />);
+            }
+          }),
+        );
       },
       true,
     );
