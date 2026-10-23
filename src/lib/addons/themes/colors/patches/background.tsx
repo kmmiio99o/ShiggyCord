@@ -3,12 +3,12 @@ import { _colorRef } from "@lib/addons/themes/colors/updater";
 import { after } from "@lib/api/patcher";
 import { useObservable } from "@lib/api/storage";
 import { findInReactTree } from "@lib/utils";
-import { findByFilePathLazy } from "@metro";
+import { findByDisplayNameLazy } from "@metro";
 import chroma from "chroma-js";
 import { ImageBackground, StyleSheet } from "react-native";
 import { logger } from "@lib/utils/logger";
 
-const Messages = findByFilePathLazy("modules/messages/native/Messages.tsx", true);
+const MessagesModule = findByDisplayNameLazy("MessagesConnected", false);
 
 function ThemeBackground({ children }: { children: React.ReactNode; }) {
     useObservable([colorsPref]);
@@ -32,32 +32,37 @@ function ThemeBackground({ children }: { children: React.ReactNode; }) {
 
 export default function patchChatBackground() {
     try {
+        const patch = (_: any, ret: any) => {
+            if (!_colorRef.current || !_colorRef.current.background?.url) return;
+
+            const messagesComponent = findInReactTree(
+                ret,
+                x => x && "HACK_fixModalInteraction" in x.props && x?.props?.style
+            );
+
+            if (messagesComponent) {
+                const flattened = StyleSheet.flatten(messagesComponent.props.style);
+                const backgroundColor = chroma(
+                    flattened.backgroundColor || "black"
+                ).alpha(
+                    1 - (_colorRef.current.background?.opacity ?? 1)
+                ).hex();
+
+                messagesComponent.props.style = StyleSheet.flatten([
+                    messagesComponent.props.style,
+                    { backgroundColor }
+                ]);
+            }
+
+            return <ThemeBackground>{ret}</ThemeBackground>;
+        }
+
         const patches = [
-            after("render", Messages, (_, ret) => {
-                if (!_colorRef.current || !_colorRef.current.background?.url) return;
-
-                const messagesComponent = findInReactTree(
-                    ret,
-                    x => x && "HACK_fixModalInteraction" in x.props && x?.props?.style
-                );
-
-                if (messagesComponent) {
-                    const flattened = StyleSheet.flatten(messagesComponent.props.style);
-                    const backgroundColor = chroma(
-                        flattened.backgroundColor || "black"
-                    ).alpha(
-                        1 - (_colorRef.current.background?.opacity ?? 1)
-                    ).hex();
-
-                    messagesComponent.props.style = StyleSheet.flatten([
-                        messagesComponent.props.style,
-                        { backgroundColor }
-                    ]);
-                }
-
-                return <ThemeBackground>{ret}</ThemeBackground>;
-            })
+            typeof MessagesModule.default === "function"
+                ? after("default", MessagesModule, patch)
+                : after("render", MessagesModule.default, patch)
         ];
+
         return () => patches.forEach(x => x());
     } catch (e) {
         logger.error("Failed to patch chat background.", e);
