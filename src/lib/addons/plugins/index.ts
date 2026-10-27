@@ -507,6 +507,7 @@ export async function startPlugin(
   await preloadStorageIfExists(`plugins/storage/${id}.json`);
 
   let pluginInstance: t.PluginInstanceInternal;
+  let instantiator: PluginInstantiator;
 
   if (isExternalPlugin(manifest)) {
     // Stage one, "compile" the plugin
@@ -523,7 +524,16 @@ export async function startPlugin(
         // ignore if environment prevents writing to window
       }
 
-      var instantiator = globalEvalWithSourceUrl(
+      // Basic validation: file must exist and content must be non-empty
+      if (!iife || iife.length === 0) throw new Error("Plugin script is empty");
+      if (iife.length > 10 * 1024 * 1024) throw new Error("Plugin script exceeds 10MB limit");
+      // Small guard: block obvious malicious patterns in plugin scripts
+      const suspiciousPatterns = [/__SENTRY__/g, /XMLHttpRequest\.prototype\.send/];
+      for (const pat of suspiciousPatterns) {
+        pat.lastIndex = 0;
+        if (pat.test(iife)) throw new Error("Plugin script contains blocked patterns");
+      }
+      instantiator = globalEvalWithSourceUrl(
         `(bunny,definePlugin)=>{${iife};return plugin?.default ?? plugin;}`,
         `bunny-plugin/${id}-${manifest.version}`,
       ) as PluginInstantiator;
@@ -554,7 +564,7 @@ export async function startPlugin(
 
       // Wrap instantiator call to annotate errors with plugin id if they escape here.
       try {
-        pluginInstance = instantiator(api.object, (p) => {
+        pluginInstance = instantiator(api.object, (p: t.PluginInstance) => {
           return Object.assign(p, {
             manifest,
           }) as t.PluginInstanceInternal;

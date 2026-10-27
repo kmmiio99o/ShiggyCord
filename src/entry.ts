@@ -7,9 +7,6 @@ globalThis.window = globalThis;
 
 async function initializeShiggyCord() {
   try {
-    // Make 'freeze' and 'seal' do nothing
-    Object.freeze = Object.seal = Object;
-
     await require("@metro/internals/caches").initMetroCache();
     require(".").default();
   } catch (e) {
