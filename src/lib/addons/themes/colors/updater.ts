@@ -4,11 +4,11 @@ import { findByProps, findByPropsLazy, findByStoreNameLazy } from "@metro";
 import { parseColorManifest } from "./parser";
 import { ColorManifest, InternalColorDefinition } from "./types";
 
-const tokenRef = findByProps("SemanticColor");
-const origRawColor = { ...tokenRef.RawColor };
-const AppearanceManager = findByPropsLazy("updateTheme");
-const ThemeStore = findByStoreNameLazy("ThemeStore");
-const FormDivider = findByPropsLazy("DIVIDER_COLORS");
+var tokenRef = findByProps("SemanticColor");
+var origRawColor = { ...tokenRef.RawColor };
+var AppearanceManager = findByPropsLazy("updateTheme");
+var ThemeStore = findByStoreNameLazy("ThemeStore");
+var FormDivider = findByPropsLazy("DIVIDER_COLORS");
 
 let _inc = 1;
 
@@ -20,7 +20,7 @@ interface InternalColorRef {
 }
 
 /** @internal */
-export const _colorRef: InternalColorRef = {
+export var _colorRef: InternalColorRef = {
     current: null,
     key: `bn-theme-${_inc}`,
     origRaw: origRawColor,
@@ -30,8 +30,8 @@ export const _colorRef: InternalColorRef = {
 export function updateBunnyColor(colorManifest: ColorManifest | null, { update = true }) {
     if (settings.safeMode?.enabled) return;
 
-    const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
-    const ref = Object.assign(_colorRef, {
+    var internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
+    var ref = Object.assign(_colorRef, {
         current: internalDef,
         key: `bn-theme-${++_inc}`,
         lastSetDiscordTheme: !ThemeStore.theme.startsWith("bn-theme-")
