@@ -32,7 +32,7 @@ export default () => <ApplicationCommand>{
     ],
     async execute([code, async], ctx) {
         try {
-            const res = util.inspect(async?.value ? await AsyncFunction(code.value)() : eval?.(code.value));
+            const res = util.inspect(async?.value ? await AsyncFunction(code.value)() : new Function("return (" + code.value + ")")());
             const trimmedRes = res.length > 2000 ? res.slice(0, 2000) + "..." : res;
 
             messageUtil.sendBotMessage(ctx.channel.id, wrapInJSCodeblock(trimmedRes));
