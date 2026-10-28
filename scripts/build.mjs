@@ -35,7 +35,7 @@ const config = {
   splitting: false,
   // Enable minification by default for release builds (when a release-branch is provided).
   // This keeps development builds unminified for easier debugging.
-  minify: true,
+  minify: false,
   external: [],
   supported: {
     // Hermes does not actually support const and let, even though it syntactically
@@ -77,7 +77,7 @@ const config = {
                 constModules: {
                   globals: {
                     "bunny-build-info": {
-                      version: `"1.4.1.9"`,
+                      version: `"1.4.1.10"`,
                     },
                   },
                 },

@@ -22,6 +22,8 @@ const { getChannelId } = lazyDestructure(() => channels);
 const { getChannel } = lazyDestructure(() => findByProps("getChannel"));
 
 function typeFromUrl(url: string) {
+  // Basic validation: reject non-string or clearly malicious URLs
+  if (!url || typeof url !== "string" || url.length > 2048) return;
   if (url.startsWith(VD_PROXY_PREFIX)) {
     return "plugin";
   } else if (url.endsWith(".json") && isThemeSupported()) {

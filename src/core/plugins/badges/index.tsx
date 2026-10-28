@@ -113,9 +113,12 @@ export default defineCorePlugin({
 
                 allBadges.forEach((badge, i) => {
                     const badgeId = `rain-${userId}-${i}`;
+                    // Validate URL to prevent arbitrary URI injection
+                    const safeUrl = /^https?:\/\//.test(badge.url) ? badge.url : null;
+                    if (!safeUrl) return;
                     badgeProps.set(badgeId, {
                         id: badgeId,
-                        source: { uri: badge.url },
+                        source: { uri: safeUrl },
                         label: badge.label,
                         userId,
                     });
