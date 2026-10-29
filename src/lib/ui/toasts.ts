@@ -25,7 +25,6 @@ export const showToast = (content: string, asset?: number) => {
         toastModule.open({
             key: `vd-toast-${safeUuid4()}`,
             content: content,
-            source: asset,
             icon: asset,
         });
     } catch (e) {
