@@ -79,6 +79,7 @@ const config = {
                     "bunny-build-info": {
                       version: `"1.4.2.0"`,
                     },
+                    },
                   },
                 },
                 react: {
