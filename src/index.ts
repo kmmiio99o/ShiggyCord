@@ -76,16 +76,26 @@ export default async () => {
     updateFonts().catch((e) => logger.log("updateFonts failed:", e));
   };
 
+  let deferredExecuted = false;
+  const executeDeferred = () => {
+    if (deferredExecuted) return;
+    deferredExecuted = true;
+    runDeferred();
+  };
+
   // Preferred: wait until interactions finish (animations / navigation).
   try {
     InteractionManager.runAfterInteractions(() => {
       // small delay to ensure native lifecycle settled
-      setTimeout(runDeferred, 50);
+      setTimeout(executeDeferred, 50);
     });
   } catch (e) {
     // Fallback if InteractionManager isn't available for any reason.
-    setTimeout(runDeferred, 200);
+    setTimeout(executeDeferred, 200);
   }
+
+  // Safety fallback in case InteractionManager doesn't fire in Bridgeless architecture
+  setTimeout(executeDeferred, 500);
 
   // Final ready log for basic UI availability.
   logger.log("ShiggyCord is ready.");

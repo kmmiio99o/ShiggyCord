@@ -82,12 +82,18 @@ export function createProxy(target: any = {}): { proxy: any; emitter: Emitter; }
 }
 
 export function useProxy<T>(storage: T): T {
-    const emitter = (storage as any)?.[emitterSymbol] as Emitter;
-    if (!emitter) throw new Error("storage?.[emitterSymbol] is undefined");
-
     const [, forceUpdate] = React.useReducer(n => ~n, 0);
+    const emitter = (storage as any)?.[emitterSymbol] as Emitter | undefined;
 
     React.useEffect(() => {
+        if (!emitter) {
+            const awaitInit = (storage as any)?.[syncAwaitSymbol];
+            if (typeof awaitInit === "function") {
+                awaitInit(() => forceUpdate());
+            }
+            return;
+        }
+
         const listener: EmitterListener = (event: EmitterEvent, data: EmitterListenerData) => {
             if (event === "DEL" && data.value === storage) return;
             forceUpdate();
@@ -100,7 +106,7 @@ export function useProxy<T>(storage: T): T {
             emitter.off("SET", listener);
             emitter.off("DEL", listener);
         };
-    }, []);
+    }, [emitter]);
 
     return storage;
 }
@@ -125,6 +131,11 @@ export function wrapSync<T extends Promise<any>>(store: T): Awaited<T> {
     store.then(v => {
         awaited = v;
         awaitQueue.forEach(cb => cb());
+    }).catch(err => {
+        console.error("[wrapSync] Storage initialization error:", err);
+        const fallback = createProxy({}).proxy;
+        awaited = fallback;
+        awaitQueue.forEach(cb => cb());
     });
 
     return new Proxy({} as Awaited<T>, {
@@ -135,6 +146,9 @@ export function wrapSync<T extends Promise<any>>(store: T): Awaited<T> {
         ),
         get(target, prop, recv) {
             if (prop === syncAwaitSymbol) return awaitInit;
+            if (prop === emitterSymbol) {
+                return (awaited as any)?.[emitterSymbol];
+            }
             return Reflect.get(awaited ?? target, prop, recv);
         },
     });
@@ -171,14 +185,18 @@ const getMMKVPath = (name: string): string => {
 };
 
 export const purgeStorage = async (store: string) => {
-    if (await NativeCacheModule.getItem(store)) {
-        NativeCacheModule.removeItem(store);
-    }
+    try {
+        if (await NativeCacheModule?.getItem?.(store)) {
+            NativeCacheModule?.removeItem?.(store);
+        }
+    } catch {}
 
     const mmkvPath = getMMKVPath(store);
-    if (await NativeFileModule.fileExists(`${NativeFileModule.getConstants().DocumentsDirPath}/${mmkvPath}`)) {
-        await NativeFileModule.removeFile?.("documents", mmkvPath);
-    }
+    try {
+        if (await NativeFileModule?.fileExists?.(`${NativeFileModule?.getConstants?.()?.DocumentsDirPath}/${mmkvPath}`)) {
+            await NativeFileModule?.removeFile?.("documents", mmkvPath);
+        }
+    } catch {}
 };
 
 export const createMMKVBackend = (store: string, defaultData = {}) => {
@@ -186,33 +204,44 @@ export const createMMKVBackend = (store: string, defaultData = {}) => {
     const defaultStr = JSON.stringify(defaultData);
 
     return createFileBackend(mmkvPath, defaultData, (async () => {
-        const path = `${NativeFileModule.getConstants().DocumentsDirPath}/${mmkvPath}`;
-        if (await NativeFileModule.fileExists(path)) return;
+        try {
+            const path = `${NativeFileModule?.getConstants?.()?.DocumentsDirPath}/${mmkvPath}`;
+            if (await NativeFileModule?.fileExists?.(path)) return;
 
-        let oldData = await NativeCacheModule.getItem(store) ?? defaultStr;
-
-        // From the testing on Android, it seems to return this if the data is too large
-        if (oldData === "!!LARGE_VALUE!!") {
-            const cachePath = `${NativeFileModule.getConstants().CacheDirPath}/mmkv/${store}`;
-            if (await NativeFileModule.fileExists(cachePath)) {
-                oldData = await NativeFileModule.readFile(cachePath, "utf8");
-            } else {
-                console.log(`${store}: Experienced data loss :(`);
+            let oldData = defaultStr;
+            try {
+                oldData = (await NativeCacheModule?.getItem?.(store)) ?? defaultStr;
+            } catch {
                 oldData = defaultStr;
             }
-        }
 
-        try {
-            JSON.parse(oldData);
-        } catch {
-            console.error(`${store} had an unparseable data while migrating`);
-            oldData = defaultStr;
-        }
+            // From the testing on Android, it seems to return this if the data is too large
+            if (oldData === "!!LARGE_VALUE!!") {
+                const cachePath = `${NativeFileModule?.getConstants?.()?.CacheDirPath}/mmkv/${store}`;
+                if (await NativeFileModule?.fileExists?.(cachePath)) {
+                    oldData = await NativeFileModule.readFile(cachePath, "utf8");
+                } else {
+                    console.log(`${store}: Experienced data loss :(`);
+                    oldData = defaultStr;
+                }
+            }
 
-        await NativeFileModule.writeFile("documents", filePathFixer(mmkvPath), oldData, "utf8");
-        if (await NativeCacheModule.getItem(store) !== null) {
-            NativeCacheModule.removeItem(store);
-            console.log(`Successfully migrated ${store} store from MMKV storage to fs`);
+            try {
+                JSON.parse(oldData);
+            } catch {
+                console.error(`${store} had an unparseable data while migrating`);
+                oldData = defaultStr;
+            }
+
+            await NativeFileModule?.writeFile?.("documents", filePathFixer(mmkvPath), oldData, "utf8");
+            try {
+                if ((await NativeCacheModule?.getItem?.(store)) !== null) {
+                    NativeCacheModule?.removeItem?.(store);
+                    console.log(`Successfully migrated ${store} store from MMKV storage to fs`);
+                }
+            } catch {}
+        } catch (e) {
+            console.error(`Migration error for store ${store}:`, e);
         }
     })());
 };
